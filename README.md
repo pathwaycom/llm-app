@@ -1,10 +1,10 @@
 <p align="center">
-    <a href="https://github.com/pathwaycom/llm-app-pathway/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/pathwaycom/llm-app-pathway?style=plastic" alt="Contributors"/></a>
-    <a href="https://github.com/pathwaycom/llm-app-pathway/graphs/contributors">
-        <img src="https://img.shields.io/github/contributors/pathwaycom/llm-app-pathway?style=plastic" alt="Contributors"/></a>
-    <a href="https://github.com/pathwaycom/llm-app-pathway/actions/workflows/install_package.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/pathwaycom/llm-app-pathway/install_package.yml?style=plastic" alt="Build" /></a> 
+    <a href="https://github.com/pathwaycom/llm-app/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/pathwaycom/llm-app?style=plastic" alt="Contributors"/></a>
+    <a href="https://github.com/pathwaycom/llm-app/graphs/contributors">
+        <img src="https://img.shields.io/github/contributors/pathwaycom/llm-app?style=plastic" alt="Contributors"/></a>
+    <a href="https://github.com/pathwaycom/llm-app/actions/workflows/install_package.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/pathwaycom/llm-app/install_package.yml?style=plastic" alt="Build" /></a> 
         <img src="https://img.shields.io/badge/OS-Linux-green" alt="Linux"/>
         <img src="https://img.shields.io/badge/OS-macOS-green" alt="macOS"/>
       <br>
@@ -42,7 +42,7 @@ Clone the repository. Create a new environment and install the required packages
 
 ```bash
 python -m venv pw-env && source pw-env/bin/activate
-cd llm-app-pathway/
+cd llm-app/
 pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
 ```
 ### Usage
