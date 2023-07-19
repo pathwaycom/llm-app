@@ -1,9 +1,8 @@
 import os
 
 import pathway as pw
+from model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
 from pathway.stdlib.ml.index import KNNIndex
-
-from llm_app.model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
 
 
 class DocumentInputSchema(pw.Schema):
@@ -68,11 +67,7 @@ def run():
 
     responses = prompt.select(
         query_id=pw.this.id,
-        result=model.apply(
-            pw.this.prompt,
-            return_full_text=False,
-            max_new_tokens=60
-        ),
+        result=model.apply(pw.this.prompt, return_full_text=False, max_new_tokens=60),
     )
 
     response_writer(responses)

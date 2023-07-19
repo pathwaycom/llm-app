@@ -1,5 +1,5 @@
-from llm_app.model_wrappers.api_clients.clients import HuggingFaceClient
-from llm_app.model_wrappers.base import APIModel
+from model_wrappers.api_clients.clients import HuggingFaceClient
+from model_wrappers.base import APIModel
 
 
 class HuggingFaceAPIModel(APIModel):

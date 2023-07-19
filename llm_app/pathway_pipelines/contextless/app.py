@@ -1,8 +1,7 @@
 import os
 
 import pathway as pw
-
-from llm_app.model_wrappers import OpenAIChatGPTModel
+from model_wrappers import OpenAIChatGPTModel
 
 
 class QueryInputSchema(pw.Schema):

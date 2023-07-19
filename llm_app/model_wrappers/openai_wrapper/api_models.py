@@ -1,11 +1,10 @@
-from pathway.internals import expression as expr
-
-from llm_app.model_wrappers.api_clients.clients import (
+from model_wrappers.api_clients.clients import (
     OpenAIChatCompletionClient,
     OpenAIClient,
     OpenAIEmbeddingClient,
 )
-from llm_app.model_wrappers.base import APIModel
+from model_wrappers.base import APIModel
+from pathway.internals import expression as expr
 
 
 class MessagePreparer:

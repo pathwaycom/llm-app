@@ -1,6 +1,5 @@
+from model_wrappers.base import BaseModel
 from transformers import pipeline
-
-from llm_app.model_wrappers.base import BaseModel
 
 
 class HFPipelineTask(BaseModel):

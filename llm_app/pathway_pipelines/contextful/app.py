@@ -23,9 +23,8 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 import os
 
 import pathway as pw
+from model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 from pathway.stdlib.ml.index import KNNIndex
-
-from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
 class DocumentInputSchema(pw.Schema):
