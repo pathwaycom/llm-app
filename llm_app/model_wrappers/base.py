@@ -6,7 +6,7 @@ import diskcache
 import pathway as pw
 from pathway.internals import expression as expr
 
-from model_wrappers.api_clients.clients import APIClient
+from llm_app.model_wrappers.api_clients.clients import APIClient
 
 
 class _Cache:

@@ -1,5 +1,5 @@
 {
-    "python.defaultInterpreterPath": "${env:HOME}/llm-app-pathway/pw-env/bin/python",
+    "python.defaultInterpreterPath": "${env:HOME}/pw-env/bin/python",
     "python.formatting.provider": "none",
     "editor.formatOnSave": true,
     "python.linting.enabled": true,

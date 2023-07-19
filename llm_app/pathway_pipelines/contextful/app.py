@@ -14,7 +14,7 @@ for documents in the corpus. A prompt is build from the relevant documentations 
 and sent to the OpenAI GPT-4 chat service for processing.
 
 Usage:
-In llm-app/ run:
+In llm_app/ run:
 python main.py --mode contextful
 
 To call the REST API:
@@ -25,7 +25,7 @@ import os
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
+from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
 class DocumentInputSchema(pw.Schema):

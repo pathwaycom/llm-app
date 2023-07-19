@@ -3,7 +3,7 @@ import os
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
+from llm_app.model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
 
 
 class DocumentInputSchema(pw.Schema):
