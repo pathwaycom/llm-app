@@ -16,8 +16,8 @@ class HFPipelineTask(BaseModel):
 
 
 class HFFeatureExtractionTask(HFPipelineTask):
-    def __init__(self, max_length=500, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, model_name, device="cpu", max_length=500, **kwargs):
+        super().__init__(model_name, device=device, **kwargs)
         self.max_length = max_length
 
     def __call__(self, text, **kwargs):
@@ -33,8 +33,15 @@ class HFFeatureExtractionTask(HFPipelineTask):
 
 
 class HFTextGenerationTask(HFPipelineTask):
-    def __init__(self, max_prompt_length=500, max_new_tokens=500, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        model_name,
+        device="cpu",
+        max_prompt_length=500,
+        max_new_tokens=500,
+        **kwargs
+    ):
+        super().__init__(model_name, device=device, **kwargs)
         self.max_prompt_length = max_prompt_length
         self.max_new_tokens = max_new_tokens
 

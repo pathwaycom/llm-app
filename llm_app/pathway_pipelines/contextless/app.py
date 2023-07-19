@@ -39,4 +39,4 @@ def run():
 
     response_writer(responses)
 
-    pw.run_all(debug=True)
+    pw.run()
