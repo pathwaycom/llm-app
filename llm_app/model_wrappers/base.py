@@ -1,11 +1,11 @@
 import functools
 import os
 from abc import ABC, abstractmethod
+from typing import Union
 
 import diskcache
 import pathway as pw
 from model_wrappers.api_clients.clients import APIClient
-from pathway.internals import expression as expr
 
 
 class _Cache:
@@ -40,9 +40,9 @@ class BaseModel(ABC):
 
     def apply(
         self,
-        text: expr.ColumnExpressionOrConst,
+        text: Union[pw.ColumnExpression, str],
         **kwargs,
-    ) -> expr.ColumnExpressionOrConst:
+    ) -> pw.ColumnExpression:
 
         return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)
 
