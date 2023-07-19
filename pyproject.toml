@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 88
+exclude = '''/(
+    | .git
+)/'''
+
+[tool.isort]
+profile = "black"
+known_first_party = ["llm_app"]

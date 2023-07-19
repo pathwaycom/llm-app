@@ -92,4 +92,3 @@ class HFApiTextGenerationTask(HuggingFaceAPIModel):
     def __call__(self, text: str, locator="gpt2", **kwargs):
         response = self.call_api(inputs=text, model=locator, **kwargs)
         return response[0]["generated_text"]
-

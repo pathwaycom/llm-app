@@ -14,16 +14,17 @@ for documents in the corpus. A prompt is build from the relevant documentations 
 and sent to the OpenAI GPT-4 chat service for processing.
 
 Usage:
-In llm-app/ run:
+In llm_app/ run:
 python main.py --mode contextful
 
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
 import os
+
 import pathway as pw
+from model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 from pathway.stdlib.ml.index import KNNIndex
-from model_wrappers import OpenAIEmbeddingModel, OpenAIChatGPTModel
 
 
 class DocumentInputSchema(pw.Schema):
@@ -96,7 +97,7 @@ def run():
             pw.this.prompt,
             locator=MODEL_LOCATOR,
             temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS
+            max_tokens=MAX_TOKENS,
         ),
     )
 

@@ -1,4 +1,4 @@
-from pathway.internals import expression as expr
+import pathway as pw
 from model_wrappers.api_clients.clients import (
     OpenAIChatCompletionClient,
     OpenAIClient,
@@ -42,7 +42,7 @@ class OpenAIChatGPTModel(APIModel):
         self,
         *args,
         **kwargs,
-    ) -> expr.ColumnExpressionOrConst:
+    ) -> pw.ColumnExpression:
         """
         Applies the specified model in `locator` from OpenAIChatGPT API to the provided text.
         Parameters
@@ -109,7 +109,7 @@ class OpenAIEmbeddingModel(APIModel):
         self,
         *args,
         **kwargs,
-    ) -> expr.ColumnExpressionOrConst:
+    ) -> pw.ColumnExpression:
         """
         Applies the specified model in `locator` from OpenAIEmbeddingModel API to the provided text.
         Parameters

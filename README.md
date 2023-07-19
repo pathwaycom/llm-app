@@ -40,15 +40,16 @@ The app reads a corpus of documents stored in S3 or locally, preprocesses them, 
 
 ### Installation
 
-Clone the repository and `cd` to it. Create a new environment and install the required packages:
+Clone the repository. Create a new environment and install the required packages:
 
 ```bash
 python -m venv pw-env && source pw-env/bin/activate
+cd llm-app-pathway/
 pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
 ```
 ### Usage
 
-- Create an .env file in llm-app/ directory and add the following environment variables:
+- Create an .env file in `llm_app/` directory and add the following environment variables:
 ```bash
 PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
 PATHWAY_REST_CONNECTOR_PORT=8080
@@ -58,7 +59,7 @@ PATHWAY_CACHE_DIR=/tmp/cache
 
 - Run the script using the command: 
 ```bash 
-cd llm-app/
+cd llm_app/
 python main.py --mode contextful
 ```
 You can also run the app without the need for external APIs by using `local` mode.

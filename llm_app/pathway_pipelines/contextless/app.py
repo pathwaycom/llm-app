@@ -1,4 +1,5 @@
 import os
+
 import pathway as pw
 from model_wrappers import OpenAIChatGPTModel
 
@@ -32,7 +33,7 @@ def run():
             pw.this.query,
             locator=MODEL_LOCATOR,
             temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS
+            max_tokens=MAX_TOKENS,
         ),
     )
 
