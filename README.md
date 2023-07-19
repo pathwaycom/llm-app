@@ -22,7 +22,7 @@ Pathway's **LLM App** is a chatbot application which provides real-time response
 
 ## Project Overview
 
-LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a vector index calling a routine from the Pathway package. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
+LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a vector index by calling a routine from the [Pathway package](https://github.com/pathwaycom/). It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
 
 ### Watch a Demo Here
 (Available soon)
