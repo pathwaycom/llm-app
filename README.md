@@ -18,7 +18,7 @@
 
 # LLM App
 
-Pathway's **LLM App** is a chatbot application which provides real-time responses to user queries, based on the freshest knowledge available in a document store. It does not require a separate vector database, and helps to avoid fragmented LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Document data lives in the place where it was stored already, and LLM App provides on top of this a light but integrated data processing layer, which is highly performant and can be easily customized and extended. It is particulary recommended for privacy-preserving LLM applications.
+Pathway's **LLM App** is a chatbot application which provides real-time responses to user queries, based on the freshest knowledge available in a document store. It does not require a separate vector database, and helps to avoid fragmented LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Document data lives in the place where it was stored already. On top of this, LLM App provides a light but integrated data processing layer, which is highly performant and can be easily customized and extended. It is particulary recommended for privacy-preserving LLM applications.
 
 ## Project Overview
 
