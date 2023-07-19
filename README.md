@@ -1,7 +1,3 @@
-
-<div align="center">
-  <img src="https://pathway.com/logo-light.svg" /><br /><br />
-</div>
 <p align="center">
     <a href="https://github.com/pathwaycom/llm-app-pathway/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/pathwaycom/llm-app-pathway?style=plastic" alt="Contributors"/></a>
@@ -20,11 +16,13 @@
             alt="follow on Twitter"></a>
 </p>
 
-This repository contains the code for our Pathway-based LLM App, which is designed to provide real-time responses to queries about the Pathway documentation.
+# LLM App
+
+Pathway's **LLM App** is a chatbot application which provides real-time responses to user queries, based on the freshest knowledge available in a document store. It does not require a separate vector database, and helps to avoid fragmented LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Document data lives in the place where it was stored already, and on top of this, LLM App provides a light but integrated data processing layer, which is highly performant and can be easily customized and extended. It is particulary recommended for privacy-preserving LLM applications.
 
 ## Project Overview
 
-The app reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a Pathway vector index. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
+LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a vector index by calling a routine from the Pathway package. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
 
 ### Watch a Demo Here
 (Available soon)
@@ -77,5 +75,19 @@ cp ./data/documents_extra.jsonl ./data/pathway-docs/
 curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
 ```
 
+### Data Privacy and Use in Organizations
+
+LLM App can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
+
+It can also be extended to handle live data sources (news feeds, API's, data streams in Kafka), to include user permissions, a data security layer, and an LLMops monitoring layer.
+
+See: [Features for Organizations](FEATURES-for-organizations.md).
+
 ## Further Reading
 Read more about the implementation details and how to extend this application in our [blog series](https://pathway.com/blog/?tag=tutorial).
+
+## Supported and maintained by:
+
+<div align="center">
+  <a href="https://github.com/pathwaycom/"><img src="https://pathway.com/logo-light.svg" /></a>
+</div>
