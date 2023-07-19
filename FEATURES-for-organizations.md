@@ -12,6 +12,8 @@ Extend the application to connect to live data feeds (REST API’s, RSS, message
 
 Purpose built for Data privacy so that you can use your own LLMs and embedding code.
 
+Set-up allows to avoid any external API calls.
+
 ## 3. Indexing
 
 Document pipeline tested for indexing large document sets - 100,000+.
