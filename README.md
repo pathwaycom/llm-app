@@ -1,7 +1,3 @@
-
-<div align="center">
-  <img src="https://pathway.com/logo-light.svg" /><br /><br />
-</div>
 <p align="center">
     <a href="https://github.com/pathwaycom/llm-app-pathway/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/pathwaycom/llm-app-pathway?style=plastic" alt="Contributors"/></a>
@@ -20,7 +16,9 @@
             alt="follow on Twitter"></a>
 </p>
 
-This repository contains the code for Pathway's LLM App - a chatbot application which provides real-time responses based on the freshest knowledge available in a document store (document folder, documentation, wiki, etc.). LLM App allows you to avoid fragmented LLM stack setups (such as Pinecone/Weaviate + Langchain + Redis + FastAPI +...). Instead, it keeps data where it is stored already, with no need to install a separate vector database, and provides on top of this a light but integrated data processing layer, which is highly performant and can be easily customized and extended.  
+# LLM App
+
+Pathway's **LLM App** is a chatbot application which provides real-time responses based on the freshest knowledge available in a document store. It does not require a separate vector database, and helps to avoid fragmented LLM stacks (such as Pinecone/Weaviate + Langchain + Redis + FastAPI +...). Document data lives in the place where it was stored already, and LLM App provides on top of this a light but integrated data processing layer, which is highly performant and can be easily customized and extended.  
 
 ## Project Overview
 
@@ -77,13 +75,19 @@ cp ./data/documents_extra.jsonl ./data/pathway-docs/
 curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
 ```
 
-### Using LLM App in Organizations
+### Data Privacy and Use in Organizations
 
-The project can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
+LLM App can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
 
-It can also be extended to handle live data sources (news feeds, API's, data streams in Kafka), to include user permissions, a data security layer, and an LLMops monitoring layer - with no additional dependencies.
+It can also be extended to handle live data sources (news feeds, API's, data streams in Kafka), to include user permissions, a data security layer, and an LLMops monitoring layer.
 
 See: [Features for Organizations](FEATURES-for-organizations.md).
 
 ## Further Reading
 Read more about the implementation details and how to extend this application in our [blog series](https://pathway.com/blog/?tag=tutorial).
+
+## Supported and maintained by:
+
+<div align="center">
+  <a href="https://pathway.com"><img src="https://pathway.com/logo-light.svg" /></a>
+</div>
