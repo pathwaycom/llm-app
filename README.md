@@ -20,7 +20,7 @@
             alt="follow on Twitter"></a>
 </p>
 
-This repository contains the code for Pathway's LLM App - a compact chatbot application which provides real-time responses to user queries based on the freshest knowledge available in a provided document store (document folder, documentation, wiki, etc.), with no need to install a separate vector database. The app bypasses fragmented LLM stack setups (such as Pinecone/Weaviate + Langchain + Redis + FastAPI +...). Instead, it keeps data where it is stored already, and provides on top of this a light but integrated data processing layer, which is highly performant and can be easily extended.  
+This repository contains the code for Pathway's LLM App - a chatbot application which provides real-time responses based on the freshest knowledge available in a document store (document folder, documentation, wiki, etc.). LLM App allows you to avoid fragmented LLM stack setups (such as Pinecone/Weaviate + Langchain + Redis + FastAPI +...). Instead, it keeps data where it is stored already, with no need to install a separate vector database, and provides on top of this a light but integrated data processing layer, which is highly performant and can be easily customized and extended.  
 
 ## Project Overview
 
