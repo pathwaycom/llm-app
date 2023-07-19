@@ -20,11 +20,12 @@
             alt="follow on Twitter"></a>
 </p>
 
-This repository contains the code for our Pathway-based LLM App, which is designed to provide real-time responses to queries about the Pathway documentation.
+This repository contains the code for Pathway's LLM App - a compact chatbot application. It provides real-time responses to user queries based on the freshest knowledge available in a provided document store (document folder, documentation, wiki, etc.), with no need to install a separate vector database.
+This project bypasses fragmented LLM app stacks (e.g. Pinecone/Weaviate + Langchain + Redis + FastAPI +...) in favor of keeping data where it is stored already, plus a light but unified data processing layer which can be easily extended.  
 
 ## Project Overview
 
-The app reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a Pathway vector index. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
+LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a vector index calling a routine from the Pathway package. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
 
 ### Watch a Demo Here
 (Available soon)
@@ -76,6 +77,14 @@ curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://lo
 cp ./data/documents_extra.jsonl ./data/pathway-docs/
 curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
 ```
+
+### Using LLM App in Organizations
+
+The project can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
+
+It can also be extended to handle live data sources (news feeds, API's, data streams in Kafka), to include user permissions, a data security layer, and an LLMops monitoring layer - with no additional dependencies.
+
+See: [Features for Organizations](FEATURES-for-organizations.md).
 
 ## Further Reading
 Read more about the implementation details and how to extend this application in our [blog series](https://pathway.com/blog/?tag=tutorial).
