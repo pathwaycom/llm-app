@@ -1,13 +1,12 @@
 from transformers import pipeline
+
 from model_wrappers.base import BaseModel
 
 
 class HFPipelineTask(BaseModel):
     def __init__(self, model_name, device="cpu", **kwargs):
         super().__init__(**kwargs)
-        self.pipeline = pipeline(
-            model=model_name, device=device
-        )
+        self.pipeline = pipeline(model=model_name, device=device)
         self.tokenizer = self.pipeline.tokenizer
 
     def crop_to_max_length(self, input_string, max_length=500):
@@ -43,7 +42,7 @@ class HFTextGenerationTask(HFPipelineTask):
     def __call__(self, text, **kwargs):
         text = self.crop_to_max_length(text, self.max_prompt_length)
 
-        max_new_tokens = kwargs.pop('max_new_tokens', self.max_new_tokens)
+        max_new_tokens = kwargs.pop("max_new_tokens", self.max_new_tokens)
 
         output = self.pipeline(text, max_new_tokens=max_new_tokens, **kwargs)
         return output[0]["generated_text"]

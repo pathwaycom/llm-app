@@ -1,9 +1,11 @@
-import pathway as pw
-from pathway.internals import expression as expr
 import functools
 import os
 from abc import ABC, abstractmethod
+
 import diskcache
+import pathway as pw
+from pathway.internals import expression as expr
+
 from model_wrappers.api_clients.clients import APIClient
 
 

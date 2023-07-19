@@ -21,9 +21,11 @@ To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
 import os
+
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
-from model_wrappers import OpenAIEmbeddingModel, OpenAIChatGPTModel
+
+from model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
 class DocumentInputSchema(pw.Schema):
@@ -96,7 +98,7 @@ def run():
             pw.this.prompt,
             locator=MODEL_LOCATOR,
             temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS
+            max_tokens=MAX_TOKENS,
         ),
     )
 

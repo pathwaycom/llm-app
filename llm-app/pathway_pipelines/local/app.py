@@ -1,10 +1,9 @@
 import os
+
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
-from model_wrappers import (
-    HFFeatureExtractionTask,
-    HFTextGenerationTask,
-)
+
+from model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
 
 
 class DocumentInputSchema(pw.Schema):
@@ -28,7 +27,10 @@ def run():
     embedder = HFFeatureExtractionTask(model_name=EMBEDDER_LOCATOR)
 
     documents = pw.io.jsonlines.read(
-        "../data/pathway-docs/", schema=DocumentInputSchema, mode="streaming", autocommit_duration_ms=50
+        "../data/pathway-docs/",
+        schema=DocumentInputSchema,
+        mode="streaming",
+        autocommit_duration_ms=50,
     )
 
     enriched_documents = documents + documents.select(
@@ -55,9 +57,7 @@ def run():
     @pw.udf
     def build_prompt(documents, query):
         docs_str = "\n".join(documents)
-        prompt = (
-            f"Given the following documents : \n {docs_str} \nanswer this query: {query}"
-        )
+        prompt = f"Given the following documents : \n {docs_str} \nanswer this query: {query}"
         return prompt
 
     prompt = query_context.select(
