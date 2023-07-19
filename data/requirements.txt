@@ -1,6 +1,0 @@
-pathway
-openai
-transformers[torch]
-requests
-diskcache
-python-dotenv
