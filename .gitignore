@@ -1,4 +1,3 @@
 pw-env/
-.vscode/
 __pycache__/
 **/.env
