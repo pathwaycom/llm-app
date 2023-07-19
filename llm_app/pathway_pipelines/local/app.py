@@ -26,7 +26,7 @@ def run():
     embedder = HFFeatureExtractionTask(model_name=EMBEDDER_LOCATOR)
 
     documents = pw.io.jsonlines.read(
-        "../data/pathway-docs/",
+        "../data/pathway-docs-small/",
         schema=DocumentInputSchema,
         mode="streaming",
         autocommit_duration_ms=50,
@@ -72,4 +72,4 @@ def run():
 
     response_writer(responses)
 
-    pw.run_all(debug=True)
+    pw.run()
