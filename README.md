@@ -48,7 +48,7 @@ pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba
 ```
 ### Usage
 
-- Create an .env file and add the following environment variables:
+- Create an .env file in llm-app/ directory and add the following environment variables:
 ```bash
 PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
 PATHWAY_REST_CONNECTOR_PORT=8080
