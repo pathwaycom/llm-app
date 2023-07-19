@@ -45,7 +45,7 @@ class BaseModel(ABC):
         **kwargs,
     ) -> expr.ColumnExpressionOrConst:
 
-        return pw.apply_async(self, text=text, **kwargs)
+        return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)
 
 
 class APIModel(BaseModel):

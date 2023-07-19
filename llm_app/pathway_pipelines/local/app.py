@@ -68,7 +68,11 @@ def run():
 
     responses = prompt.select(
         query_id=pw.this.id,
-        result=model.apply(pw.this.prompt, return_full_text=False, max_new_tokens=60),
+        result=model.apply(
+            pw.this.prompt,
+            return_full_text=False,
+            max_new_tokens=60
+        ),
     )
 
     response_writer(responses)
