@@ -89,5 +89,5 @@ Read more about the implementation details and how to extend this application in
 ## Supported and maintained by:
 
 <div align="center">
-  <a href="https://pathway.com"><img src="https://pathway.com/logo-light.svg" /></a>
+  <a href="https://github.com/pathwaycom/"><img src="https://pathway.com/logo-light.svg" /></a>
 </div>
