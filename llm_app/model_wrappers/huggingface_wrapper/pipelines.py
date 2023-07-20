@@ -107,6 +107,8 @@ class HFTextGenerationTask(HFPipelineTask):
                     None: Does nothing special
                     "hole": Truncates left of input, leaving a gap for generation.
                         Might truncate a lot of the prompt, not suitable when generation exceeds model capacity.
+            Other arguments from transformers.TextGenerationPipeline.__call__ are supported as well. Link:
+            https://huggingface.co/docs/transformers/main/main_classes/pipelines#transformers.TextGenerationPipeline.__call__
 
         """
         text = self.crop_to_max_length(text, self.max_prompt_length)
