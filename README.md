@@ -56,13 +56,14 @@ This section provides a general introduction on how to start using the app.
     ```
 ### Usage
 
-1. **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables:
+1. **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
     ```bash
     PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
     PATHWAY_REST_CONNECTOR_PORT=8080
     OPENAI_API_TOKEN=<Your Token>
     PATHWAY_CACHE_DIR=/tmp/cache
     ```
+    If you are not running the local version, please remember to replace `OPENAI_API_TOKEN` with your personal API token, which you can generate from your account on [openai.com](https://platform.openai.com/account/api-keys).
 
 2. **Run the App:** You can start the application with the command:
     ```bash 
