@@ -7,23 +7,22 @@ class HFPipelineTask(BaseModel):
         """
     A wrapper class for Hugging Face's `Pipeline` class.
 
-    The `pipeline` function from Hugging Face is a utility factory method that creates 
+    The `pipeline` function from Hugging Face is a utility factory method that creates
     a Pipeline to handle different tasks.
-    It supports tasks like text classification, translation, summarization, and many more. 
+    It supports tasks like text classification, translation, summarization, and many more.
 
-    This wrapper class simplifies the process of initializing the pipeline and allows the user 
-    to easily change the underlying
-    model used for computations.
+    This wrapper class simplifies the process of initializing the pipeline and allows the user
+    to easily change the underlying model used for computations.
 
     Parameters:
     -----------
     model : str, required
         The model identifier from Hugging Face's model hub.
     device : str, default='cpu'
-        The device where the computations will be performed. 
+        The device where the computations will be performed.
         Supports 'cpu' or 'gpu'. Default is 'cpu'.
     **kwargs : optional
-        Additional arguments form HF. 
+        Additional arguments form HF.
         Please check out https://huggingface.co/docs/transformers/main/main_classes/pipelines
         for more information on the models and available arguments.
 
@@ -51,8 +50,8 @@ class HFPipelineTask(BaseModel):
 
 
 class HFFeatureExtractionTask(HFPipelineTask):
-    def __init__(self, model_name, device="cpu", max_length=500, **kwargs):
-        super().__init__(model_name, device=device, **kwargs)
+    def __init__(self, model, device="cpu", max_length=500, **kwargs):
+        super().__init__(model, device=device, **kwargs)
         self.max_length = max_length
 
     def __call__(self, text, **kwargs):
@@ -60,7 +59,7 @@ class HFFeatureExtractionTask(HFPipelineTask):
         This method computes feature embeddings for the given text.
         HuggingFace Feature extraction models return embeddings per token.
         To get the embedding vector of a text, we simply take the average.
-        
+
         Args:
             text (str): The text for which we compute the embedding.
             **kwargs: Additional arguments to be passed to the pipeline.
@@ -68,7 +67,7 @@ class HFFeatureExtractionTask(HFPipelineTask):
         Returns:
             List[float]: The average feature embeddings computed by the model.
         """
-         
+
         text = self.crop_to_max_length(text, max_length=self.max_length)
         # This will return a list of lists (one list for each word in the text)
         embedding = self.pipeline(text, **kwargs)[0]
@@ -82,13 +81,13 @@ class HFFeatureExtractionTask(HFPipelineTask):
 class HFTextGenerationTask(HFPipelineTask):
     def __init__(
         self,
-        model_name,
+        model,
         device="cpu",
         max_prompt_length=500,
         max_new_tokens=500,
         **kwargs
     ):
-        super().__init__(model_name, device=device, **kwargs)
+        super().__init__(model, device=device, **kwargs)
         self.max_prompt_length = max_prompt_length
         self.max_new_tokens = max_new_tokens
 
@@ -97,16 +96,16 @@ class HFTextGenerationTask(HFPipelineTask):
         Run the model to complete the text.
         Args:
             text (str): prompt to complete.
-            return_full_text (bool, optional, defaults to True): 
-                If True, returns the full text, if False, only added text is returned. 
+            return_full_text (bool, optional, defaults to True):
+                If True, returns the full text, if False, only added text is returned.
                 Only significant if return_text is True.
-            clean_up_tokenization_spaces (bool, optional, defaults to False): 
+            clean_up_tokenization_spaces (bool, optional, defaults to False):
                 If True, removes extra spaces in text output.
             prefix (str, optional): Adds prefix to prompt.
-            handle_long_generation (str, optional): By default, doesn't handle long generation. 
+            handle_long_generation (str, optional): By default, doesn't handle long generation.
                 Provides strategies to address this based on your use case:
                     None: Does nothing special
-                    "hole": Truncates left of input, leaving a gap for generation. 
+                    "hole": Truncates left of input, leaving a gap for generation.
                         Might truncate a lot of the prompt, not suitable when generation exceeds model capacity.
 
         """

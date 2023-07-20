@@ -23,7 +23,7 @@ MODEL_LOCATOR = "gpt2"
 
 
 def run():
-    embedder = HFFeatureExtractionTask(model_name=EMBEDDER_LOCATOR)
+    embedder = HFFeatureExtractionTask(model=EMBEDDER_LOCATOR)
 
     documents = pw.io.jsonlines.read(
         "../data/pathway-docs-small/",
@@ -63,7 +63,7 @@ def run():
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = HFTextGenerationTask(model_name=MODEL_LOCATOR)
+    model = HFTextGenerationTask(model=MODEL_LOCATOR)
 
     responses = prompt.select(
         query_id=pw.this.id,
