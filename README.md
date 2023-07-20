@@ -36,44 +36,56 @@ LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, 
 
 ## Getting Started
 
+This section provides a general introduction on how to start using the app.
+
 ### Installation
 
-Clone the repository. Create a new environment and install the required packages:
+- **Clone the repository:** This is done with the `git clone` command followed by the URL of the repository:
+    ```bash
+    git clone https://github.com/pathwaycom/llm-app.git
+    ```
 
-```bash
-python -m venv pw-env && source pw-env/bin/activate
-cd llm-app/
-pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
-```
+- **Virtual Python Environment:** Create a new environment and install the required packages to isolate the dependencies of this project from your system's Python:
+
+    ```bash
+    # Creates an env called pw-env and activates this environment.
+    python -m venv pw-env && source pw-env/bin/activate
+    # Navigate to the repository and install the packages in requirements.txt
+    cd llm_app/
+    pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
+    ```
 ### Usage
 
-- Create an .env file in `llm_app/` directory and add the following environment variables:
-```bash
-PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
-PATHWAY_REST_CONNECTOR_PORT=8080
-OPENAI_API_TOKEN=<Your Token>
-PATHWAY_CACHE_DIR=/tmp/cache
-```
+1. **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
+    ```bash
+    PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
+    PATHWAY_REST_CONNECTOR_PORT=8080
+    OPENAI_API_TOKEN=<Your Token>
+    PATHWAY_CACHE_DIR=/tmp/cache
+    ```
+    If you are not running the local version, please remember to replace `OPENAI_API_TOKEN` with your personal API token, which you can generate from your account on [openai.com](https://platform.openai.com/account/api-keys).
 
-- Run the script using the command: 
-```bash 
-cd llm_app/
-python main.py --mode contextful
-```
-You can also run the app without the need for external APIs by using `local` mode.
+2. **Run the App:** You can start the application with the command:
+    ```bash 
+    cd llm_app/
+    python main.py --mode contextful
+    ```
+    The `--mode contextful` option means that the software will index the documents in `data/pathway-docs` and take them into account when processing queries. The pathway pipeline being run is in `llm_app/pathway_pipelines/contextful/app.py`
 
-- Send REST queries (in a separate terminal window):
-```bash
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+    You can also run the app without the need for external APIs by using `local` mode.
 
-curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
-```
+3. **Send REST queries** (in a separate terminal window): These are examples of how to interact with the application once it's running. `curl` is a command-line tool used to send data using various network protocols. Here, it's being used to send HTTP requests to the application.
+    ```bash
+    curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 
-- Test reactivity by adding a new file:
-```bash
-cp ./data/documents_extra.jsonl ./data/pathway-docs/
-curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
-```
+    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
+    ```
+
+4. **Test reactivity by adding a new file:** This shows how to test the application's ability to react to changes in data by adding a new file and sending a query.
+    ```bash
+    cp ./data/documents_extra.jsonl ./data/pathway-docs/
+    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
+    ```
 
 ### Data Privacy and Use in Organizations
 
