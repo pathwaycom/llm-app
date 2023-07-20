@@ -12,7 +12,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["contextful", "contextless", "local"],
+        choices=["contextful", "contextful_s3", "contextless", "local"],
         default="contextful",
         help="Which pathway logic to run (default: %(default)s)",
     )
