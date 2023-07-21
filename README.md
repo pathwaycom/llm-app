@@ -36,14 +36,58 @@ LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, 
 
 ## Getting Started
 
-This section provides a general introduction on how to start using the app.
+This section provides a general introduction on how to start using the app. You can run it in different settings:
+
+| Pipeline Mode   | Description                                                                                                                                                                                                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contextful`    | In this mode, the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at `llm_app/pathway_pipelines/contextful/app.py`. |
+| `contextful_s3` | This mode operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                             |
+| `contextless`   | This pipeline calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query.                                                                                                                                                |
+| `local`         | This mode runs the application using Huggingface Transformers, which eliminates the need for external APIs. It provides a convenient way to use state-of-the-art NLP models locally without additional services.                                                                   |
 
 ### Installation
+
 
 - **Clone the repository:** This is done with the `git clone` command followed by the URL of the repository:
     ```bash
     git clone https://github.com/pathwaycom/llm-app.git
     ```
+
+- **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
+
+    | Environment Variable        | Description                                                                                                                                                                                                                                                |
+    | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+    | PIPELINE_MODE               | Determines which pipeline to run in your application. Available modes are [`contextful`, `contextful_s3`, `contextless`, `local`]. By default, the mode is set to `contextful`.                                                                            |
+    | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`. interfaces.                                                                                                    |
+    | PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen. Here, it is set to 8080.                                                                                                                                       |
+    | OPENAI_API_TOKEN            | The API token for accessing OpenAI services. If you are not running the local version, please remember to replace it with your personal API token, which you can generate from your account on [openai.com](https://platform.openai.com/account/api-keys). |
+    | PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmp/cache.                                                                                                                                                                                   |
+    
+
+    ```bash
+    PIPELINE_MODE=contextful
+    PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
+    PATHWAY_REST_CONNECTOR_PORT=8080
+    OPENAI_API_TOKEN=<Your Token>
+    PATHWAY_CACHE_DIR=/tmp/cache
+    ```
+
+#### Using Docker:
+
+Docker is a tool designed to make it easier to create, deploy, and run applications by using containers. Here is how to use Docker to build and run the LLM App:
+
+  - **Build and Run with Docker** The first step is to build the Docker image for the LLM App. You do this with the docker build command.
+    Build the image:
+    ```bash
+    docker build -t llm-app .
+    ```
+    After your image is built, you can run it as a container. You use the docker run command to do this
+    ```bash
+    docker run -it -p 8080:8080 llm-app
+    ```
+    When the process is complete, the App will be up and running inside a Docker container and accessible at `0.0.0.0:8080`. From there, you can proceed to the "Usage" section of the documentation for information on how to interact with the application.
+
+#### Natively:
 
 - **Virtual Python Environment:** Create a new environment and install the required packages to isolate the dependencies of this project from your system's Python:
 
@@ -54,34 +98,24 @@ This section provides a general introduction on how to start using the app.
     cd llm_app/
     pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
     ```
-### Usage
 
-1. **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
-    ```bash
-    PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
-    PATHWAY_REST_CONNECTOR_PORT=8080
-    OPENAI_API_TOKEN=<Your Token>
-    PATHWAY_CACHE_DIR=/tmp/cache
-    ```
-    If you are not running the local version, please remember to replace `OPENAI_API_TOKEN` with your personal API token, which you can generate from your account on [openai.com](https://platform.openai.com/account/api-keys).
-
-2. **Run the App:** You can start the application with the command:
+- **Run the App:** You can start the application with the command:
     ```bash 
     cd llm_app/
-    python main.py --mode contextful
+    python main.py
     ```
-    The `--mode contextful` option means that the software will index the documents in `data/pathway-docs` and take them into account when processing queries. The pathway pipeline being run is in `llm_app/pathway_pipelines/contextful/app.py`
 
-    You can also run the app without the need for external APIs by using `local` mode.
+### Usage
 
-3. **Send REST queries** (in a separate terminal window): These are examples of how to interact with the application once it's running. `curl` is a command-line tool used to send data using various network protocols. Here, it's being used to send HTTP requests to the application.
+1. **Send REST queries** (in a separate terminal window): These are examples of how to interact with the application once it's running. `curl` is a command-line tool used to send data using various network protocols. Here, it's being used to send HTTP requests to the application.
     ```bash
     curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 
     curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
     ```
+    Please change `localhost` to `0.0.0.0` if you are running the app on docker.
 
-4. **Test reactivity by adding a new file:** This shows how to test the application's ability to react to changes in data by adding a new file and sending a query.
+2. **Test reactivity by adding a new file:** This shows how to test the application's ability to react to changes in data by adding a new file and sending a query.
     ```bash
     cp ./data/documents_extra.jsonl ./data/pathway-docs/
     curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
