@@ -84,17 +84,19 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
   - **Build and Run with Docker** The first step is to build the Docker image for the LLM App. You do this with the docker build command.
     Build the image:
     ```bash
-    docker compose -f deployment/docker-compose.yml build
+    docker compose build
     ```
     After your image is built, you can run it as a container. You use the docker compose run command to do this
     ```bash
-    docker compose -f deployment/docker-compose.yml run -p 8080:8080 llm-app
+    docker compose run -p 8080:8080 llm-app
     ```
     If you have set a different port in `PATHWAY_REST_CONNECTOR_PORT`, replace the second `8080` with this port in the command above.
     
     When the process is complete, the App will be up and running inside a Docker container and accessible at `0.0.0.0:8080`. From there, you can proceed to the "Usage" section of the documentation for information on how to interact with the application.
 
-#### Natively:
+#### Native Approach:
+
+**Important:** The instructions in this section are intended for users operating Unix-like systems (such as Linux, macOS, BSD). If you are a Windows user, we highly recommend leveraging Windows Subsystem for Linux (WSL) or Docker, as outlined in the previous sections, to ensure optimal compatibility and performance.
 
 - **Virtual Python Environment:** Create a new environment and install the required packages to isolate the dependencies of this project from your system's Python:
 
@@ -102,7 +104,7 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
     # Creates an env called pw-env and activates this environment.
     python -m venv pw-env && source pw-env/bin/activate
 
-    pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
+    pip install --upgrade -r requirements.txt
     ```
 
 - **Run the App:** You can start the application with the command:
@@ -119,11 +121,22 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
 
     curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
     ```
-    Please change `localhost` to `0.0.0.0` if you are running the app on docker.
+
+    If you are on windows CMD, then the query would rather look like this
+    ```cmd
+    curl --data "{\"user\": \"user\", \"query\": \"How to use LLMs in Pathway?\"}" http://localhost:8080/
+    ```
 
 2. **Test reactivity by adding a new file:** This shows how to test the application's ability to react to changes in data by adding a new file and sending a query.
     ```bash
     cp ./data/documents_extra.jsonl ./data/pathway-docs/
+    ```
+    Or if using docker compose:
+    ```bash
+    docker compose exec llm-app mv /app/data/documents_extra.jsonl /app/data/pathway-docs/
+    ```
+    Let's query again:
+    ```
     curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
     ```
 
