@@ -3,8 +3,8 @@
         <img src="https://img.shields.io/github/license/pathwaycom/llm-app?style=plastic" alt="Contributors"/></a>
     <a href="https://github.com/pathwaycom/llm-app/graphs/contributors">
         <img src="https://img.shields.io/github/contributors/pathwaycom/llm-app?style=plastic" alt="Contributors"/></a>
-    <a href="https://github.com/pathwaycom/llm-app/actions/workflows/install_package.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/pathwaycom/llm-app/install_package.yml?style=plastic" alt="Build" /></a> 
+    <!--<a href="https://github.com/pathwaycom/llm-app/actions/workflows/install_package.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/pathwaycom/llm-app/install_package.yml?style=plastic" alt="Build" /></a> -->
         <img src="https://img.shields.io/badge/OS-Linux-green" alt="Linux"/>
         <img src="https://img.shields.io/badge/OS-macOS-green" alt="macOS"/>
       <br>
