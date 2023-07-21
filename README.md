@@ -86,10 +86,12 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
     ```bash
     docker build -t llm-app .
     ```
-    After your image is built, you can run it as a container. You use the docker run command to do this
+    After your image is built, you can run it as a container. You use the docker compose run command to do this
     ```bash
-    docker run -it -p 8080:8080 llm-app
+    docker compose -f deployment/docker-compose.yml run -p 8080:8080 llm-app
     ```
+    If you have set a different port in `PATHWAY_REST_CONNECTOR_PORT`, replace the second `8080` with this port in the command above.
+    
     When the process is complete, the App will be up and running inside a Docker container and accessible at `0.0.0.0:8080`. From there, you can proceed to the "Usage" section of the documentation for information on how to interact with the application.
 
 #### Natively:
