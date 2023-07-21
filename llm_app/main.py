@@ -1,23 +1,15 @@
 import argparse
 import importlib
-
 from dotenv import load_dotenv
+import os
+
 
 load_dotenv()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="LLM App Pathway")
 
-    parser.add_argument(
-        "--mode",
-        type=str,
-        choices=["contextful", "contextful_s3", "contextless", "local"],
-        default="contextful",
-        help="Which pathway logic to run (default: %(default)s)",
-    )
-
-    args = parser.parse_args()
-    scenario_module = importlib.import_module(f"pathway_pipelines.{args.mode}.app")
+    mode = os.environ.get("PIPELINE_MODE", "contextful")
+    scenario_module = importlib.import_module(f"pathway_pipelines.{mode}.app")
 
     scenario_module.run()
