@@ -43,7 +43,7 @@ This section provides a general introduction on how to start using the app. You 
 | `contextful`    | In this mode, the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at `llm_app/pathway_pipelines/contextful/app.py`. |
 | `contextful_s3` | This mode operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                             |
 | `contextless`   | This pipeline calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query.                                                                                                                                                |
-| `local`         | This mode runs the application using Huggingface Transformers, which eliminates the need for external APIs. It provides a convenient way to use state-of-the-art NLP models locally without additional services.                                                                   |
+| `local`         | This mode runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                               |
 
 ### Installation
 
@@ -52,13 +52,18 @@ This section provides a general introduction on how to start using the app. You 
     ```bash
     git clone https://github.com/pathwaycom/llm-app.git
     ```
+    Next, navigate to the repository:
+    ```bash
+    cd llm-app
+    ```
+
 
 - **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
 
     | Environment Variable        | Description                                                                                                                                                                                                                                                |
     | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
     | PIPELINE_MODE               | Determines which pipeline to run in your application. Available modes are [`contextful`, `contextful_s3`, `contextless`, `local`]. By default, the mode is set to `contextful`.                                                                            |
-    | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`. interfaces.                                                                                                    |
+    | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`                                                                                                                 |
     | PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen. Here, it is set to 8080.                                                                                                                                       |
     | OPENAI_API_TOKEN            | The API token for accessing OpenAI services. If you are not running the local version, please remember to replace it with your personal API token, which you can generate from your account on [openai.com](https://platform.openai.com/account/api-keys). |
     | PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmp/cache.                                                                                                                                                                                   |
@@ -94,8 +99,7 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
     ```bash
     # Creates an env called pw-env and activates this environment.
     python -m venv pw-env && source pw-env/bin/activate
-    # Navigate to the repository and install the packages in requirements.txt
-    cd llm_app/
+
     pip install --upgrade --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
     ```
 
