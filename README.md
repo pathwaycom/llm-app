@@ -84,7 +84,7 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
   - **Build and Run with Docker** The first step is to build the Docker image for the LLM App. You do this with the docker build command.
     Build the image:
     ```bash
-    docker build -t llm-app .
+    docker compose -f deployment/docker-compose.yml build
     ```
     After your image is built, you can run it as a container. You use the docker compose run command to do this
     ```bash
