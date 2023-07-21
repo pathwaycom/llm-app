@@ -136,7 +136,7 @@ It can also be extended to handle live data sources (news feeds, API's, data str
 See: [Features for Organizations](FEATURES-for-organizations.md).
 
 ## Further Reading
-Read more about the implementation details and how to extend this application in our [blog series](https://pathway.com/blog/?tag=tutorial).
+Read more about the implementation details and how to extend this application in our [blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
 ## Supported and maintained by:
 
