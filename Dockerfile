@@ -8,7 +8,7 @@ COPY requirements.txt requirements.txt
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --upgrade pip && \
-    pip install --extra-index-url https://packages.pathway.com/966431ef6ba -r requirements.txt
+    pip install -r requirements.txt
 
 COPY data data
 COPY llm_app llm_app

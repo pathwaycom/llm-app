@@ -2,12 +2,11 @@ version: '3.8'
 services:
   llm-app:
     build:
-      context: ../
+      context: ./
       dockerfile: Dockerfile
-    volumes:
-      - ../llm_app:/app/llm_app
-      - ../data:/app/data
     ports:
       - "8080:8080"
     env_file:
-      - ../llm_app/.env
+      - ./llm_app/.env
+    stdin_open: true
+    tty: true
