@@ -18,14 +18,16 @@
 
 # LLM App
 
-Pathway's **LLM App** is a chatbot application which provides real-time responses to user queries, based on the freshest knowledge available in a document store. It does not require a separate vector database, and helps to avoid fragmented LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Document data lives in the place where it was stored already, and on top of this, LLM App provides a light but integrated data processing layer, which is highly performant and can be easily customized and extended. It is particulary recommended for privacy-preserving LLM applications.
+Pathway's **LLM App** is a chatbot application which provides real-time responses to user queries, based on the freshest knowledge available in a document store. It does not require a separate vector database, and helps to avoid fragmented LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Document data lives in the place where it was stored already, and on top of this, LLM App provides a light but integrated data processing layer, which is highly performant and can be easily customized and extended. It is particularly recommended for privacy-preserving LLM applications.
 
 ## Project Overview
 
 LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a vector index by calling a routine from the Pathway package. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
 
 ### Watch a Demo Here
-(Available soon)
+[![Build your LLM App without a vector database (in 30 lines of code)](https://img.youtube.com/vi/kcrJSk00duw/0.jpg)](https://www.youtube.com/watch?v=kcrJSk00duw)
+
+▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
 
 
 ### Key Features
