@@ -69,7 +69,7 @@ This is done with the `git clone` command followed by the URL of the repository:
     git clone https://github.com/pathwaycom/llm-app.git
     ```
 
-    Next, navigate to the repository:
+Next, navigate to the repository:
 
     ```bash
     cd llm-app
