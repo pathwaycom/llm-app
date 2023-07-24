@@ -20,12 +20,7 @@
 
 Pathway's **LLM (Large Language Model) App** is a innovative chatbot application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
-## Quick links
-
-📚 [How it works](#how-it-works)
-🌟 [Key Features](#key-features)
-🏁 [Getting Started](#getting-started)
-🛠️ [Troubleshooting](#troubleshooting)
+**Quick links** - 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
 
 ## How it works
