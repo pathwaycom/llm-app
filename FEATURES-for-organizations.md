@@ -1,5 +1,7 @@
 # LLM App - Features for Organizations
 
+![LLM App architecture diagram](https://github.com/pathwaycom/llm-app/assets/15914792/217b3687-6a30-4929-b378-41fcdd73a682)
+
 This feature list is created to facilitate the launching of projects based on LLM App in discussions within larger teams.
 
 ## 1. Data Sources
