@@ -36,6 +36,14 @@ LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, 
 - **User session and beta testing handling:** The query building process can be extended to handle user sessions and beta testing for new models.
 - **Code reusability for offline evaluation:** The same code can be used for static evaluation of the system.
 
+### Coming Soon:
+- Split the application into indexing and request-serving processes easily.
+- Add control for which model is used
+- Expand context doc selection with a graph walk
+- Model drift and monitoring setup
+- Model A/B testing support
+
+
 ## Getting Started
 
 This section provides a general introduction on how to start using the app. You can run it in different settings:
