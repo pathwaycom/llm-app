@@ -119,9 +119,9 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
 
 1. **Send REST queries** (in a separate terminal window): These are examples of how to interact with the application once it's running. `curl` is a command-line tool used to send data using various network protocols. Here, it's being used to send HTTP requests to the application.
     ```bash
-    curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+    curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/
 
-    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
+    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/
     ```
 
     If you are on windows CMD, then the query would rather look like this
@@ -139,7 +139,7 @@ Docker is a tool designed to make it easier to create, deploy, and run applicati
     ```
     Let's query again:
     ```
-    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/ | jq
+    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/
     ```
 
 ### Data Privacy and Use in Organizations
