@@ -43,7 +43,7 @@ API_KEY = os.environ.get("OPENAI_API_TOKEN")
 EMBEDDER_LOCATOR = "text-embedding-ada-002"
 EMBEDDING_DIMENSION = 1536
 
-MODEL_LOCATOR = "gpt-4"
+MODEL_LOCATOR = "gpt-3.5-turbo" #  Change to 'gpt-4' if you have access.
 TEMPERATURE = 0.0
 MAX_TOKENS = 60
 

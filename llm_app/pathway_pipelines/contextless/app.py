@@ -12,7 +12,7 @@ class QueryInputSchema(pw.Schema):
 HTTP_HOST = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "127.0.0.1")
 HTTP_PORT = os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")
 API_KEY = os.environ.get("OPENAI_API_TOKEN")
-MODEL_LOCATOR = "gpt-4"
+MODEL_LOCATOR = "gpt-3.5-turbo" #  Change to 'gpt-4' if you have access.
 TEMPERATURE = 0.0
 MAX_TOKENS = 50
 
