@@ -1,22 +1,16 @@
-<p align="center">
-    <a href="https://github.com/pathwaycom/llm-app/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/pathwaycom/llm-app?style=plastic" alt="Contributors"/></a>
-    <a href="https://github.com/pathwaycom/llm-app/graphs/contributors">
-        <img src="https://img.shields.io/github/contributors/pathwaycom/llm-app?style=plastic" alt="Contributors"/></a>
-    <!--<a href="https://github.com/pathwaycom/llm-app/actions/workflows/install_package.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/pathwaycom/llm-app/install_package.yml?style=plastic" alt="Build" /></a> -->
-        <img src="https://img.shields.io/badge/OS-Linux-green" alt="Linux"/>
-        <img src="https://img.shields.io/badge/OS-macOS-green" alt="macOS"/>
-      <br>
-    <a href="https://discord.gg/pathway">
-        <img src="https://img.shields.io/discord/1042405378304004156?logo=discord"
-            alt="chat on Discord"></a>
-    <a href="https://twitter.com/intent/follow?screen_name=pathway_com">
-        <img src="https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter"
-            alt="follow on Twitter"></a>
-</p>
+<div align="center">
 
 # LLM App
+
+[![LICENSE](https://img.shields.io/github/license/pathwaycom/llm-app?style=plastic)](https://github.com/pathwaycom/llm-app/blob/main/LICENSE)
+[![Contributors](https://img.shields.io/github/contributors/pathwaycom/llm-app?style=plastic)](https://github.com/pathwaycom/llm-app/graphs/contributors)
+
+<!--- [![Contributors](https://img.shields.io/github/actions/workflow/status/pathwaycom/llm-app/install_package.yml?style=plastic)](https://github.com/pathwaycom/llm-app/actions/workflows/install_package.yml) --->
+![Linux](https://img.shields.io/badge/OS-Linux-green)
+![macOS](https://img.shields.io/badge/OS-macOS-green)
+[![chat on Discord](https://img.shields.io/discord/1042405378304004156?logo=discord)](https://discord.gg/pathway)
+[![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
+</div>
 
 Pathway's **LLM (Large Language Model) App** is a innovative chatbot application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
