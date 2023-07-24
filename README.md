@@ -24,7 +24,7 @@ Pathway's **LLM App** is a chatbot application which provides real-time response
 
 LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, and builds a vector index by calling a routine from the Pathway package. It then listens to user queries coming as HTTP REST requests. Each query uses the index to retrieve relevant documentation snippets and uses the OpenAI API/ Hugging Face to provide a response in natural language. The bot is reactive to changes in the corpus of documents: once new snippets are provided, it reindexes them and starts to use the new knowledge to answer subsequent queries.
 
-### Watch a Demo Here
+### Watch a Demo
 [![Build your LLM App without a vector database (in 30 lines of code)](https://img.youtube.com/vi/kcrJSk00duw/0.jpg)](https://www.youtube.com/watch?v=kcrJSk00duw)
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
@@ -150,8 +150,9 @@ It can also be extended to handle live data sources (news feeds, API's, data str
 
 See: [Features for Organizations](FEATURES-for-organizations.md).
 
-## Further Reading
-Read more about the implementation details and how to extend this application in our [blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
+## How is it done?
+
+Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
 ## Supported and maintained by:
 
