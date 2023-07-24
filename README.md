@@ -30,7 +30,7 @@ Pathway's **LLM (Large Language Model) App** is a innovative chatbot application
 
 ## How it works
 
-The LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates it's index and uses this new knowledge to answer the next questions.
+The LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates it's index in real-time and uses this new knowledge to answer the next questions. In this way, it provides **real-time data** and solves well-known **ambiguity problems** of natural languages systematically.
 
 Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
