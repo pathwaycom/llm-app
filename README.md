@@ -60,7 +60,7 @@ This section provides a general introduction on how to start using the app. You 
     ```
 
 
-- **Environment Variables:** Create an .env file in `llm_app/` directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
+- **Environment Variables:** Create an .env file in the root directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
 
     | Environment Variable        | Description                                                                                                                                                                                                                                                |
     | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

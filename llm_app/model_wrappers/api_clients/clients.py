@@ -1,8 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-
-import openai
 import requests
+
 
 logfun = logging.debug
 
@@ -15,19 +14,21 @@ class APIClient(ABC):
 
 class OpenAIClient(APIClient):
     def __init__(self, api_key: str):
-        openai.api_key = api_key
+        import openai
+        self.api = openai
+        self.api.api_key = api_key
 
 
 class OpenAIChatCompletionClient(OpenAIClient):
     def make_request(self, **kwargs):
         logfun("Calling OpenAI chat completion service %s", str(kwargs)[:100])
-        return openai.ChatCompletion.create(**kwargs)
+        return self.api.ChatCompletion.create(**kwargs)
 
 
 class OpenAIEmbeddingClient(OpenAIClient):
     def make_request(self, **kwargs):
         logfun("Calling OpenAI embedding service %s", str(kwargs)[:100])
-        return openai.Embedding.create(**kwargs)
+        return self.api.Embedding.create(**kwargs)
 
 
 class HuggingFaceClient(APIClient):

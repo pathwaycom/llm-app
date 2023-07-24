@@ -1,12 +1,19 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11
 
+ARG PIPELINE_MODE=contextful
+
 # Set the working directory in the container to /app
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
+COPY ./requirements ./requirements
 
-# Install any needed packages specified in requirements.txt
+RUN if [ "${PIPELINE_MODE}" = "local" ] ; then \
+    cp ./requirements/hf-local.txt ./requirements.txt ; \
+else \
+    cp ./requirements/default.txt ./requirements.txt ; \
+fi
+
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 

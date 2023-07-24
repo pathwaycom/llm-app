@@ -1,5 +1,4 @@
 from model_wrappers.base import BaseModel
-from transformers import pipeline
 
 
 class HFPipelineTask(BaseModel):
@@ -38,6 +37,7 @@ class HFPipelineTask(BaseModel):
     >>> pipe = HFPipelineTask('gpt2')
     >>> result = pipe('Hello world')
     """
+        from transformers import pipeline
         super().__init__(**kwargs)
         self.pipeline = pipeline(model=model, device=device)
         self.tokenizer = self.pipeline.tokenizer

@@ -4,9 +4,11 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+      args:
+        PIPELINE_MODE: ${PIPELINE_MODE}
     ports:
       - "8080:8080"
     env_file:
-      - ./llm_app/.env
+      - ./.env
     stdin_open: true
     tty: true

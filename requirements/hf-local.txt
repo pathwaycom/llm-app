@@ -1,5 +1,4 @@
 pathway
-openai
 transformers[torch]
 requests
 diskcache
