@@ -22,7 +22,7 @@ Pathway's **LLM (Large Language Model) App** is a innovative chatbot application
 ## Use cases
 
 LLM App can be used as a template for developing multiple applications running on top of Pathway. Here are examples of possible uses:
-* **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot for that matter.
+* **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot
 * **Ask privacy-preserving queries ** to an LLM and a private knowledge base that is frequently updated.
 * **Extend Kafka-based streaming architectures with LLM's**.
 * **Process LLM queries in bulk** with prompts created automatically out of input data streams.
