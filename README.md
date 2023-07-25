@@ -14,7 +14,7 @@
 [![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM (Large Language Model) App** is a innovative chatbot application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
+Pathway's **LLM (Large Language Model) App** is a innovative AI application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
 **Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
@@ -33,7 +33,8 @@ LLM App can be used as a template for developing multiple applications running o
 ## How it works
 
 The LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
-The app can also be combined with streams of fresh data, like news feeds or status reports, either through REST or Kafka. It can also be combined with extra static data sources and user-specific contexts, for example to eliminate **ambiguity problems** of natural language with clearer prompts.
+
+The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example to eliminate **ambiguity problems** of natural language with clearer prompts and better contexts.
 
 Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
