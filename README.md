@@ -28,7 +28,7 @@ LLM App can be used as a template for developing multiple applications running o
 * **Process LLM queries in bulk** with prompts created automatically out of input data streams.
 * **Obtain structured data on the fly** out of streams of documents.
 * **Validate incoming documents** against existing documents with an LLM.
-* **Monitor live information** streams with an LLM: news and social media, spotting fake news, travel disruptions...
+* **Monitor live information streams** with an LLM: news and social media, spotting fake news, travel disruptions...
 
 ## How it works
 
