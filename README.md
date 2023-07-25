@@ -1,5 +1,7 @@
 <div align="center">
 
+[![Pathway banner](./.github/assets/banner.png)](https://pathway.com/)
+
 # LLM App
 
 [![LICENSE](https://img.shields.io/github/license/pathwaycom/llm-app?style=plastic)](https://github.com/pathwaycom/llm-app/blob/main/LICENSE)
