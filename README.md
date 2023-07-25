@@ -68,7 +68,7 @@ Read more about the implementation details and how to extend this application in
 - Splitting the application into indexing and request-serving processes easily.
 - Expanding context doc selection with a graph walk.
 - Model drift and monitoring setup.
-- A setup and guide for model A/B testing.
+- A guide to model A/B testing.
 
 ## Getting Started
 
