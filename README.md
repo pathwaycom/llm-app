@@ -224,5 +224,5 @@ If you are unfamiliar with how to contribute to GitHub projects, here is a [Gett
 
 <p align="center">
   Pathway is a free ultra-performant data processing framework
-to power your real-time data products and pipelines. To learn more checkout <a href="https://pathway.com/">website</a>
+to power your real-time data products and pipelines. To learn more, checkout <a href="https://pathway.com/">Pathway's website</a>.
 </p>
