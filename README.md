@@ -37,11 +37,11 @@ LLM App reads a corpus of documents stored in S3 or locally, preprocesses them, 
 - **Code reusability for offline evaluation:** The same code can be used for static evaluation of the system.
 
 ### Coming Soon:
-- Split the application into indexing and request-serving processes easily.
-- Add control for which model is used
-- Expand context doc selection with a graph walk
-- Model drift and monitoring setup
-- Model A/B testing support
+- Splitting the application into indexing and request-serving processes easily.
+- Controlling which model is used.
+- Expanding context doc selection with a graph walk.
+- Model drift and monitoring setup.
+- Model A/B testing support.
 
 
 ## Getting Started
