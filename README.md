@@ -16,8 +16,19 @@
 
 Pathway's **LLM (Large Language Model) App** is a innovative chatbot application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
-**Quick links** - 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
+**Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
+
+## Use cases
+
+LLM App can be used as a template for developing multiple applications running on top of Pathway. Here are examples of possible uses:
+* **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot
+* **Ask privacy-preserving queries** to an LLM using a private knowledge base that is frequently updated.
+* **Extend Kafka-based streaming architectures with LLM's**.
+* **Process LLM queries in bulk** with prompts created automatically out of input data streams.
+* **Obtain structured data on the fly** out of streams of documents.
+* **Validate incoming documents** against existing documents with an LLM.
+* **Monitor live information streams** with an LLM: news and social media, spotting fake news, travel disruptions...
 
 ## How it works
 
