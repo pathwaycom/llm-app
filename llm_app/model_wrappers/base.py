@@ -1,7 +1,7 @@
 import functools
 import os
-from abc import ABC, abstractmethod
-from typing import Union
+from abc import ABC
+from typing import Union, Optional
 
 import diskcache
 import pathway as pw
@@ -43,15 +43,26 @@ class BaseModel(ABC):
         text: Union[pw.ColumnExpression, str],
         **kwargs,
     ) -> pw.ColumnExpression:
-
         return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)
 
 
 class APIModel(BaseModel):
-    def __init__(self, api_key: str, **kwargs):
+    def __init__(
+        self, api_key: Optional[str] = None, base_url: Optional[str] = None, **kwargs
+    ):
         super().__init__(**kwargs)
-        self.api_client = self.get_client(api_key)
+        self.api_client = self.get_client(api_key=api_key, base_url=base_url)
 
-    @abstractmethod
-    def get_client(self, api_key: str) -> APIClient:
-        pass
+    def get_client(self, **kwargs) -> APIClient:
+        return APIClient(**kwargs)
+
+    def __call__(self, text: str, **kwargs):
+        """
+
+        Example
+
+        """
+
+        response = self.api_client.make_post_request(prompt=text, **kwargs)
+        print(response)
+        return response

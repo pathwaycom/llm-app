@@ -1,3 +1,4 @@
+from model_wrappers.base import APIModel
 from model_wrappers.huggingface_wrapper.api_models import (
     HFApiFeatureExtractionTask,
     HFApiTextGenerationTask,
@@ -12,6 +13,7 @@ from model_wrappers.openai_wrapper.api_models import (
 )
 
 __all__ = [
+    "APIModel",
     "HFApiFeatureExtractionTask",
     "HFApiTextGenerationTask",
     "HFFeatureExtractionTask",
