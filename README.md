@@ -32,7 +32,8 @@ LLM App can be used as a template for developing multiple applications running o
 
 ## How it works
 
-The LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates it's index in real-time and uses this new knowledge to answer the next questions. In this way, it provides **real-time data** and solves well-known **ambiguity problems** of natural languages systematically.
+The LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
+The app can also be combined with streams of fresh data, like news feeds or status reports, either through REST or Kafka. It can also be combined with extra static data sources and user-specific contexts, for example to eliminate **ambiguity problems** of natural language with clearer prompts.
 
 Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
@@ -47,15 +48,17 @@ Read more about the implementation details and how to extend this application in
 ### Key Features
 
 - **HTTP REST queries** - The system is capable of responding in real time to HTTP REST queries.
-- **Real-time document indexing pipeline** - This pipeline reads data directly from S3-compatible storage, without the need to query a vector document database.
-- **User session and beta testing handling** - The query-building process can be extended to handle user sessions and beta testing for new models.
+- **Real-time document indexing pipeline** - This pipeline reads data directly from S3-compatible storage, without the need to query an extra vector document database.
 - **Code reusability for offline evaluation** - The same code can be used for static evaluation of the system.
+- **Model testing** - Present and past queries can be run against fresh models to evaluate their quality.
 
 ### Advanced Features
 
 - **Local Machine Learning models** - LLM App can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
 
 - **Live data sources** - It can also be extended to handle live data sources (news feeds, APIs, data streams in Kafka), to include user permissions, a data security layer, and an LLMops monitoring layer.
+
+- **User session handling** - The query-building process can be extended to handle user sessions.
 
 - To learn more about advanced features see: [Features for Organizations](FEATURES-for-organizations.md).
 
@@ -64,7 +67,7 @@ Read more about the implementation details and how to extend this application in
 - Splitting the application into indexing and request-serving processes easily.
 - Expanding context doc selection with a graph walk.
 - Model drift and monitoring setup.
-- Model A/B testing support.
+- A setup and guide for model A/B testing.
 
 ## Getting Started
 
