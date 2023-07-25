@@ -25,7 +25,7 @@ Read more about the implementation details and how to extend this application in
 
 ### Watch it in action
 
-[![Build your LLM App without a vector database (in 30 lines of code)](https://img.youtube.com/vi/kcrJSk00duw/0.jpg)](https://www.youtube.com/watch?v=kcrJSk00duw)
+[<img alt="Build your LLM App without a vector database (in 30 lines of code)" src="https://github.com/pathwaycom/llm-app/assets/15914792/48f93374-4130-4880-8cb0-4feb2e783dc1" width="75%">](https://www.youtube.com/watch?v=kcrJSk00duw)
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
 
