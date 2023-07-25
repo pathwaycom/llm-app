@@ -21,7 +21,14 @@ Pathway's **LLM (Large Language Model) App** is a innovative chatbot application
 
 ## Use cases
 
-LLM App holds immense potential for businesses and developers by providing an AI-powered analytical tool. It can be a real-time assistant for market research, competitive intelligence, strategic planning, and customer support. By digesting business reports, financial documents, market trends, product manuals, and customer interactions, the LLM App provides the most recent insights, making data-driven decision-making efficient and straightforward. In essence, LLM App serves as an ever-ready, intelligent business analyst and a customer support representative, empowering businesses to stay ahead in their respective domains.
+LLM App can be used as a template for developing multiple applications running on top of Pathway. Here are examples of possible uses:
+* **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot for that matter.
+* **Ask privacy-preserving queries ** to an LLM and a private knowledge base that is frequently updated.
+* **Extend Kafka-based streaming architectures with LLM's**.
+* **Process LLM queries in bulk** with prompts created automatically out of input data streams.
+* **Obtain structured data on the fly** out of streams of documents.
+* **Validate incoming documents** against existing documents with an LLM.
+* **Monitor live information** streams with an LLM: news and social media, spotting fake news, travel disruptions...
 
 ## How it works
 
