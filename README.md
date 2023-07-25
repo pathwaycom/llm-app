@@ -27,7 +27,7 @@ Read more about the implementation details and how to extend this application in
 
 ### Watch it in action
 
-[<img alt="Build your LLM App without a vector database (in 30 lines of code)" src="https://github.com/pathwaycom/llm-app/assets/15914792/48f93374-4130-4880-8cb0-4feb2e783dc1" width="75%">](https://www.youtube.com/watch?v=kcrJSk00duw)
+[![Build your LLM App without a vector database (in 30 lines of code)](./.github/assets/video-th.png)](https://www.youtube.com/watch?v=kcrJSk00duw)
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
 
@@ -88,13 +88,13 @@ You can run the LLM App in different modes:
 
 Create an .env file in the root directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
 
-| Environment Variable        |Description                                                                                                                                                                                                                                               |
-| --------------------------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment Variable        | Description                                                                                                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | PIPELINE_MODE               | Determines which pipeline to run in your application. Available modes are [`contextful`,`contextful_s3`, `contextless`, `local`]. By default, the mode is set to`contextful`.                                                                            |
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set itto `0.0.0.0` Natively, you can use `127.0.01`                                                                                                                 |
-| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to8080.                                                                                                                                      |
+| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to8080.                                                                                                                                       |
 | OPENAI_API_TOKEN            | The API token for accessing OpenAI services. If you are not running the local version, pleaseremember to replace it with your personal API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
-| PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmpcache.                                                                                                                                                                                   |
+| PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmpcache.                                                                                                                                                                                  |
 
 For example:
 
