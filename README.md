@@ -16,8 +16,12 @@
 
 Pathway's **LLM (Large Language Model) App** is a innovative chatbot application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
-**Quick links** - 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
+**Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
+
+## Use cases
+
+LLM App holds immense potential for businesses and developers by providing an AI-powered analytical tool. It can be a real-time assistant for market research, competitive intelligence, strategic planning, and customer support. By digesting business reports, financial documents, market trends, product manuals, and customer interactions, the LLM App provides the most recent insights, making data-driven decision-making efficient and straightforward. In essence, LLM App serves as an ever-ready, intelligent business analyst and a customer support representative, empowering businesses to stay ahead in their respective domains.
 
 ## How it works
 
@@ -88,13 +92,13 @@ You can run the LLM App in different modes:
 
 Create an .env file in the root directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
 
-| Environment Variable        |Description                                                                                                                                                                                                                                               |
-| --------------------------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment Variable        | Description                                                                                                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | PIPELINE_MODE               | Determines which pipeline to run in your application. Available modes are [`contextful`,`contextful_s3`, `contextless`, `local`]. By default, the mode is set to`contextful`.                                                                            |
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set itto `0.0.0.0` Natively, you can use `127.0.01`                                                                                                                 |
-| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to8080.                                                                                                                                      |
+| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to8080.                                                                                                                                       |
 | OPENAI_API_TOKEN            | The API token for accessing OpenAI services. If you are not running the local version, pleaseremember to replace it with your personal API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
-| PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmpcache.                                                                                                                                                                                   |
+| PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmpcache.                                                                                                                                                                                  |
 
 For example:
 
