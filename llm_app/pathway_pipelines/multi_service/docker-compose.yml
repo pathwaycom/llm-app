@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  llm-app-controller:
+    build:
+      context: ./../../../
+      dockerfile: llm_app/pathway_pipelines/multi_service/controller/Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./.env
+  
+    depends_on:
+      - llm-app-llm
+      - llm-app-embedder
+    
+    stdin_open: true
+    tty: true
+
+  llm-app-llm:
+    build:
+      context: ./../../../
+      dockerfile: llm_app/pathway_pipelines/multi_service/llm/Dockerfile
+    env_file:
+      - ./.env
+    
+  llm-app-embedder:
+    build:
+      context: ./../../../
+      dockerfile: llm_app/pathway_pipelines/multi_service/embedder/Dockerfile
+    env_file:
+      - ./.env

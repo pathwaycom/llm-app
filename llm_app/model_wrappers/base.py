@@ -63,6 +63,6 @@ class APIModel(BaseModel):
 
         """
 
-        response = self.api_client.make_post_request(prompt=text, **kwargs)
+        response = self.api_client.make_post_request(text=text, **kwargs)
         print(response)
         return response

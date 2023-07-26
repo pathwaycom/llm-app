@@ -1,3 +1,4 @@
 pw-env/
 __pycache__/
 **/.env
+**/**.bin
