@@ -78,15 +78,15 @@ Follow easy steps to install and get started using the app.
 
 This is done with the `git clone` command followed by the URL of the repository:
 
-    ```bash
-    git clone https://github.com/pathwaycom/llm-app.git
-    ```
+```bash
+git clone https://github.com/pathwaycom/llm-app.git
+```
 
 Next, navigate to the repository:
 
-    ```bash
-    cd llm-app
-    ```
+```bash
+cd llm-app
+```
 
 ### Step 2: Choose a pipeline mode
 
