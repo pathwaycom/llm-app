@@ -78,15 +78,15 @@ Follow easy steps to install and get started using the app.
 
 This is done with the `git clone` command followed by the URL of the repository:
 
-    ```bash
-    git clone https://github.com/pathwaycom/llm-app.git
-    ```
+```bash
+git clone https://github.com/pathwaycom/llm-app.git
+```
 
 Next, navigate to the repository:
 
-    ```bash
-    cd llm-app
-    ```
+```bash
+cd llm-app
+```
 
 ### Step 2: Choose a pipeline mode
 
@@ -113,13 +113,13 @@ Create an .env file in the root directory and add the following environment vari
 
 For example:
 
-    ```bash
-    PIPELINE_MODE=contextful
-    PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
-    PATHWAY_REST_CONNECTOR_PORT=8080
-    OPENAI_API_TOKEN=<Your Token>
-    PATHWAY_CACHE_DIR=/tmp/cache
-    ```
+```bash
+PIPELINE_MODE=contextful
+PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
+PATHWAY_REST_CONNECTOR_PORT=8080
+OPENAI_API_TOKEN=<Your Token>
+PATHWAY_CACHE_DIR=/tmp/cache
+```
 
 ### Step 4: Build and run the app
 
