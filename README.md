@@ -97,12 +97,7 @@ Next, navigate to the repository:
 cd llm-app
 ```
 
-### Step 2: Choose the app variant to run
-
-You can run the LLM App in different modes: `contextful`,`contextful_s3`, `contextless`, `local` as described above.
-
-
-### Step 3: Set environment variables
+### Step 2: Set environment variables
 
 Create an .env file in the root directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
 
@@ -124,7 +119,7 @@ OPENAI_API_TOKEN=<Your Token>
 PATHWAY_CACHE_DIR=/tmp/cache
 ```
 
-### Step 4: Build and run the app
+### Step 3: Build and run the app
 
 You can install and run the LLM App in two different ways.
 
@@ -169,7 +164,7 @@ When the process is complete, the App will be up and running inside a Docker con
     python main.py
     ```
 
-### Step 5: Start to use it
+### Step 4: Start to use it
 
 1. **Send REST queries** (in a separate terminal window): These are examples of how to interact with the application once it's running. `curl` is a command-line tool used to send data using various network protocols. Here, it's being used to send HTTP requests to the application.
 
