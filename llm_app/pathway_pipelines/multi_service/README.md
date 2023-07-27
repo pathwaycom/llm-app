@@ -24,8 +24,8 @@ The application has been dockerized and can be easily deployed using Docker Comp
 
 ### Services:
 - **Controller:** The main entry point for the application. It runs the index and coordinates with the other services. It exposes port 8080 for external communication.
-- **LLM:** This service performs the core functionality related to the LLM module of the application.
-- **Embedder:** This service is responsible for the embedding operations within the application.
+- **LLM:** This service runs Llama cpp model locally.
+- **Embedder:** This service is responsible for the embedding operations within the application. It downloads and runs a sentence-transformers model locally.
 
 ### Requirements
 - Docker
