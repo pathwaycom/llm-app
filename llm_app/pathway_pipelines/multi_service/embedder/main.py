@@ -5,7 +5,9 @@ from model_wrappers import SentenceTransformerTask
 
 HTTP_HOST = os.environ.get("EMBEDDER_REST_CONNECTOR_HOST", "127.0.0.1")
 HTTP_PORT = os.environ.get("EMBEDDER_REST_CONNECTOR_PORT", "8880")
-EMBEDDER_LOCATOR = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDER_LOCATOR = os.environ.get(
+    "EMBEDDER_LOCATOR", "sentence-transformers/all-MiniLM-L6-v2"
+)
 
 
 class InputSchema(pw.Schema):
