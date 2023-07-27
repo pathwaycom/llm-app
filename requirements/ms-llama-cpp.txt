@@ -1,0 +1,3 @@
+pathway
+llama-cpp-python
+diskcache

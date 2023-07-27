@@ -55,7 +55,7 @@ class HuggingFaceAPIModel(APIModel):
         Returns:
             The response from the Hugging Face API, the format depends on the model being used.
         """
-        return self.api_client.make_request(**kwargs)
+        return self.api_client.make_post_request(**kwargs)
 
 
 class HFApiFeatureExtractionTask(HuggingFaceAPIModel):

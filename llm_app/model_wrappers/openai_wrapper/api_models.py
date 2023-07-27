@@ -17,8 +17,8 @@ class MessagePreparer:
 
 
 class OpenAIChatGPTModel(APIModel):
-    def get_client(self, openai_key: str) -> OpenAIClient:
-        return OpenAIChatCompletionClient(openai_key)
+    def get_client(self, **kwargs):
+        return OpenAIChatCompletionClient(**kwargs)
 
     def __call__(self, text: str, locator="gpt-3.5-turbo", **kwargs) -> str:
         """
@@ -33,7 +33,7 @@ class OpenAIChatGPTModel(APIModel):
         # ... )
         """
         messages = MessagePreparer.prepare_chat_messages(text)
-        response = self.api_client.make_request(
+        response = self.api_client.make_post_request(
             messages=messages, model=locator, **kwargs
         )
         return response.choices[0].message.content
@@ -87,8 +87,8 @@ class OpenAIChatGPTModel(APIModel):
 
 
 class OpenAIEmbeddingModel(APIModel):
-    def get_client(self, openai_key: str) -> OpenAIClient:
-        return OpenAIEmbeddingClient(openai_key)
+    def get_client(self, **kwargs) -> OpenAIClient:
+        return OpenAIEmbeddingClient(**kwargs)
 
     def __call__(self, text: str, locator="text-embedding-ada-002", **kwargs):
         """
@@ -102,7 +102,9 @@ class OpenAIEmbeddingModel(APIModel):
         # ... )
         """
 
-        response = self.api_client.make_request(input=[text], model=locator, **kwargs)
+        response = self.api_client.make_post_request(
+            input=[text], model=locator, **kwargs
+        )
         return response["data"][0]["embedding"]
 
     def apply(
