@@ -14,14 +14,23 @@
 [![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM (Large Language Model) App** is a innovative AI application that provides real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
+Pathway's **LLM (Large Language Model) App** provides demonstrator for innovative AI applications that provide real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
+
+To get started explore one of the application variants:
+| App variant                                                       | Description                                                                                                                                                                                                                                                                                                                                 |
+|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`contextless`](llm_app/pathway_pipelines/contextless/app.py)     | This simple app variant calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
+| [`contextful`](llm_app/pathway_pipelines/contextful/app.py)       | This default variant of the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at [`llm_app/pathway_pipelines/contextful/app.py`](llm_app/pathway_pipelines/contextful/app.py). |
+| [`contextful_s3`](llm_app/pathway_pipelines/contextful_s3/app.py) | This variant operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                                   |
+| [`local`](llm_app/pathway_pipelines/local/app.py)                 | This variant runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                     |
+
 
 **Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
 
 ## Use cases
 
-LLM App can be used as a template for developing multiple applications running on top of Pathway. Here are examples of possible uses:
+LLM App variants can be used as templates for developing multiple applications running on top of Pathway. Here are examples of possible uses:
 * **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot.
 * **Ask privacy-preserving queries** to an LLM using a private knowledge base that is frequently updated.
 * **Extend Kafka-based streaming architectures with LLM's**.
@@ -32,7 +41,7 @@ LLM App can be used as a template for developing multiple applications running o
 
 ## How it works
 
-The LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
+The default [`contextful`](llm_app/pathway_pipelines/contextful/app.py) LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
 
 The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example to eliminate **ambiguity problems** of natural language with clearer prompts and better contexts.
 
@@ -88,16 +97,10 @@ Next, navigate to the repository:
 cd llm-app
 ```
 
-### Step 2: Choose a pipeline mode
+### Step 2: Choose the app variant to run
 
-You can run the LLM App in different modes:
+You can run the LLM App in different modes: `contextful`,`contextful_s3`, `contextless`, `local` as described above.
 
-| Pipeline Mode   | Description                                                                                                                                                                                                                                                                        |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `contextful`    | In this mode, the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at `llm_app/pathway_pipelines/contextful/app.py`. |
-| `contextful_s3` | This mode operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                             |
-| `contextless`   | This pipeline calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query.                                                                                                                                                |
-| `local`         | This mode runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                               |
 
 ### Step 3: Set environment variables
 
@@ -105,7 +108,7 @@ Create an .env file in the root directory and add the following environment vari
 
 | Environment Variable        | Description                                                                                                                                                                                                                                              |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PIPELINE_MODE               | Determines which pipeline to run in your application. Available modes are [`contextful`,`contextful_s3`, `contextless`, `local`]. By default, the mode is set to`contextful`.                                                                            |
+| APP_VARIANT               | Determines which pipeline to run in your application. Available modes are [`contextful`,`contextful_s3`, `contextless`, `local`]. By default, the mode is set to`contextful`.                                                                            |
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set itto `0.0.0.0` Natively, you can use `127.0.01`                                                                                                                 |
 | PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to8080.                                                                                                                                       |
 | OPENAI_API_TOKEN            | The API token for accessing OpenAI services. If you are not running the local version, pleaseremember to replace it with your personal API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
@@ -114,7 +117,7 @@ Create an .env file in the root directory and add the following environment vari
 For example:
 
 ```bash
-PIPELINE_MODE=contextful
+APP_VARIANT=contextful
 PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
 PATHWAY_REST_CONNECTOR_PORT=8080
 OPENAI_API_TOKEN=<Your Token>

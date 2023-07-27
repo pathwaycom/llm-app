@@ -1,14 +1,14 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11
 
-ARG PIPELINE_MODE=contextful
+ARG APP_VARIANT=contextful
 
 # Set the working directory in the container to /app
 WORKDIR /app
 
 COPY ./requirements ./requirements
 
-RUN if [ "${PIPELINE_MODE}" = "local" ] ; then \
+RUN if [ "${APP_VARIANT}" = "local" ] ; then \
     cp ./requirements/hf-local.txt ./requirements.txt ; \
 else \
     cp ./requirements/default.txt ./requirements.txt ; \

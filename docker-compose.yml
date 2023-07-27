@@ -5,7 +5,7 @@ services:
       context: ./
       dockerfile: Dockerfile
       args:
-        PIPELINE_MODE: ${PIPELINE_MODE}
+        APP_VARIANT: ${APP_VARIANT}
     ports:
       - "8080:8080"
     env_file:
