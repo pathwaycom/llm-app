@@ -3,6 +3,7 @@ import os
 import pathway as pw
 from model_wrappers import APIModel
 from pathway.stdlib.ml.index import KNNIndex
+import time
 
 
 class DocumentInputSchema(pw.Schema):
@@ -21,7 +22,7 @@ EMBEDDER_URL = "http://llm-app-embedder:8880"
 
 MODEL_URL = "http://llm-app-llm:8888"
 
-EMBEDDING_DIMENSION = 1024
+EMBEDDING_DIMENSION = 384
 
 
 def run():
@@ -80,4 +81,7 @@ def run():
 
 
 if __name__ == "__main__":
+    print("Waiting for the APIs to be ready!")
+    time.sleep(10)
+    print("Running Pathway!")
     run()

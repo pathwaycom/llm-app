@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./requirements ./requirements
 
 RUN pip install --upgrade pip && \
-    pip install -r ./requirements/llama-cpp.txt
+    pip install -r ./requirements/ms-llama-cpp.txt
 
 COPY llm_app/pathway_pipelines/multi_service/llm llm_app
 COPY llm_app/model_wrappers llm_app/model_wrappers

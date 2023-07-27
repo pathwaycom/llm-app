@@ -12,6 +12,8 @@ from model_wrappers.openai_wrapper.api_models import (
     OpenAIChatGPTModel,
     OpenAIEmbeddingModel,
 )
+from model_wrappers.sentence_transformer.embedding import SentenceTransformerTask
+
 
 __all__ = [
     "APIModel",
@@ -22,4 +24,5 @@ __all__ = [
     "LlamaCPP",
     "OpenAIChatGPTModel",
     "OpenAIEmbeddingModel",
+    "SentenceTransformerTask",
 ]

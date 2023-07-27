@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./requirements ./requirements
 
 RUN pip install --upgrade pip && \
-    pip install -r ./requirements/hf-local.txt
+    pip install -r ./requirements/ms-sen-transformers.txt
 
 COPY llm_app/pathway_pipelines/multi_service/embedder llm_app
 COPY llm_app/model_wrappers llm_app/model_wrappers

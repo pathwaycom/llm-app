@@ -1,0 +1,5 @@
+pathway
+sentence-transformers
+requests
+diskcache
+python-dotenv
