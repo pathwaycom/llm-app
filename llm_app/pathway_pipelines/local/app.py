@@ -1,7 +1,7 @@
 import os
 
 import pathway as pw
-from model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
+from llm_app.model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
 from pathway.stdlib.ml.index import KNNIndex
 
 
@@ -73,6 +73,7 @@ def run():
     response_writer(responses)
 
     pw.run()
+
 
 if __name__ == "__main__":
     run()

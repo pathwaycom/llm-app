@@ -5,7 +5,7 @@ from typing import Union
 
 import diskcache
 import pathway as pw
-from model_wrappers.api_clients.clients import APIClient
+from llm_app.model_wrappers.api_clients.clients import APIClient
 
 
 class _Cache:
@@ -43,7 +43,6 @@ class BaseModel(ABC):
         text: Union[pw.ColumnExpression, str],
         **kwargs,
     ) -> pw.ColumnExpression:
-
         return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)
 
 

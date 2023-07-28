@@ -23,8 +23,8 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 import os
 
 import pathway as pw
-from model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 from pathway.stdlib.ml.index import KNNIndex
+from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
 class DocumentInputSchema(pw.Schema):
@@ -43,7 +43,7 @@ API_KEY = os.environ.get("OPENAI_API_TOKEN")
 EMBEDDER_LOCATOR = "text-embedding-ada-002"
 EMBEDDING_DIMENSION = 1536
 
-MODEL_LOCATOR = "gpt-3.5-turbo" #  Change to 'gpt-4' if you have access.
+MODEL_LOCATOR = "gpt-3.5-turbo"  # Change to 'gpt-4' if you have access.
 TEMPERATURE = 0.0
 MAX_TOKENS = 60
 
@@ -104,6 +104,7 @@ def run():
     response_writer(responses)
 
     pw.run()
+
 
 if __name__ == "__main__":
     run()

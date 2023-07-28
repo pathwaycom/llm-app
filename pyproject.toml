@@ -1,3 +1,51 @@
+[tool.poetry]
+name = "llm-app"
+version = "0.1.0"
+description = "A Pathway LLM App"
+authors = ["Your Name <you@example.com>"]
+license = "MIT License"
+readme = "README.md"
+packages = [{include = "llm_app"}]
+
+keywords = ["Pathway", "LLM"]
+
+classifiers = [ # Optional
+    # How mature is this project? Common values are
+    #   3 - Alpha
+    #   4 - Beta
+    #   5 - Production/Stable
+    "Development Status :: 3 - Alpha",
+
+    # Indicate who your project is intended for
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: Implementation :: CPython",
+
+    # Pick your license as you wish
+    "License :: OSI Approved :: MIT License",
+
+]
+
+[tool.poetry.urls]
+"Homepage" = "https://github.com/pathwaycom/llm-app"
+"Source" = "https://github.com/pathwaycom/llm-app"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pathway = "^0.2.0"
+openai = "^0.27.8"
+requests = "^2.31.0"
+diskcache = "^5.6.1"
+python-dotenv = "^1.0.0"
+sentence-transformers = "^2.2.2"
+transformers = {extras = ["torch"], version = "^4.31.0"}
+
+[tool.poetry.scripts]
+llm-app = 'llm_app.cli:main'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 88
 exclude = '''/(
