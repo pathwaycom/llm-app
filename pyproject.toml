@@ -2,10 +2,12 @@
 name = "llm-app"
 version = "0.1.0"
 description = "A Pathway LLM App"
-authors = ["Your Name <you@example.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "llm_app"}]
+packages = [
+    {include = "llm_app"},
+    { include = "data/**/*"}
+]
 
 keywords = ["Pathway", "LLM"]
 
