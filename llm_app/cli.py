@@ -123,7 +123,12 @@ def up(
         max_tokens=max_tokens,
         temperature=temperature,
     )
+    print(config)
     return run(config)
+
+
+def main():
+    cli.main()
 
 
 if __name__ == "__main__":
