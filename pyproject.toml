@@ -3,7 +3,7 @@ name = "llm-app"
 version = "0.1.0"
 description = "A Pathway LLM App"
 authors = ["Your Name <you@example.com>"]
-license = "MIT License"
+license = "MIT"
 readme = "README.md"
 packages = [{include = "llm_app"}]
 
@@ -27,7 +27,7 @@ classifiers = [ # Optional
 
 [tool.poetry.urls]
 "Homepage" = "https://github.com/pathwaycom/llm-app"
-"Source" = "https://github.com/pathwaycom/llm-app"
+"Source Code" = "https://github.com/pathwaycom/llm-app"
 
 [tool.poetry.dependencies]
 python = "^3.10"
