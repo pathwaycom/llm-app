@@ -20,9 +20,8 @@ python main.py --mode contextful_s3
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
-import os
-
 import pathway as pw
+from llm_app.config import Config
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 from pathway.stdlib.ml.index import KNNIndex
 
@@ -36,20 +35,8 @@ class QueryInputSchema(pw.Schema):
     user: str
 
 
-HTTP_HOST = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "127.0.0.1")
-HTTP_PORT = os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")
-
-API_KEY = os.environ.get("OPENAI_API_TOKEN")
-EMBEDDER_LOCATOR = "text-embedding-ada-002"
-EMBEDDING_DIMENSION = 1536
-
-MODEL_LOCATOR = "gpt-3.5-turbo"  # Change to 'gpt-4' if you have access.
-TEMPERATURE = 0.0
-MAX_TOKENS = 60
-
-
-def run():
-    embedder = OpenAIEmbeddingModel(api_key=API_KEY)
+def run(config: Config):
+    embedder = OpenAIEmbeddingModel(api_key=config.api_key)
 
     documents = pw.io.s3.read(
         "llm_demo/data/",
@@ -63,20 +50,20 @@ def run():
     )
 
     enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc, locator=EMBEDDER_LOCATOR)
+        data=embedder.apply(text=pw.this.doc, locator=config.embedder_locator)
     )
 
-    index = KNNIndex(enriched_documents, d=EMBEDDING_DIMENSION)
+    index = KNNIndex(enriched_documents, d=config.embedding_dimension)
 
     query, response_writer = pw.io.http.rest_connector(
-        host=HTTP_HOST,
-        port=int(HTTP_PORT),
+        host=config.rest_host,
+        port=config.rest_port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query, locator=EMBEDDER_LOCATOR),
+        data=embedder.apply(text=pw.this.query, locator=config.embedder_locator),
     )
 
     query_context = index.query(query, k=3).select(
@@ -93,22 +80,18 @@ def run():
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = OpenAIChatGPTModel(api_key=API_KEY)
+    model = OpenAIChatGPTModel(api_key=config.api_key)
 
     responses = prompt.select(
         query_id=pw.this.id,
         result=model.apply(
             pw.this.prompt,
-            locator=MODEL_LOCATOR,
-            temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS,
+            locator=config.model_locator,
+            temperature=config.temperature,
+            max_tokens=config.max_tokens,
         ),
     )
 
     response_writer(responses)
 
     pw.run()
-
-
-if __name__ == "__main__":
-    run()

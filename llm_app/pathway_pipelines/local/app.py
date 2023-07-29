@@ -1,6 +1,5 @@
-import os
-
 import pathway as pw
+from llm_app.config import Config
 from llm_app.model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
 from pathway.stdlib.ml.index import KNNIndex
 
@@ -14,19 +13,16 @@ class QueryInputSchema(pw.Schema):
     user: str
 
 
-HTTP_HOST = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "127.0.0.1")
-HTTP_PORT = os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")
-
-EMBEDDER_LOCATOR = "intfloat/e5-large-v2"
-EMBEDDING_DIMENSION = 1024
-MODEL_LOCATOR = "gpt2"
+# EMBEDDER_LOCATOR = "intfloat/e5-large-v2"
+# EMBEDDING_DIMENSION = 1024
+# MODEL_LOCATOR = "gpt2"
 
 
-def run():
-    embedder = HFFeatureExtractionTask(model=EMBEDDER_LOCATOR)
+def run(config: Config):
+    embedder = HFFeatureExtractionTask(model=config.embedder_locator)
 
     documents = pw.io.jsonlines.read(
-        "../data/pathway-docs-small/",
+        "./data/pathway-docs-small/",
         schema=DocumentInputSchema,
         mode="streaming",
         autocommit_duration_ms=50,
@@ -36,11 +32,11 @@ def run():
         data=embedder.apply(text=pw.this.doc)
     )
 
-    index = KNNIndex(enriched_documents, d=EMBEDDING_DIMENSION)
+    index = KNNIndex(enriched_documents, d=config.embedding_dimension)
 
     query, response_writer = pw.io.http.rest_connector(
-        host=HTTP_HOST,
-        port=int(HTTP_PORT),
+        host=config.rest_host,
+        port=config.rest_port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
     )
@@ -63,17 +59,15 @@ def run():
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = HFTextGenerationTask(model=MODEL_LOCATOR)
+    model = HFTextGenerationTask(model=config.model_locator)
 
     responses = prompt.select(
         query_id=pw.this.id,
-        result=model.apply(pw.this.prompt, return_full_text=False, max_new_tokens=60),
+        result=model.apply(
+            pw.this.prompt, return_full_text=False, max_new_tokens=config.max_tokens
+        ),
     )
 
     response_writer(responses)
 
     pw.run()
-
-
-if __name__ == "__main__":
-    run()
