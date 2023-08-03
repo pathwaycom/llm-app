@@ -8,11 +8,13 @@ WORKDIR /app
 
 COPY ./requirements.txt ./requirements.txt
 
+RUN pip 
+
+
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-COPY data data
-COPY llm_app llm_app
+COPY . .
 
 # Change the working directory to /app/llm_app
 WORKDIR /app/llm_app
