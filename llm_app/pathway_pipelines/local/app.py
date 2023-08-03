@@ -1,7 +1,7 @@
 import os
 
 import pathway as pw
-from model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
+from model_wrappers import HFTextGenerationTask, SentenceTransformerTask
 from pathway.stdlib.ml.index import KNNIndex
 
 
@@ -23,7 +23,7 @@ MODEL_LOCATOR = "gpt2"
 
 
 def run():
-    embedder = HFFeatureExtractionTask(model=EMBEDDER_LOCATOR)
+    embedder = SentenceTransformerTask(model=EMBEDDER_LOCATOR)
 
     documents = pw.io.jsonlines.read(
         "../data/pathway-docs-small/",
@@ -73,6 +73,7 @@ def run():
     response_writer(responses)
 
     pw.run()
+
 
 if __name__ == "__main__":
     run()
