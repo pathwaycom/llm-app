@@ -1,13 +1,14 @@
 import click
 from dotenv import load_dotenv
-from llm_app.main import run
-from llm_app.config import Config
 
+from llm_app.config import Config
+from llm_app.main import run
 
 load_dotenv()
 
 
-@click.group()
+@click.group
+@click.version_option(prog_name="llm-app")
 def cli() -> None:
     pass
 
