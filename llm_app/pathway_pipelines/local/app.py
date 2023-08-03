@@ -1,7 +1,8 @@
 import pathway as pw
-from llm_app.config import Config
-from llm_app.model_wrappers import HFFeatureExtractionTask, HFTextGenerationTask
+from model_wrappers import HFTextGenerationTask, SentenceTransformerTask
 from pathway.stdlib.ml.index import KNNIndex
+
+from llm_app.config import Config
 
 
 class DocumentInputSchema(pw.Schema):
@@ -19,7 +20,7 @@ class QueryInputSchema(pw.Schema):
 
 
 def run(config: Config):
-    embedder = HFFeatureExtractionTask(model=config.embedder_locator)
+    embedder = SentenceTransformerTask(model=config.embedder_locator)
 
     documents = pw.io.jsonlines.read(
         "./data/pathway-docs-small/",
@@ -71,3 +72,7 @@ def run(config: Config):
     response_writer(responses)
 
     pw.run()
+
+
+if __name__ == "__main__":
+    run()

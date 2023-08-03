@@ -10,6 +10,7 @@ from llm_app.model_wrappers.openai_wrapper.api_models import (
     OpenAIChatGPTModel,
     OpenAIEmbeddingModel,
 )
+from model_wrappers.sentence_transformer.embedding import SentenceTransformerTask
 
 __all__ = [
     "HFApiFeatureExtractionTask",
@@ -18,4 +19,5 @@ __all__ = [
     "HFTextGenerationTask",
     "OpenAIChatGPTModel",
     "OpenAIEmbeddingModel",
+    "SentenceTransformerTask",
 ]
