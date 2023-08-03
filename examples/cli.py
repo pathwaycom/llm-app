@@ -1,8 +1,7 @@
 import click
 from dotenv import load_dotenv
 
-from llm_app.config import Config
-from llm_app.main import run
+from examples.config import Config
 
 load_dotenv()
 
@@ -124,8 +123,7 @@ def up(
         max_tokens=max_tokens,
         temperature=temperature,
     )
-    print(config)
-    return run(config)
+    # return run(config)
 
 
 def main():

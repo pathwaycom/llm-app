@@ -10,11 +10,10 @@ authors = [
     "Mohamed Malhou <mohamed@pathway.com>",
     "Sergey Kulik <sergey@pathway.com>",
     "Adrian Kosowski <adrian@pathway.com>",
-    "Mateusz Lewandowski <mateusz@pathway.com>"
+    "Mateusz Lewandowski <mateusz@pathway.com>",
 ]
 license = "MIT"
 readme = "README.md"
-include = ["data/**/*"]
 keywords = ["Pathway", "LLM"]
 
 classifiers = [ # Optional
@@ -45,7 +44,7 @@ requests = "^2.31.0"
 diskcache = "^5.6.1"
 python-dotenv = "^1.0.0"
 sentence-transformers = "^2.2.2"
-transformers = {extras = ["torch"], version = "^4.31.0"}
+transformers = { extras = ["torch"], version = "^4.31.0" }
 
 [tool.poetry.scripts]
 llm-app = 'llm_app.cli:main'

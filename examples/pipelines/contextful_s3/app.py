@@ -1,7 +1,7 @@
 """
 Microservice for  a context-aware ChatGPT assistant.
 
-The following program reads in a collection of documents,
+The following program reads in a collection of documents from a public AWS S3 bucket,
 embeds each document using the OpenAI document embedding model,
 then builds an index for fast retrieval of documents relevant to a question,
 effectively replacing a vector database.
@@ -15,15 +15,15 @@ and sent to the OpenAI GPT-4 chat service for processing.
 
 Usage:
 In llm_app/ run:
-python main.py --mode contextful
+python main.py --mode contextful_s3
 
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
-
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
-from llm_app.config import Config
+
+from examples.config import Config
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
@@ -39,11 +39,15 @@ class QueryInputSchema(pw.Schema):
 def run(config: Config):
     embedder = OpenAIEmbeddingModel(api_key=config.api_key)
 
-    documents = pw.io.jsonlines.read(
-        config.data_dir,
+    documents = pw.io.s3.read(
+        "llm_demo/data/",
+        aws_s3_settings=pw.io.s3.AwsS3Settings(
+            bucket_name="pathway-examples",
+            region="eu-central-1",
+        ),
+        format="json",
         schema=DocumentInputSchema,
         mode="streaming",
-        autocommit_duration_ms=50,
     )
 
     enriched_documents = documents + documents.select(

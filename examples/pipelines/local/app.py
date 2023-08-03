@@ -1,8 +1,9 @@
 import pathway as pw
-from model_wrappers import HFTextGenerationTask, SentenceTransformerTask
 from pathway.stdlib.ml.index import KNNIndex
 
-from llm_app.config import Config
+from llm_app.model_wrappers import HFTextGenerationTask, SentenceTransformerTask
+
+from ...config import Config
 
 
 class DocumentInputSchema(pw.Schema):

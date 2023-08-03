@@ -1,5 +1,6 @@
 import pathway as pw
-from llm_app.config import Config
+
+from examples.config import Config
 from llm_app.model_wrappers import OpenAIChatGPTModel
 
 
