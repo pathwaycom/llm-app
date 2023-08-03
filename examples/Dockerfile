@@ -6,13 +6,7 @@ ARG APP_VARIANT=contextful
 # Set the working directory in the container to /app
 WORKDIR /app
 
-COPY ./requirements ./requirements
-
-RUN if [ "${APP_VARIANT}" = "local" ] ; then \
-    cp ./requirements/hf-local.txt ./requirements.txt ; \
-else \
-    cp ./requirements/default.txt ./requirements.txt ; \
-fi
+COPY ./requirements.txt ./requirements.txt
 
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
