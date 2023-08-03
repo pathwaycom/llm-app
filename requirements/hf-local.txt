@@ -1,5 +1,5 @@
 pathway
-sentence_transformers
+sentence-transformers
 transformers[torch]
 requests
 diskcache
