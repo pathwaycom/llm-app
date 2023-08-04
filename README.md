@@ -185,7 +185,7 @@ When the process is complete, the App will be up and running inside a Docker con
     Or if using docker compose:
 
     ```bash
-    docker compose exec llm-app mv /app/data/documents_extra.jsonl /app/data/pathway-docs/
+    docker compose exec llm-app-examples mv /app/examples/data/documents_extra.jsonl /app/examples/data/pathway-docs/
     ```
 
     Let's query again:
