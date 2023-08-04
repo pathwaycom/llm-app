@@ -102,7 +102,7 @@ def common_options(func):
 @cli.command()
 @common_options
 def local(**kwargs):
-    from pipelines.local import run
+    from examples.pipelines.local import run
 
     return run(**kwargs)
 
@@ -110,7 +110,7 @@ def local(**kwargs):
 @cli.command()
 @common_options
 def contextful(**kwargs):
-    from pipelines.contextful import run
+    from examples.pipelines.contextful import run
 
     return run(**kwargs)
 
@@ -118,7 +118,7 @@ def contextful(**kwargs):
 @cli.command()
 @common_options
 def contextful_s3(**kwargs):
-    from pipelines.contextful_s3 import run
+    from examples.pipelines.contextful_s3 import run
 
     return run(**kwargs)
 
@@ -126,7 +126,7 @@ def contextful_s3(**kwargs):
 @cli.command()
 @common_options
 def contextless(**kwargs):
-    from pipelines.contextless import run
+    from examples.pipelines.contextless import run
 
     return run(**kwargs)
 
