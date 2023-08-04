@@ -145,7 +145,7 @@ When the process is complete, the App will be up and running inside a Docker con
     pip install poetry
     ```
 
-- **Install dependencies:** 
+- **Install llm_app and dependencies:** 
 
     ```bash
     poetry install --with examples --extra local
