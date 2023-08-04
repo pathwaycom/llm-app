@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+"""
+This is the main entrypoint for running all examples with centralized configuration.
+However, all examples are self-contained and can also be run directly.
+"""
+
 import functools
 
 import click

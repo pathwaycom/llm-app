@@ -14,8 +14,10 @@ for documents in the corpus. A prompt is build from the relevant documentations 
 and sent to the OpenAI GPT-4 chat service for processing.
 
 Usage:
-In llm_app/ run:
-python main.py --mode contextful
+In the root of this repository run:
+`poetry run ./run_examples.py contextful`
+
+You can also run this example directly in the environment with llm_app instaslled.
 
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
@@ -40,10 +42,10 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/pathway-docs/"),
     api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
-    data_dir: str = "./examples/data/pathway-docs/",
     embedder_locator: str = "text-embedding-ada-002",
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",

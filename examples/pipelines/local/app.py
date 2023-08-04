@@ -1,3 +1,16 @@
+"""
+Usage:
+In the root of this repository run:
+`poetry run ./run_examples.py local`
+
+You can also run this example directly in the environment with llm_app instaslled.
+
+To call the REST API:
+curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+"""
+
+import os
+
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
@@ -15,9 +28,11 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
+    data_dir: str = os.environ.get(
+        "PATHWAY_DATA_DIR", "./examples/data/pathway-docs-small/"
+    ),
     host: str = "0.0.0.0",
     port: int = 8080,
-    data_dir: str = "./examples/data/pathway-docs-small/",
     model_locator: str = "gpt2",
     embedder_locator: str = "intfloat/e5-large-v2",
     embedding_dimension: int = 1024,

@@ -1,3 +1,14 @@
+"""
+Usage:
+In the root of this repository run:
+`poetry run ./run_examples.py contextless`
+
+You can also run this example directly in the environment with llm_app instaslled.
+
+To call the REST API:
+curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+"""
+
 import os
 
 import pathway as pw

@@ -21,5 +21,4 @@ RUN poetry install --only-root
 
 EXPOSE 8080
 
-# CMD ls -la
 ENTRYPOINT poetry run ./run_examples.py $APP_VARIANT
