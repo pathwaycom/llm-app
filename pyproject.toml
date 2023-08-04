@@ -1,3 +1,55 @@
+[tool.poetry]
+name = "llm-app"
+version = "0.1.0"
+description = "A Pathway LLM App"
+authors = [
+    "Jan Chorowski <janek@pathway.com>",
+    "Kamil Piechowiak <kamil@pathway.com>",
+    "Jakub Kowalski <kuba@pathway.com>",
+    "Michał Bartoszkiewicz <embe@pathway.com>",
+    "Mohamed Malhou <mohamed@pathway.com>",
+    "Sergey Kulik <sergey@pathway.com>",
+    "Adrian Kosowski <adrian@pathway.com>",
+    "Mateusz Lewandowski <mateusz@pathway.com>",
+]
+license = "MIT"
+readme = "README.md"
+keywords = ["Pathway", "LLM"]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "License :: OSI Approved :: MIT License",
+]
+
+[tool.poetry.urls]
+"Homepage" = "https://github.com/pathwaycom/llm-app"
+"Source Code" = "https://github.com/pathwaycom/llm-app"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pathway = "^0.2.0"
+openai = "^0.27.8"
+requests = "^2.31.0"
+diskcache = "^5.6.1"
+sentence-transformers = { version = "^2.2.2", optional = true }
+torch = { version = ">=2.0.0, !=2.0.1", optional = true }
+
+[tool.poetry.extras]
+local = ["torch", "sentence-transformers"]
+
+[tool.poetry.group.examples]
+optional = true
+
+[tool.poetry.group.examples.dependencies]
+click = "^8.1.6"
+python-dotenv = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 88
 exclude = '''/(

@@ -1,30 +1,36 @@
 """
-Microservice for  a context-aware ChatGPT assistant.
+Microservice for  a privacy preserving LLM assistant.
 
-The following program reads in a collection of documents,
-embeds each document using the OpenAI document embedding model,
+The following program reads in a collection of documents from local directory,
+embeds each document using a locally deployed SentenceTransformer,
 then builds an index for fast retrieval of documents relevant to a question,
 effectively replacing a vector database.
 
 The program then starts a REST API endpoint serving queries about programming in Pathway.
 
-Each query text is first turned into a vector using OpenAI embedding service,
+Each query text is first turned into a vector using the SentenceTransformer,
 then relevant documentation pages are found using a Nearest Neighbor index computed
 for documents in the corpus. A prompt is build from the relevant documentations pages
-and sent to the OpenAI GPT-4 chat service for processing.
+and run through a local LLM downloaded form the HuggingFace repository.
 
 Usage:
-In llm_app/ run:
-python main.py --mode contextful
+In the root of this repository run:
+`poetry run ./run_examples.py local`
+or, if all dependencies are managed manually rather than using poetry
+`python examples/pipelines/local/app.py`
+
+You can also run this example directly in the environment with llm_app instaslled.
 
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
+
 import os
 
 import pathway as pw
-from model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 from pathway.stdlib.ml.index import KNNIndex
+
+from llm_app.model_wrappers import HFTextGenerationTask, SentenceTransformerTask
 
 
 class DocumentInputSchema(pw.Schema):
@@ -36,46 +42,46 @@ class QueryInputSchema(pw.Schema):
     user: str
 
 
-HTTP_HOST = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "127.0.0.1")
-HTTP_PORT = os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")
-
-API_KEY = os.environ.get("OPENAI_API_TOKEN")
-EMBEDDER_LOCATOR = "text-embedding-ada-002"
-EMBEDDING_DIMENSION = 1536
-
-MODEL_LOCATOR = "gpt-3.5-turbo" #  Change to 'gpt-4' if you have access.
-TEMPERATURE = 0.0
-MAX_TOKENS = 60
-
-
-def run():
-    embedder = OpenAIEmbeddingModel(api_key=API_KEY)
+def run(
+    *,
+    data_dir: str = os.environ.get(
+        "PATHWAY_DATA_DIR", "./examples/data/pathway-docs-small/"
+    ),
+    host: str = "0.0.0.0",
+    port: int = 8080,
+    model_locator: str = "gpt2",
+    embedder_locator: str = "intfloat/e5-large-v2",
+    embedding_dimension: int = 1024,
+    max_tokens: int = 60,
+    **kwargs,
+):
+    embedder = SentenceTransformerTask(model=embedder_locator)
 
     documents = pw.io.jsonlines.read(
-        "../data/pathway-docs/",
+        data_dir,
         schema=DocumentInputSchema,
         mode="streaming",
         autocommit_duration_ms=50,
     )
 
     enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc, locator=EMBEDDER_LOCATOR)
+        data=embedder.apply(text=pw.this.doc)
     )
 
-    index = KNNIndex(enriched_documents, d=EMBEDDING_DIMENSION)
+    index = KNNIndex(enriched_documents, d=embedding_dimension)
 
     query, response_writer = pw.io.http.rest_connector(
-        host=HTTP_HOST,
-        port=int(HTTP_PORT),
+        host=host,
+        port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query, locator=EMBEDDER_LOCATOR),
+        data=embedder.apply(text=pw.this.query),
     )
 
-    query_context = index.query(query, k=3).select(
+    query_context = index.query(query, k=1).select(
         pw.this.query, documents_list=pw.this.result
     )
 
@@ -89,21 +95,19 @@ def run():
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = OpenAIChatGPTModel(api_key=API_KEY)
+    model = HFTextGenerationTask(model=model_locator)
 
     responses = prompt.select(
         query_id=pw.this.id,
         result=model.apply(
-            pw.this.prompt,
-            locator=MODEL_LOCATOR,
-            temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS,
+            pw.this.prompt, return_full_text=False, max_new_tokens=max_tokens
         ),
     )
 
     response_writer(responses)
 
     pw.run()
+
 
 if __name__ == "__main__":
     run()

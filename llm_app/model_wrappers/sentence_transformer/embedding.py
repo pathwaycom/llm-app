@@ -1,4 +1,4 @@
-from model_wrappers.base import BaseModel
+from llm_app.model_wrappers.base import BaseModel
 
 
 class SentenceTransformerTask(BaseModel):

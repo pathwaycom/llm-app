@@ -1,43 +1,44 @@
-from model_wrappers.base import BaseModel
+from llm_app.model_wrappers.base import BaseModel
 
 
 class HFPipelineTask(BaseModel):
     def __init__(self, model, device="cpu", **kwargs):
         """
-    A wrapper class for Hugging Face's `Pipeline` class.
+        A wrapper class for Hugging Face's `Pipeline` class.
 
-    The `pipeline` function from Hugging Face is a utility factory method that creates
-    a Pipeline to handle different tasks.
-    It supports tasks like text classification, translation, summarization, and many more.
+        The `pipeline` function from Hugging Face is a utility factory method that creates
+        a Pipeline to handle different tasks.
+        It supports tasks like text classification, translation, summarization, and many more.
 
-    This wrapper class simplifies the process of initializing the pipeline and allows the user
-    to easily change the underlying model used for computations.
+        This wrapper class simplifies the process of initializing the pipeline and allows the user
+        to easily change the underlying model used for computations.
 
-    Parameters:
-    -----------
-    model : str, required
-        The model identifier from Hugging Face's model hub.
-    device : str, default='cpu'
-        The device where the computations will be performed.
-        Supports 'cpu' or 'gpu'. Default is 'cpu'.
-    **kwargs : optional
-        Additional arguments form HF.
-        Please check out https://huggingface.co/docs/transformers/main/main_classes/pipelines
-        for more information on the models and available arguments.
+        Parameters:
+        -----------
+        model : str, required
+            The model identifier from Hugging Face's model hub.
+        device : str, default='cpu'
+            The device where the computations will be performed.
+            Supports 'cpu' or 'gpu'. Default is 'cpu'.
+        **kwargs : optional
+            Additional arguments form HF.
+            Please check out https://huggingface.co/docs/transformers/main/main_classes/pipelines
+            for more information on the models and available arguments.
 
-    Attributes:
-    -----------
-    pipeline : transformers.Pipeline
-        The Hugging Face pipeline object.
-    tokenizer : transformers.PreTrainedTokenizer
-        The tokenizer associated with the pipeline.
+        Attributes:
+        -----------
+        pipeline : transformers.Pipeline
+            The Hugging Face pipeline object.
+        tokenizer : transformers.PreTrainedTokenizer
+            The tokenizer associated with the pipeline.
 
-    Example:
-    --------
-    >>> pipe = HFPipelineTask('gpt2')
-    >>> result = pipe('Hello world')
-    """
+        Example:
+        --------
+        >>> pipe = HFPipelineTask('gpt2')
+        >>> result = pipe('Hello world')
+        """
         from transformers import pipeline
+
         super().__init__(**kwargs)
         self.pipeline = pipeline(model=model, device=device)
         self.tokenizer = self.pipeline.tokenizer
@@ -80,12 +81,7 @@ class HFFeatureExtractionTask(HFPipelineTask):
 
 class HFTextGenerationTask(HFPipelineTask):
     def __init__(
-        self,
-        model,
-        device="cpu",
-        max_prompt_length=500,
-        max_new_tokens=500,
-        **kwargs
+        self, model, device="cpu", max_prompt_length=500, max_new_tokens=500, **kwargs
     ):
         super().__init__(model, device=device, **kwargs)
         self.max_prompt_length = max_prompt_length

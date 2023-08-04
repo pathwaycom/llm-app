@@ -1,10 +1,10 @@
 import pathway as pw
-from model_wrappers.api_clients.clients import (
+from llm_app.model_wrappers.api_clients.clients import (
     OpenAIChatCompletionClient,
     OpenAIClient,
     OpenAIEmbeddingClient,
 )
-from model_wrappers.base import APIModel
+from llm_app.model_wrappers.base import APIModel
 
 
 class MessagePreparer:
