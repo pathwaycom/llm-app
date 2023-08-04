@@ -25,7 +25,7 @@ def common_options(func):
         envvar="PATHWAY_REST_CONNECTOR_HOST",
         type=str,
         default="127.0.0.1",
-        help="Rest input connector host",
+        help="Rest input connector host.",
     )
     @click.option(
         "--port",
@@ -33,7 +33,7 @@ def common_options(func):
         envvar="PATHWAY_REST_CONNECTOR_PORT",
         type=int,
         default=8080,
-        help="Rest input connector port",
+        help="Rest input connector port.",
     )
     @click.option(
         "--data_dir",
@@ -54,7 +54,7 @@ def common_options(func):
         envvar="EMBEDDER_LOCATOR",
         type=str,
         required=False,
-        help="Embedding model locator. Default is ADA from OpenAI",
+        help="Embedding model locator.",
     )
     @click.option(
         "--embedding_dimension",
@@ -62,7 +62,7 @@ def common_options(func):
         envvar="EMBEDDING_DIMENSION",
         type=int,
         required=False,
-        help="Embedding model output dimension. Default is for OpenAI/ADA",
+        help="Embedding model output dimension.",
     )
     @click.option(
         "--max_tokens",
@@ -70,7 +70,7 @@ def common_options(func):
         envvar="MAX_OUTPUT_TOKENS",
         type=int,
         required=False,
-        help="Maximum output tokens of the LLM",
+        help="Maximum output tokens of the LLM.",
     )
     @click.option(
         "--model_locator",
@@ -78,7 +78,7 @@ def common_options(func):
         envvar="MODEL_LOCATOR",
         type=str,
         required=False,
-        help="LLM locator for text completion/generation",
+        help="LLM locator for text completion/generation.",
     )
     @click.option(
         "--api_key",
@@ -86,7 +86,7 @@ def common_options(func):
         envvar="OPENAI_API_TOKEN",
         type=str,
         required=False,
-        help="API Key for OpenAI/HuggingFace Inference APIs",
+        help="API Key for OpenAI/HuggingFace Inference APIs.",
     )
     @click.option(
         "--temperature",
