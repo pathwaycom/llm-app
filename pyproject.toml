@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "llm-app"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Pathway LLM App"
 authors = [
     "Jan Chorowski <janek@pathway.com>",
