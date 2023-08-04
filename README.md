@@ -148,10 +148,10 @@ When the process is complete, the App will be up and running inside a Docker con
 - **Install llm_app and dependencies:** 
 
     ```bash
-    poetry install --with examples --extra local
+    poetry install --with examples --extras local
     ```
 
-    You can ommit `--extra local` part if you're not going to run local example.
+    You can ommit `--extras local` part if you're not going to run local example.
 
 - **Run the examples:** You can start the example with the command:
 
