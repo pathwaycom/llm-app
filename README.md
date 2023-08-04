@@ -16,13 +16,13 @@
 
 Pathway's **LLM (Large Language Model) App** enables innovative AI applications that provide real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoiding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
-To get started explore one of the application variants:
-| App variant                                                       | Description                                                                                                                                                                                                                                                                                                                                 |
+To get started explore one of the examples:
+| Example                                                       | Description                                                                                                                                                                                                                                                                                                                                 |
 |-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`contextless`](llm_app/pathway_pipelines/contextless/app.py)     | This simple app variant calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
-| [`contextful`](llm_app/pathway_pipelines/contextful/app.py)       | This default variant of the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at [`llm_app/pathway_pipelines/contextful/app.py`](llm_app/pathway_pipelines/contextful/app.py). |
-| [`contextful_s3`](llm_app/pathway_pipelines/contextful_s3/app.py) | This variant operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                                   |
-| [`local`](llm_app/pathway_pipelines/local/app.py)                 | This variant runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                     |
+| [`contextless`](examples/pipelines/contextless/app.py)     | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
+| [`contextful`](examples/pipelines/contextful/app.py)       | This default example of the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
+| [`contextful_s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                                   |
+| [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                     |
 
 
 **Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
@@ -30,7 +30,7 @@ To get started explore one of the application variants:
 
 ## Use cases
 
-LLM App variants can be used as templates for developing multiple applications running on top of Pathway. Here are examples of possible uses:
+LLM App examples can be used as templates for developing multiple applications running on top of Pathway. Here are examples of possible uses:
 * **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot.
 * **Ask privacy-preserving queries** to an LLM using a private knowledge base that is frequently updated.
 * **Extend Kafka-based streaming architectures with LLM's**.
@@ -41,7 +41,7 @@ LLM App variants can be used as templates for developing multiple applications r
 
 ## How it works
 
-The default [`contextful`](llm_app/pathway_pipelines/contextful/app.py) LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
+The default [`contextful`](examples/pipelines/contextful/app.py) LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
 
 The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example to eliminate **ambiguity problems** of natural language with clearer prompts and better contexts.
 
@@ -193,6 +193,10 @@ When the process is complete, the App will be up and running inside a Docker con
     ```bash
     curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/
     ```
+
+### Step 5: Build your own Pathway-powered LLM App
+
+Simply add `llm-app` to your project's dependencies and copy one of the examples to get started!
 
 ## Troubleshooting
 

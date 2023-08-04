@@ -16,6 +16,8 @@ and sent to the OpenAI GPT-4 chat service for processing.
 Usage:
 In the root of this repository run:
 `poetry run ./run_examples.py contextful_s3`
+or, if all dependencies are managed manually rather than using poetry
+`python examples/pipelines/contextful_s3/app.py`
 
 You can also run this example directly in the environment with llm_app instaslled.
 

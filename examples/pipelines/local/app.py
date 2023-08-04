@@ -1,7 +1,23 @@
 """
+Microservice for  a privacy preserving LLM assistant.
+
+The following program reads in a collection of documents from local directory,
+embeds each document using a locally deployed SentenceTransformer,
+then builds an index for fast retrieval of documents relevant to a question,
+effectively replacing a vector database.
+
+The program then starts a REST API endpoint serving queries about programming in Pathway.
+
+Each query text is first turned into a vector using the SentenceTransformer,
+then relevant documentation pages are found using a Nearest Neighbor index computed
+for documents in the corpus. A prompt is build from the relevant documentations pages
+and run through a local LLM downloaded form the HuggingFace repository.
+
 Usage:
 In the root of this repository run:
 `poetry run ./run_examples.py local`
+or, if all dependencies are managed manually rather than using poetry
+`python examples/pipelines/local/app.py`
 
 You can also run this example directly in the environment with llm_app instaslled.
 
