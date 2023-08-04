@@ -127,17 +127,8 @@ You can install and run the LLM App in two different ways.
 
 Docker is a tool designed to make it easier to create, deploy, and run applications by using containers. Here is how to use Docker to build and run the LLM App:
 
-1. To build the Docker image for the LLM App. You do this with the docker build command.
-Build the image:
-
     ```bash
-    docker compose build
-    ```
-
-2. After your image is built, you can run it as a container. You use the docker compose run command to do this
-
-    ```bash
-    docker compose run -p 8080:8080 llm-app
+    docker compose run --build --rm -p 8080:8080 llm-app-examples
     ```
 
 If you have set a different port in `PATHWAY_REST_CONNECTOR_PORT`, replace the second `8080` with this port in the command above.
@@ -148,21 +139,26 @@ When the process is complete, the App will be up and running inside a Docker con
 
 **Important:** The instructions in this section are intended for users operating Unix-like systems (such as Linux, macOS, BSD). If you are a Windows user, we highly recommend leveraging Windows Subsystem for Linux (WSL) or Docker, as outlined in the previous sections, to ensure optimal compatibility and performance.
 
-- **Virtual Python Environment:** Create a new environment and install the required packages to isolate the dependencies of this project from your system's Python:
+- **Install poetry:**
 
     ```bash
-    # Creates an env called pw-env and activates this environment.
-    python -m venv pw-env && source pw-env/bin/activate
-
-    pip install --upgrade -r requirements.txt
+    pip install poetry
     ```
 
-- **Run the App:** You can start the application with the command:
+- **Install dependencies:** 
 
     ```bash
-    cd llm_app/
-    python main.py
+    poetry install --with examples --extra local
     ```
+
+    You can ommit `--extra local` part if you're not going to run local example.
+
+- **Run the examples:** You can start the example with the command:
+
+    ```bash
+    poetry run ./run_examples.py contextful
+    ```
+
 
 ### Step 4: Start to use it
 
