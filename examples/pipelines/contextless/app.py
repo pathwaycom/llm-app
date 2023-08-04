@@ -26,7 +26,7 @@ def run(
     api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
-    model_locator: str = "gpt2",
+    model_locator: str = "gpt-3.5-turbo",
     max_tokens: int = 60,
     temperature: int = 0.8,
     **kwargs,
