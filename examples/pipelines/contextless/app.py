@@ -1,3 +1,5 @@
+import os
+
 import pathway as pw
 
 from llm_app.model_wrappers import OpenAIChatGPTModel
@@ -10,7 +12,7 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    api_key: str = "",
+    api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
     model_locator: str = "gpt2",

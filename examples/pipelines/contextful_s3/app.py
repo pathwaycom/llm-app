@@ -20,6 +20,8 @@ python main.py --mode contextful_s3
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
+import os
+
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
@@ -37,7 +39,7 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    api_key: str = "",
+    api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
     data_dir: str = "llm_demo/data/",

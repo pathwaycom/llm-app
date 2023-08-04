@@ -16,20 +16,11 @@ license = "MIT"
 readme = "README.md"
 keywords = ["Pathway", "LLM"]
 
-classifiers = [ # Optional
-    # How mature is this project? Common values are
-    #   3 - Alpha
-    #   4 - Beta
-    #   5 - Production/Stable
+classifiers = [
     "Development Status :: 3 - Alpha",
-
-    # Indicate who your project is intended for
     "Intended Audience :: Developers",
     "Programming Language :: Python :: Implementation :: CPython",
-
-    # Pick your license as you wish
     "License :: OSI Approved :: MIT License",
-
 ]
 
 [tool.poetry.urls]
@@ -42,16 +33,17 @@ pathway = "^0.2.0"
 openai = "^0.27.8"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
-python-dotenv = "^1.0.0"
 sentence-transformers = "^2.2.2"
-transformers = { extras = ["torch"], version = "^4.31.0" }
-
 
 [tool.poetry.scripts]
 llm-app = 'llm_app.cli:main'
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.group.examples]
+optional = true
+
+[tool.poetry.group.examples.dependencies]
 click = "^8.1.6"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]

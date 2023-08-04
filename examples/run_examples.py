@@ -80,7 +80,7 @@ def common_options(func):
         "-k",
         envvar="OPENAI_API_TOKEN",
         type=str,
-        default="",
+        required=False,
         help="API Key for OpenAI/HuggingFace Inference APIs",
     )
     @click.option(
