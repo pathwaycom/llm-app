@@ -1,13 +1,15 @@
+#!/usr/bin/env python
+
+import importlib
+from typing import Optional
+
 import click
 from dotenv import load_dotenv
-
-from examples.config import Config
 
 load_dotenv()
 
 
 @click.group
-@click.version_option(prog_name="llm-app")
 def cli() -> None:
     pass
 
@@ -48,7 +50,7 @@ def cli() -> None:
     "--data_dir",
     envvar="PATHWAY_DATA_DIR",
     type=str,
-    default="./data/pathway-docs/",
+    required=False,
 )
 @click.option(
     "--cache_dir",
@@ -58,27 +60,27 @@ def cli() -> None:
     default="/tmp/cache",
 )
 @click.option(
-    "--model",
+    "--model_locator",
     "-m",
     envvar="MODEL_LOCATOR",
     type=str,
-    default="gpt-3.5-turbo",
+    required=False,
     help="LLM locator for text completion/generation",
 )
 @click.option(
-    "--embedder",
+    "--embedder_locator",
     "-e",
     envvar="EMBEDDER_LOCATOR",
     type=str,
-    default="text-embedding-ada-002",
+    required=False,
     help="Embedding model locator. Default is ADA from OpenAI",
 )
 @click.option(
-    "--embedding_dim",
+    "--embedding_dimension",
     "-d",
     envvar="EMBEDDING_DIMENSION",
     type=int,
-    default=1536,
+    required=False,
     help="Embedding model output dimension. Default is for OpenAI/ADA",
 )
 @click.option(
@@ -86,7 +88,7 @@ def cli() -> None:
     "-m",
     envvar="MAX_OUTPUT_TOKENS",
     type=int,
-    default=60,
+    required=False,
     help="Maximum output tokens of the LLM",
 )
 @click.option(
@@ -94,36 +96,26 @@ def cli() -> None:
     "-t",
     envvar="MODEL_TEMPERATURE",
     type=float,
-    default=0.8,
+    required=False,
     help="LLM temperature, controls the randomness of the outputs.",
 )
 def up(
+    *,
     variant: str,
     host: str,
     port: int,
     api_key: str,
     data_dir: str,
     cache_dir: str,
-    model: str,
-    embedder: str,
-    embedding_dim: int,
-    max_tokens: int,
-    temperature: float,
+    model_locator: Optional[str],
+    embedder_locator: Optional[str],
+    embedding_dimension: Optional[int],
+    max_tokens: Optional[int],
+    temperature: Optional[float],
 ):
-    config = Config(
-        app_variant=variant,
-        rest_host=host,
-        rest_port=port,
-        api_key=api_key,
-        cache_dir=cache_dir,
-        model_locator=model,
-        data_dir=data_dir,
-        embedder_locator=embedder,
-        embedding_dimension=embedding_dim,
-        max_tokens=max_tokens,
-        temperature=temperature,
-    )
-    # return run(config)
+    args = {k: v for k, v in locals().items() if v is not None}
+    scenario_module = importlib.import_module(f"pipelines.{variant}.app")
+    scenario_module.run(**args)
 
 
 def main():

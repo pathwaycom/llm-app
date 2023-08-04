@@ -3,8 +3,6 @@ from pathway.stdlib.ml.index import KNNIndex
 
 from llm_app.model_wrappers import HFTextGenerationTask, SentenceTransformerTask
 
-from ...config import Config
-
 
 class DocumentInputSchema(pw.Schema):
     doc: str
@@ -15,16 +13,21 @@ class QueryInputSchema(pw.Schema):
     user: str
 
 
-# EMBEDDER_LOCATOR = "intfloat/e5-large-v2"
-# EMBEDDING_DIMENSION = 1024
-# MODEL_LOCATOR = "gpt2"
-
-
-def run(config: Config):
-    embedder = SentenceTransformerTask(model=config.embedder_locator)
+def run(
+    *,
+    host: str = "0.0.0.0",
+    port: int = 8080,
+    data_dir: str = "./data/pathway-docs-small/",
+    model_locator: str = "gpt2",
+    embedder_locator: str = "intfloat/e5-large-v2",
+    embedding_dimension: int = 1024,
+    max_tokens: int = 60,
+    **kwargs,
+):
+    embedder = SentenceTransformerTask(model=embedder_locator)
 
     documents = pw.io.jsonlines.read(
-        "./data/pathway-docs-small/",
+        data_dir,
         schema=DocumentInputSchema,
         mode="streaming",
         autocommit_duration_ms=50,
@@ -34,11 +37,11 @@ def run(config: Config):
         data=embedder.apply(text=pw.this.doc)
     )
 
-    index = KNNIndex(enriched_documents, d=config.embedding_dimension)
+    index = KNNIndex(enriched_documents, d=embedding_dimension)
 
     query, response_writer = pw.io.http.rest_connector(
-        host=config.rest_host,
-        port=config.rest_port,
+        host=host,
+        port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
     )
@@ -61,12 +64,12 @@ def run(config: Config):
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = HFTextGenerationTask(model=config.model_locator)
+    model = HFTextGenerationTask(model=model_locator)
 
     responses = prompt.select(
         query_id=pw.this.id,
         result=model.apply(
-            pw.this.prompt, return_full_text=False, max_new_tokens=config.max_tokens
+            pw.this.prompt, return_full_text=False, max_new_tokens=max_tokens
         ),
     )
 

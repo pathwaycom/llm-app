@@ -1,6 +1,5 @@
 import pathway as pw
 
-from examples.config import Config
 from llm_app.model_wrappers import OpenAIChatGPTModel
 
 
@@ -9,26 +8,39 @@ class QueryInputSchema(pw.Schema):
     user: str
 
 
-def run(config: Config):
+def run(
+    *,
+    api_key: str = "",
+    host: str = "0.0.0.0",
+    port: int = 8080,
+    model_locator: str = "gpt2",
+    max_tokens: int = 60,
+    temperature: int = 0.8,
+    **kwargs,
+):
     query, response_writer = pw.io.http.rest_connector(
-        host=config.rest_host,
-        port=config.rest_port,
+        host=host,
+        port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
     )
 
-    model = OpenAIChatGPTModel(api_key=config.api_key)
+    model = OpenAIChatGPTModel(api_key=api_key)
 
     responses = query.select(
         query_id=pw.this.id,
         result=model.apply(
             pw.this.query,
-            locator=config.model_locator,
-            temperature=config.temperature,
-            max_tokens=config.max_tokens,
+            locator=model_locator,
+            temperature=temperature,
+            max_tokens=max_tokens,
         ),
     )
 
     response_writer(responses)
 
     pw.run()
+
+
+if __name__ == "__main__":
+    run()

@@ -24,7 +24,6 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from examples.config import Config
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
@@ -37,31 +36,43 @@ class QueryInputSchema(pw.Schema):
     user: str
 
 
-def run(config: Config):
-    embedder = OpenAIEmbeddingModel(api_key=config.api_key)
+def run(
+    *,
+    api_key: str = "",
+    host: str = "0.0.0.0",
+    port: int = 8080,
+    data_dir: str = "./data/pathway-docs/",
+    embedder_locator: str = "text-embedding-ada-002",
+    embedding_dimension: int = 1536,
+    model_locator: str = "gpt-3.5-turbo",
+    max_tokens: int = 60,
+    temperature: int = 0.0,
+    **kwargs,
+):
+    embedder = OpenAIEmbeddingModel(api_key=api_key)
 
     documents = pw.io.jsonlines.read(
-        config.data_dir,
+        data_dir,
         schema=DocumentInputSchema,
         mode="streaming",
         autocommit_duration_ms=50,
     )
 
     enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc, locator=config.embedder_locator)
+        data=embedder.apply(text=pw.this.doc, locator=embedder_locator)
     )
 
-    index = KNNIndex(enriched_documents, d=config.embedding_dimension)
+    index = KNNIndex(enriched_documents, d=embedding_dimension)
 
     query, response_writer = pw.io.http.rest_connector(
-        host=config.rest_host,
-        port=config.rest_port,
+        host=host,
+        port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query, locator=config.embedder_locator),
+        data=embedder.apply(text=pw.this.query, locator=embedder_locator),
     )
 
     query_context = index.query(query, k=3).select(
@@ -78,18 +89,22 @@ def run(config: Config):
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = OpenAIChatGPTModel(api_key=config.api_key)
+    model = OpenAIChatGPTModel(api_key=api_key)
 
     responses = prompt.select(
         query_id=pw.this.id,
         result=model.apply(
             pw.this.prompt,
-            locator=config.model_locator,
-            temperature=config.temperature,
-            max_tokens=config.max_tokens,
+            locator=model_locator,
+            temperature=temperature,
+            max_tokens=max_tokens,
         ),
     )
 
     response_writer(responses)
 
     pw.run()
+
+
+if __name__ == "__main__":
+    run()
