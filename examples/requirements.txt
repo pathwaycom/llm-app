@@ -1,2 +1,3 @@
-llm-app==0.1.0
+# llm-app==0.1.0
 click
+python-dotenv

@@ -92,8 +92,9 @@ def common_options(func):
         help="LLM temperature, controls the randomness of the outputs.",
     )
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
+    def wrapper(**kwargs):
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        return func(**kwargs)
 
     return wrapper
 

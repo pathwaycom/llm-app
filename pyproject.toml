@@ -46,8 +46,12 @@ python-dotenv = "^1.0.0"
 sentence-transformers = "^2.2.2"
 transformers = { extras = ["torch"], version = "^4.31.0" }
 
+
 [tool.poetry.scripts]
 llm-app = 'llm_app.cli:main'
+
+[tool.poetry.group.dev.dependencies]
+click = "^8.1.6"
 
 [build-system]
 requires = ["poetry-core"]

@@ -964,14 +964,14 @@ xml = ["lxml (>=4.6.3)"]
 
 [[package]]
 name = "pathway"
-version = "0.2.0"
+version = "0.2.1"
 description = "Pathway is a data processing framework which takes care of streaming data updates for you."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pathway-0.2.0-cp38-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:e42988f3c58323d5242feae47c55a799c8e38a84c1b49b8bb8cfa772aecda5c8"},
-    {file = "pathway-0.2.0-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:40a490d7228828c576678a2783419e5cb0c38519c17cc165d9cf17dd4d2cd0db"},
-    {file = "pathway-0.2.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1102eba90cf61652c31f49eb3e2d99662cdf5b9fcf00cda63f76ee90b9be58a2"},
+    {file = "pathway-0.2.1-cp38-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:08936a02a653aa319464165695ff7ccf3110d36c4085569e6d427e7f4d98d1cb"},
+    {file = "pathway-0.2.1-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c303533c491c85b6c0e635dd842b9a5c8f6ca636c48213c649b2f3d335ae9fb1"},
+    {file = "pathway-0.2.1-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb3a6fdf0056a035467321ec48fe34bef45422f0da1dfd24474b2c9c4432393c"},
 ]
 
 [package.dependencies]
@@ -979,7 +979,7 @@ aiohttp = ">=3.8.4"
 beartype = ">=0.14.0"
 click = ">=8.1"
 diskcache = ">=5.2.1"
-numba = {version = ">=0.56", markers = "python_version < \"3.11\""}
+numba = ">=0.56"
 numpy = ">=1.21"
 pandas = ">=1.3"
 pyarrow = ">=10.0.0"
@@ -1409,13 +1409,13 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "rich"
-version = "13.4.2"
+version = "13.5.2"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "rich-13.4.2-py3-none-any.whl", hash = "sha256:8f87bc7ee54675732fa66a05ebfe489e27264caeeff3728c945d25971b6485ec"},
-    {file = "rich-13.4.2.tar.gz", hash = "sha256:d653d6bccede5844304c605d5aac802c7cf9621efd700b46c7ec2b51ea914898"},
+    {file = "rich-13.5.2-py3-none-any.whl", hash = "sha256:146a90b3b6b47cac4a73c12866a499e9817426423f57c5a66949c086191a8808"},
+    {file = "rich-13.5.2.tar.gz", hash = "sha256:fb9d6c0a0f643c99eed3875b5377a184132ba9be4d61516a55273d3554d75a39"},
 ]
 
 [package.dependencies]
@@ -2042,4 +2042,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "13ef803cf26ef5187516d6646bdf8afc148b832ce617b01836533b2736c62eea"
+content-hash = "395b3cba77d522fc000081ebbe9f1204733ed4d4289e952b60558a169c689a46"
