@@ -10,27 +10,17 @@ authors = [
     "Mohamed Malhou <mohamed@pathway.com>",
     "Sergey Kulik <sergey@pathway.com>",
     "Adrian Kosowski <adrian@pathway.com>",
-    "Mateusz Lewandowski <mateusz@pathway.com>"
+    "Mateusz Lewandowski <mateusz@pathway.com>",
 ]
 license = "MIT"
 readme = "README.md"
-include = ["data/**/*"]
 keywords = ["Pathway", "LLM"]
 
-classifiers = [ # Optional
-    # How mature is this project? Common values are
-    #   3 - Alpha
-    #   4 - Beta
-    #   5 - Production/Stable
+classifiers = [
     "Development Status :: 3 - Alpha",
-
-    # Indicate who your project is intended for
     "Intended Audience :: Developers",
     "Programming Language :: Python :: Implementation :: CPython",
-
-    # Pick your license as you wish
     "License :: OSI Approved :: MIT License",
-
 ]
 
 [tool.poetry.urls]
@@ -43,12 +33,18 @@ pathway = "^0.2.0"
 openai = "^0.27.8"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
-python-dotenv = "^1.0.0"
-sentence-transformers = "^2.2.2"
-transformers = {extras = ["torch"], version = "^4.31.0"}
+sentence-transformers = { version = "^2.2.2", optional = true }
+torch = { version = ">=2.0.0, !=2.0.1", optional = true }
 
-[tool.poetry.scripts]
-llm-app = 'llm_app.cli:main'
+[tool.poetry.extras]
+local = ["torch", "sentence-transformers"]
+
+[tool.poetry.group.examples]
+optional = true
+
+[tool.poetry.group.examples.dependencies]
+click = "^8.1.6"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]

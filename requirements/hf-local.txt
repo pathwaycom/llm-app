@@ -1,6 +1,0 @@
-pathway
-sentence-transformers
-transformers[torch]
-requests
-diskcache
-python-dotenv

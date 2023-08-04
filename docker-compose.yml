@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  llm-app:
+  llm-app-examples:
     build:
       context: ./
       dockerfile: Dockerfile
@@ -9,6 +9,6 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./.env
+      - .env
     stdin_open: true
     tty: true
