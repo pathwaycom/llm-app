@@ -6,18 +6,21 @@ RUN pip install poetry
 RUN poetry config installer.max-workers 10
 
 ARG APP_VARIANT=contextful
+ENV POETRY_FLAGS="--with examples --no-interaction --no-ansi"
 
-COPY ./pyproject.toml ./pyproject.toml
-COPY ./poetry.lock ./poetry.lock
-
+COPY ./pyproject.toml ./poetry.lock ./
 RUN if [ "${APP_VARIANT}" = "local" ] ; then \
-    poetry install --no-root --with examples --no-interaction --no-ansi --extras local; \
+    poetry install ${POETRY_FLAGS} --no-root --extras local ; \
     else \
-    poetry install --no-root --with examples --no-interaction --no-ansi  ; \
+    poetry install ${POETRY_FLAGS} --no-root ; \
     fi
 
 COPY . .
-RUN poetry install --only-root
+RUN if [ "${APP_VARIANT}" = "local" ] ; then \
+    poetry install ${POETRY_FLAGS} --extras local ; \
+    else \
+    poetry install ${POETRY_FLAGS} ; \
+    fi
 
 EXPOSE 8080
 
