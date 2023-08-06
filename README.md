@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Pathway banner](./.github/assets/banner.png)](https://pathway.com/)
+[![Pathway banner](https://d14l3brkh44201.cloudfront.net/pathway-llm.png)](https://pathway.com/)
 
 # LLM App
 
@@ -49,7 +49,7 @@ Read more about the implementation details and how to extend this application in
 
 ### Watch it in action
 
-[![Build your LLM App without a vector database (in 30 lines of code)](./.github/assets/video-th.png)](https://www.youtube.com/watch?v=kcrJSk00duw)
+[![Build your LLM App without a vector database (in 30 lines of code)](https://d14l3brkh44201.cloudfront.net/video-th.png)](https://www.youtube.com/watch?v=kcrJSk00duw)
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
 
