@@ -43,7 +43,11 @@ class BaseModel(ABC):
         text: Union[pw.ColumnExpression, str],
         **kwargs,
     ) -> pw.ColumnExpression:
-        return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)
+        return pw.apply_async(
+            pw.asynchronous.with_capacity(self.cache(self.__call__), 1),
+            text=text,
+            **kwargs
+        )
 
 
 class APIModel(BaseModel):
