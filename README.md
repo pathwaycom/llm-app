@@ -128,7 +128,7 @@ You can install and run the LLM App in two different ways.
 Docker is a tool designed to make it easier to create, deploy, and run applications by using containers. Here is how to use Docker to build and run the LLM App:
 
     ```bash
-    docker compose run --build --rm -p 8080:8080 llm-app-examples
+    docker compose run --rm -p 8080:8080 llm-app-examples
     ```
 
 If you have set a different port in `PATHWAY_REST_CONNECTOR_PORT`, replace the second `8080` with this port in the command above.
