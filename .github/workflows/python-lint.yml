@@ -30,6 +30,7 @@ jobs:
           flake8 \
           isort==5.10.1 \
           mypy \
+          types-requests \
           pytest
     - name: run black
       run: |
