@@ -14,7 +14,9 @@
 [![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM (Large Language Model) App** enables innovative AI applications that provide real-time human-like responses to user queries, based on the most up-to-date knowledge available in a document store. What sets LLM App apart is it **does not require** a separate vector database, thereby **avoiding the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your document data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
+Pathway's **LLM (Large Language Model) App** is a Python library that helps you build innovative AI applications by providing real-time human-like responses to user queries based on the most up-to-date knowledge available in your data sources.
+
+LLM App **does not require** a separate vector database and **avoids the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
 To get started explore one of the examples:
 | Example                                                       | Description                                                                                                                                                                                                                                                                                                                                 |
