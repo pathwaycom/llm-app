@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-import requests
 
+import requests
 
 logfun = logging.debug
 
@@ -15,6 +15,7 @@ class APIClient(ABC):
 class OpenAIClient(APIClient):
     def __init__(self, api_key: str):
         import openai
+
         self.api = openai
         self.api.api_key = api_key
 
