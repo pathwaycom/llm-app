@@ -18,15 +18,6 @@ Pathway's **LLM (Large Language Model) App** is a Python library that helps you 
 
 LLM App **does not require** a separate vector database and **avoids the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
-To get started explore one of the examples:
-| Example                                                       | Description                                                                                                                                                                                                                                                                                                                                 |
-|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`contextless`](examples/pipelines/contextless/app.py)     | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
-| [`contextful`](examples/pipelines/contextful/app.py)       | This default example of the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
-| [`contextful_s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                                   |
-| [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                     |
-
-
 **Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Getting Started](#getting-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
 
@@ -35,7 +26,7 @@ To get started explore one of the examples:
 LLM App examples can be used as templates for developing multiple applications running on top of Pathway. Here are examples of possible uses:
 * **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot.
 * **Ask privacy-preserving queries** to an LLM using a private knowledge base that is frequently updated.
-* **Extend Kafka-based streaming architectures with LLM's**.
+* **Extend Kafka-based streaming architectures with LLMs**.
 * **Process LLM queries in bulk** with prompts created automatically out of input data streams.
 * **Obtain structured data on the fly** out of streams of documents.
 * **Validate incoming documents** against existing documents with an LLM.
@@ -45,7 +36,7 @@ LLM App examples can be used as templates for developing multiple applications r
 
 The default [`contextful`](examples/pipelines/contextful/app.py) LLM App takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is, the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
 
-The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example to eliminate **ambiguity problems** of natural language with clearer prompts and better contexts.
+The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example, to eliminate **ambiguity problems** of natural language with clearer prompts and better contexts.
 
 Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
@@ -59,7 +50,7 @@ Read more about the implementation details and how to extend this application in
 
 ### Key Features
 
-- **HTTP REST queries** - The system is capable of responding in real time to HTTP REST queries.
+- **HTTP REST queries** - The system is capable of responding in real-time to HTTP REST queries.
 - **Real-time document indexing pipeline** - This pipeline reads data directly from S3-compatible storage, without the need to query an extra vector document database.
 - **Code reusability for offline evaluation** - The same code can be used for static evaluation of the system.
 - **Model testing** - Present and past queries can be run against fresh models to evaluate their quality.
@@ -68,22 +59,31 @@ Read more about the implementation details and how to extend this application in
 
 - **Local Machine Learning models** - LLM App can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
 
-- **Live data sources** - It can also be extended to handle live data sources (news feeds, APIs, data streams in Kafka), to include user permissions, a data security layer, and an LLMops monitoring layer.
+- **Live data sources** - The library can be used to handle live data sources (news feeds, APIs, data streams in Kafka), as well as to include user permissions, a data security layer, and an LLMops monitoring layer.
 
-- **User session handling** - The query-building process can be extended to handle user sessions.
+- **User session handling** - The library's query-building process can be used to handle user sessions.
 
 - To learn more about advanced features see: [Features for Organizations](FEATURES-for-organizations.md).
 
 ### Coming Soon:
 
 - Splitting the application into indexing and request-serving processes easily.
-- Expanding context doc selection with a graph walk.
+- Expanding context doc selection with a graph walk / support for a HNSW variant.
 - Model drift and monitoring setup.
 - A guide to model A/B testing.
 
 ## Getting Started
 
-Follow easy steps to install and get started using the app.
+To get started explore one of the examples:
+
+| Example                                                       | Description                                                                                                                                                                                                                                                                                                                                 |
+|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`contextless`](examples/pipelines/contextless/app.py)     | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
+| [`contextful`](examples/pipelines/contextful/app.py)       | This default example of the app will index the documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline being run in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
+| [`contextful_s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                                   |
+| [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.   
+
+And follow the easy steps to install and run one of those examples.
 
 ### Step 1: Clone the repository
 
