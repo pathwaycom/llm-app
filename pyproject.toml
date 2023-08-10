@@ -63,6 +63,6 @@ known_first_party = ["llm_app"]
 [tool.mypy]
 python_version = "3.10"
 exclude = ['examples']
-ignore_missing_imports = "True"
-follow_imports_for_stubs = "True"
-check_untyped_defs = "True"
+ignore_missing_imports = true
+follow_imports_for_stubs = true
+check_untyped_defs = true

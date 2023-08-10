@@ -1,9 +1,6 @@
 name: lint PR
 on:
   pull_request:
-    paths:
-      - .github/workflows/python-lint.yml
-      - .
   push:
     branches:
       - main
@@ -37,7 +34,7 @@ jobs:
         black --check .
     - name: run Flake8
       run: |
-        flake8 --config setup.cfg .
+        flake8 .
     - name: run mypy
       run: |
         mypy .
