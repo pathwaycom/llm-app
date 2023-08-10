@@ -1,9 +1,9 @@
 name: lint PR
 on:
-  # pull_request:
-  #   paths:
-  #     - .github/workflows/python-lint.yml
-  #     - .
+  pull_request:
+    paths:
+      - .github/workflows/python-lint.yml
+      - .
   push:
     branches:
       - main
