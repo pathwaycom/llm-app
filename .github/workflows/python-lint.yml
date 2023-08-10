@@ -24,9 +24,9 @@ jobs:
     - name: Install linters
       run: |
         pip install black==22.* \
-          flake8 \
+          flake8==6.0.0 \
           isort==5.10.1 \
-          mypy \
+          mypy==1.4.1 \
           types-requests \
           pytest
     - name: run black
