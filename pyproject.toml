@@ -59,3 +59,10 @@ exclude = '''/(
 [tool.isort]
 profile = "black"
 known_first_party = ["llm_app"]
+
+[tools.mypy]
+python_version = 3.10
+exclude = examples
+ignore_missing_imports = True
+follow_imports_for_stubs = True
+check_untyped_defs = True
