@@ -24,13 +24,15 @@ You can also run this example directly in the environment with llm_app instaslle
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
-
 import os
 
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from llm_app.model_wrappers import HFTextGenerationTask, SentenceTransformerTask
+from llm_app.model_wrappers import (
+    HFTextGenerationTask,
+    SentenceTransformerTask,
+)
 
 
 class DocumentInputSchema(pw.Schema):
