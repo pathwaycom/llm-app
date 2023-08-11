@@ -23,10 +23,10 @@ jobs:
         python-version: ${{ matrix.python-version }}      
     - name: Install linters
       run: |
-        pip install black==22.* \
-          flake8==6.0.0 \
-          isort==5.10.1 \
-          mypy==1.4.1 \
+        pip install black==23 \
+          flake8==6.1 \
+          isort==5 \
+          mypy==1.5 \
           types-requests \
           pytest
     - name: run black
