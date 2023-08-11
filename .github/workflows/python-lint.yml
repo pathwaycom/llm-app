@@ -27,6 +27,7 @@ jobs:
           "flake8==6.1" \
           "isort==5" \
           "mypy==1.5" \
+          toml
           types-requests \
           pytest
     - name: run black
