@@ -14,22 +14,22 @@ class APIClient(ABC):
 
 class OpenAIClient(APIClient):
     def __init__(self, api_key: str):
-        import openai
+        import litellm
 
-        self.api = openai
+        self.api = litellm
         self.api.api_key = api_key
 
 
 class OpenAIChatCompletionClient(OpenAIClient):
     def make_request(self, **kwargs):
         logfun("Calling OpenAI chat completion service %s", str(kwargs)[:100])
-        return self.api.ChatCompletion.create(**kwargs)
+        return self.api.completion(**kwargs)
 
 
 class OpenAIEmbeddingClient(OpenAIClient):
     def make_request(self, **kwargs):
         logfun("Calling OpenAI embedding service %s", str(kwargs)[:100])
-        return self.api.Embedding.create(**kwargs)
+        return self.api.embedding(**kwargs)
 
 
 class HuggingFaceClient(APIClient):
