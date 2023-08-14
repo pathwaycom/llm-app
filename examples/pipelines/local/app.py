@@ -55,9 +55,10 @@ def run(
     embedder_locator: str = "intfloat/e5-large-v2",
     embedding_dimension: int = 1024,
     max_tokens: int = 60,
+    device: str = "cpu",
     **kwargs,
 ):
-    embedder = SentenceTransformerTask(model=embedder_locator)
+    embedder = SentenceTransformerTask(model=embedder_locator, device=device)
 
     documents = pw.io.jsonlines.read(
         data_dir,
@@ -97,7 +98,7 @@ def run(
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = HFTextGenerationTask(model=model_locator)
+    model = HFTextGenerationTask(model=model_locator, device=device)
 
     responses = prompt.select(
         query_id=pw.this.id,
