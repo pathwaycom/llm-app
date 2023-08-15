@@ -96,6 +96,13 @@ def common_options(func):
         required=False,
         help="LLM temperature, controls the randomness of the outputs.",
     )
+    @click.option(
+        "--device",
+        envvar="DEVICE",
+        type=str,
+        required=False,
+        help="Device to run models on, e.g. 'cpu', 'cuda'",
+    )
     @functools.wraps(func)
     def wrapper(**kwargs):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}

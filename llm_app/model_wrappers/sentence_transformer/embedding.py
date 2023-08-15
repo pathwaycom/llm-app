@@ -2,7 +2,7 @@ from llm_app.model_wrappers.base import BaseModel
 
 
 class SentenceTransformerTask(BaseModel):
-    def __init__(self, model: str, **kwargs):
+    def __init__(self, model: str, device: str = "cpu", **kwargs):
         """
         Wrapper for sentence-transformers.
         Arguments:
@@ -11,7 +11,7 @@ class SentenceTransformerTask(BaseModel):
         from sentence_transformers import SentenceTransformer
 
         super().__init__(**kwargs)
-        self.model = SentenceTransformer(model_name_or_path=model)
+        self.model = SentenceTransformer(model_name_or_path=model, device=device)
 
     def __call__(self, text: str, **kwargs) -> str:
         """
