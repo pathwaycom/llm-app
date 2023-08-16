@@ -5,8 +5,9 @@ to make contributions to the Pathway project. Please be sure to also read our [c
 
 ## The basics:
 
-* Use the [Issue Tracker](https://github.com/pathwaycom/pathway-examples/issues) to
+* Use the [Issue Tracker](https://github.com/pathwaycom/llm-app/issues) to
   report bugs, crashes, performance issues, etc... Please include as much detail
+
   as possible.
   
 * [Discussions](https://github.com/pathwaycom/pathway/discussions) is a great
