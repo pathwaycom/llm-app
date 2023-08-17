@@ -1133,14 +1133,14 @@ xml = ["lxml (>=4.6.3)"]
 
 [[package]]
 name = "pathway"
-version = "0.3.0"
+version = "0.2.1"
 description = "Pathway is a data processing framework which takes care of streaming data updates for you."
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.8"
 files = [
-    {file = "pathway-0.3.0-cp38-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:66a3b514df33fb8cea0d2902e586ce004f6cee530b207cff14ade9e659236773"},
-    {file = "pathway-0.3.0-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2d0d38aaae13e5e5d27f05902eda71ab0987b5eac4ad109b5e036394fd6159f"},
-    {file = "pathway-0.3.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c0df176795bfec5bc9f516199a743121b35ab1c8d49683820cef70a0e9430afc"},
+    {file = "pathway-0.2.1-cp38-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:08936a02a653aa319464165695ff7ccf3110d36c4085569e6d427e7f4d98d1cb"},
+    {file = "pathway-0.2.1-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c303533c491c85b6c0e635dd842b9a5c8f6ca636c48213c649b2f3d335ae9fb1"},
+    {file = "pathway-0.2.1-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb3a6fdf0056a035467321ec48fe34bef45422f0da1dfd24474b2c9c4432393c"},
 ]
 
 [package.dependencies]
@@ -2269,4 +2269,4 @@ local = ["sentence-transformers", "torch"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "dd510652595652138d27a8407d76e40d01ff705cb12720f0fd52b3e9ce84ccaf"
+content-hash = "a657c146a1cb6f591cca4d4ed170df9fd5c27929640bdc49099d5a219da7eb8c"

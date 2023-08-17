@@ -29,10 +29,7 @@ import os
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from llm_app.model_wrappers import (
-    HFTextGenerationTask,
-    SentenceTransformerTask,
-)
+from llm_app.model_wrappers import HFTextGenerationTask, SentenceTransformerTask
 
 
 class DocumentInputSchema(pw.Schema):
