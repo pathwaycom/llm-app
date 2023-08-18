@@ -29,7 +29,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pathway = "^0.2.0"
+pathway = "^0.3.0"
 openai = "^0.27.8"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
