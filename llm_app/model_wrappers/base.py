@@ -32,8 +32,7 @@ class _Cache:
 
 
 class BaseModel(ABC):
-    def __init__(self, **kwargs):
-        self.config = kwargs
+    def __init__(self):
         self.cache = _Cache()
 
     def __call__(self, text: str, **kwargs):
@@ -48,10 +47,10 @@ class BaseModel(ABC):
 
 
 class APIModel(BaseModel):
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(**kwargs)
-        self.api_client = self.get_client(api_key)
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.api_client = self.get_client(**kwargs)
 
     @abstractmethod
-    def get_client(self, api_key: str) -> APIClient:
+    def get_client(self, **kwargs) -> APIClient:
         pass

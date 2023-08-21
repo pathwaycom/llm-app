@@ -3,8 +3,8 @@ from llm_app.model_wrappers.base import APIModel
 
 
 class HuggingFaceAPIModel(APIModel):
-    def get_client(self, api_key: str) -> HuggingFaceClient:
-        return HuggingFaceClient(api_key=api_key)
+    def get_client(self, **kwargs) -> HuggingFaceClient:
+        return HuggingFaceClient(**kwargs)
 
     def call_api(self, **kwargs):
         """

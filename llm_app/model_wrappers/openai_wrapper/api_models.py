@@ -18,8 +18,8 @@ class MessagePreparer:
 
 
 class OpenAIChatGPTModel(APIModel):
-    def get_client(self, openai_key: str) -> OpenAIClient:
-        return OpenAIChatCompletionClient(openai_key)
+    def get_client(self, **kwargs) -> OpenAIClient:
+        return OpenAIChatCompletionClient(**kwargs)
 
     def __call__(self, text: str, locator="gpt-3.5-turbo", **kwargs) -> str:
         """
@@ -88,8 +88,8 @@ class OpenAIChatGPTModel(APIModel):
 
 
 class OpenAIEmbeddingModel(APIModel):
-    def get_client(self, openai_key: str) -> OpenAIClient:
-        return OpenAIEmbeddingClient(openai_key)
+    def get_client(self, **kwargs) -> OpenAIClient:
+        return OpenAIEmbeddingClient(**kwargs)
 
     def __call__(self, text: str, locator="text-embedding-ada-002", **kwargs):
         """
