@@ -1,8 +1,12 @@
 from llm_app.model_wrappers.api_clients.clients import HuggingFaceClient
-from llm_app.model_wrappers.base import APIModel
+from llm_app.model_wrappers.base import BaseModel
 
 
-class HuggingFaceAPIModel(APIModel):
+class HuggingFaceAPIModel(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.api_client = self.get_client(**kwargs)
+
     def get_client(self, **kwargs) -> HuggingFaceClient:
         return HuggingFaceClient(**kwargs)
 

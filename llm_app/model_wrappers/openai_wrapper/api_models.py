@@ -5,7 +5,7 @@ from llm_app.model_wrappers.api_clients.clients import (
     OpenAIClient,
     OpenAIEmbeddingClient,
 )
-from llm_app.model_wrappers.base import APIModel
+from llm_app.model_wrappers.base import BaseModel
 
 
 class MessagePreparer:
@@ -17,7 +17,11 @@ class MessagePreparer:
         ]
 
 
-class OpenAIChatGPTModel(APIModel):
+class OpenAIChatGPTModel(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.api_client = self.get_client(**kwargs)
+
     def get_client(self, **kwargs) -> OpenAIClient:
         return OpenAIChatCompletionClient(**kwargs)
 
@@ -33,10 +37,13 @@ class OpenAIChatGPTModel(APIModel):
         # ...     temperature=1.1
         # ... )
         """
+        if self.api_client.api.api_type == "azure":
+            kwargs["engine"] = locator
+        else:
+            kwargs["model"] = locator
+
         messages = MessagePreparer.prepare_chat_messages(text)
-        response = self.api_client.make_request(
-            messages=messages, model=locator, **kwargs
-        )
+        response = self.api_client.make_request(messages=messages, **kwargs)
         return response.choices[0].message.content
 
     def apply(
@@ -87,7 +94,11 @@ class OpenAIChatGPTModel(APIModel):
         return super().apply(*args, **kwargs)
 
 
-class OpenAIEmbeddingModel(APIModel):
+class OpenAIEmbeddingModel(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.api_client = self.get_client(**kwargs)
+
     def get_client(self, **kwargs) -> OpenAIClient:
         return OpenAIEmbeddingClient(**kwargs)
 
@@ -102,8 +113,12 @@ class OpenAIEmbeddingModel(APIModel):
         # ...    locator='text-embedding-ada-002'
         # ... )
         """
+        if self.api_client.api.api_type == "azure":
+            kwargs["engine"] = locator
+        else:
+            kwargs["model"] = locator
 
-        response = self.api_client.make_request(input=[text], model=locator, **kwargs)
+        response = self.api_client.make_request(input=[text], **kwargs)
         return response["data"][0]["embedding"]
 
     def apply(

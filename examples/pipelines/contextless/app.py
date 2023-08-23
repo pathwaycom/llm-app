@@ -34,7 +34,7 @@ def run(
     port: int = 8080,
     model_locator: str = "gpt-3.5-turbo",
     max_tokens: int = 60,
-    temperature: int = 0.8,
+    temperature: float = 0.8,
     **kwargs,
 ):
     query, response_writer = pw.io.http.rest_connector(

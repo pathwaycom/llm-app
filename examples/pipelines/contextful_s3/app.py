@@ -51,7 +51,7 @@ def run(
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",
     max_tokens: int = 60,
-    temperature: int = 0.0,
+    temperature: float = 0.0,
     **kwargs,
 ):
     embedder = OpenAIEmbeddingModel(api_key=api_key)
