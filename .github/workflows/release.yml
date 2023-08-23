@@ -1,0 +1,117 @@
+name: llm-app - build and public package
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  Build_package:
+    name: Build package
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+            python-version: '3.11'
+
+      - name: Git checkout
+        uses: actions/checkout@v3.3.0
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+
+      - name: Build package
+        run: poetry build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: llm-app
+          path: ./dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: CHANGELOG.md
+
+  Publish:
+    needs:
+      - Build_package
+    environment: PROD
+    name: Publish package
+    strategy:
+      # When true GitHub will cancel all in-progress and queued jobs in the matrix if any job in the matrix fails.
+      fail-fast: false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      # Add wheelhouse
+      - name: create dir for wheels
+        run: |
+          mkdir wheels
+
+      - uses: actions/download-artifact@master
+        with:
+          name: llm-app
+          path: ./wheels/
+
+      - uses: actions/download-artifact@master
+        with:
+          name: CHANGELOG.md
+          path: .
+
+      # https://github.com/marketplace/actions/create-release   
+      - name: Create Release
+        uses: ncipollo/release-action@v1.12.0    
+        with:
+          draft: true
+          artifacts: "./wheels/*.whl"
+          artifactContentType: "raw"
+          allowUpdates: true
+          bodyFile: "CHANGELOG.md"
+          tag: ${{github.ref_name}}
+          commit: main
+
+      # https://github.com/marketplace/actions/pypi-publish
+      # https://pypi.org/project/llm-app/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+          packages-dir: './wheels/'
+          repository-url: https://pypi.org/legacy/ # change it after test on test.pypi
+
+  post-release-message:
+    runs-on: ubuntu-latest
+    needs: Publish
+    steps:
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
+          channel-id: "{{ secrets.SLACK_DEV_CHANNEL_ID }}"
+          # For posting a simple plain text message
+          payload: |
+            {
+              "text":  ":tada:\n Hey, it's Manul here. I've made a new release. llm-app ${{ github.event.release.tag_name }} released: has been published:\n${{ github.event.release.html_url }} \nhttps://pypi.org/project/llm-app/ \n:tada:",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text":  ":tada:\n Hey, it's Manul here. I've made a new release. llm-app ${{ github.event.release.tag_name }} released: has been published:\n${{ github.event.release.html_url }} \nhttps://pypi.org/project/llm-app/ \n:tada:"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEV_CHANNEL_URL }}
