@@ -18,7 +18,7 @@ Pathway's **LLM (Large Language Model) App** is a Python library that helps you 
 
 LLM App **does not require** a separate vector database and **avoids the need** for complex and fragmented typical LLM stacks (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). Your data remains secure and undisturbed in its original storage location. LLM App's design ensures high performance and offers the flexibility for easy customization and expansion. It is particularly recommended for privacy-preserving LLM applications.
 
-**Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🛠️ [Troubleshooting](#troubleshooting)
+**Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🎬 [Showcases](#showcases)  🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
 
 ## Use cases
@@ -46,6 +46,10 @@ Read more about the implementation details and how to extend this application in
 [![Build your LLM App without a vector database (in 30 lines of code)](https://d14l3brkh44201.cloudfront.net/video-th.png)](https://www.youtube.com/watch?v=kcrJSk00duw)
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
+
+## Showcases
+
+* [ChatGPT Python API for discounts](https://github.com/Boburmirzo/chatgpt-api-python-sales) - The project exposes an HTTP REST endpoint to answer user queries about current sales like [Amazon product deals](https://www.amazon.com/gp/goldbox?ref_=nav_cs_gb) in a specific location.
 
 ## Features
 
