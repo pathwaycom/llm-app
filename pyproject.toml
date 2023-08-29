@@ -51,10 +51,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 88
-exclude = '''/(
-    | .git
-)/'''
+target-version = ["py310", "py311"]
 
 [tool.isort]
 profile = "black"
