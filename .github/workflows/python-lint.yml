@@ -25,7 +25,7 @@ jobs:
       run: |
         pip install "black==23.*" \
           "flake8==6.1" \
-          "isort==5" \
+          "isort==5.*" \
           "mypy==1.5" \
           toml \
           types-requests \
