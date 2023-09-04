@@ -66,7 +66,7 @@ def common_options(func):
     )
     @click.option(
         "--max_tokens",
-        "-m",
+        "-x",
         envvar="MAX_OUTPUT_TOKENS",
         type=int,
         required=False,
