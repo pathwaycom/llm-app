@@ -39,7 +39,40 @@ jobs:
         with:
           name: CHANGELOG.md
           path: CHANGELOG.md
-
+  Test_pypi: # test.pypi.org first
+    needs:
+      - Build_package
+    name: Publish package
+    strategy:
+      # When true GitHub will cancel all in-progress and queued jobs in the matrix if any job in the matrix fails.
+      fail-fast: false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      # Add wheelhouse
+      - name: create dir for wheels
+        run: |
+          mkdir wheels
+  
+      - uses: actions/download-artifact@master
+        with:
+          name: llm-app
+          path: ./wheels/
+  
+      - uses: actions/download-artifact@master
+        with:
+          name: CHANGELOG.md
+          path: .
+  
+      # https://github.com/marketplace/actions/pypi-publish
+      # https://test.pypi.org/project/llm-app/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          packages-dir: './wheels/'
+          repository-url: https://test.pypi.org/legacy/
+  
   Publish:
     needs:
       - Build_package
