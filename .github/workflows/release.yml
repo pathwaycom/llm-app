@@ -99,6 +99,14 @@ jobs:
           name: CHANGELOG.md
           path: .
 
+      - name: Save package to S3
+        uses: prewk/s3-cp-action@v2
+        with:
+          aws_access_key_id: ${{ secrets.ARTIFACT_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.ARTIFACT_AWS_SECRET_ACCESS_KEY }}
+          dest: ${{ secrets.ARTIFACT_AWS_BUCKET }}
+          source: ./wheels/*.whl
+          
       # https://github.com/marketplace/actions/create-release   
       - name: Create Release
         uses: ncipollo/release-action@v1.12.0    
