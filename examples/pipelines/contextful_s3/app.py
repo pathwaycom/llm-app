@@ -68,10 +68,12 @@ def run(
     )
 
     enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc, locator=embedder_locator)
+        vector=embedder.apply(text=pw.this.doc, locator=embedder_locator)
     )
 
-    index = KNNIndex(enriched_documents, d=embedding_dimension)
+    index = KNNIndex(
+        enriched_documents.vector, enriched_documents, n_dimensions=embedding_dimension
+    )
 
     query, response_writer = pw.io.http.rest_connector(
         host=host,
@@ -81,12 +83,12 @@ def run(
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query, locator=embedder_locator),
+        vector=embedder.apply(text=pw.this.query, locator=embedder_locator),
     )
 
-    query_context = index.query(query, k=3).select(
-        pw.this.query, documents_list=pw.this.result
-    )
+    query_context = query + index.get_nearest_items(
+        query.vector, k=3, collapse_rows=True
+    ).select(documents_list=pw.this.doc).promise_universe_is_equal_to(query)
 
     @pw.udf
     def build_prompt(documents, query):

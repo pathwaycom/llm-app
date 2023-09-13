@@ -129,7 +129,7 @@ def contextful(**kwargs):
 
 @cli.command()
 @common_options
-def contextful_s3(**kwargs):
+def s3(**kwargs):
     from examples.pipelines.contextful_s3 import run
 
     return run(**kwargs)
