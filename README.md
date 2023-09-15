@@ -16,7 +16,7 @@
 
 Pathway's **LLM (Large Language Model) App** is a Python library for building AI apps with real-time, human-like responses from your data.
 
-Build AI applications without **vector databases** and simplify LLM fragmented and **complex LLM stacks** (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). LLM App keeps your data secure and undisturbed in its original storage location while offering flexibility for easy customization and expansion.
+Build AI applications **without vector databases** and simplify LLM fragmented and **complex LLM stacks** (such as ~Pinecone/Weaviate + Langchain + Redis + FastAPI +...~). LLM App keeps your data secure and undisturbed in its original storage location while offering flexibility for easy customization and expansion.
 
 **Quick links** - 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🎬 [Showcases](#showcases)  🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
