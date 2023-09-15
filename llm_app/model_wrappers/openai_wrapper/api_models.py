@@ -1,10 +1,11 @@
 import pathway as pw
+
 from llm_app.model_wrappers.api_clients.clients import (
     OpenAIChatCompletionClient,
     OpenAIClient,
     OpenAIEmbeddingClient,
 )
-from llm_app.model_wrappers.base import APIModel
+from llm_app.model_wrappers.base import BaseModel
 
 
 class MessagePreparer:
@@ -16,9 +17,13 @@ class MessagePreparer:
         ]
 
 
-class OpenAIChatGPTModel(APIModel):
-    def get_client(self, openai_key: str) -> OpenAIClient:
-        return OpenAIChatCompletionClient(openai_key)
+class OpenAIChatGPTModel(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.api_client = self.get_client(**kwargs)
+
+    def get_client(self, **kwargs) -> OpenAIClient:
+        return OpenAIChatCompletionClient(**kwargs)
 
     def __call__(self, text: str, locator="gpt-3.5-turbo", **kwargs) -> str:
         """
@@ -32,10 +37,13 @@ class OpenAIChatGPTModel(APIModel):
         # ...     temperature=1.1
         # ... )
         """
+        if self.api_client.api.api_type == "azure":
+            kwargs["engine"] = locator
+        else:
+            kwargs["model"] = locator
+
         messages = MessagePreparer.prepare_chat_messages(text)
-        response = self.api_client.make_request(
-            messages=messages, model=locator, **kwargs
-        )
+        response = self.api_client.make_request(messages=messages, **kwargs)
         return response.choices[0].message.content
 
     def apply(
@@ -86,9 +94,13 @@ class OpenAIChatGPTModel(APIModel):
         return super().apply(*args, **kwargs)
 
 
-class OpenAIEmbeddingModel(APIModel):
-    def get_client(self, openai_key: str) -> OpenAIClient:
-        return OpenAIEmbeddingClient(openai_key)
+class OpenAIEmbeddingModel(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.api_client = self.get_client(**kwargs)
+
+    def get_client(self, **kwargs) -> OpenAIClient:
+        return OpenAIEmbeddingClient(**kwargs)
 
     def __call__(self, text: str, locator="text-embedding-ada-002", **kwargs):
         """
@@ -101,8 +113,12 @@ class OpenAIEmbeddingModel(APIModel):
         # ...    locator='text-embedding-ada-002'
         # ... )
         """
+        if self.api_client.api.api_type == "azure":
+            kwargs["engine"] = locator
+        else:
+            kwargs["model"] = locator
 
-        response = self.api_client.make_request(input=[text], model=locator, **kwargs)
+        response = self.api_client.make_request(input=[text], **kwargs)
         return response["data"][0]["embedding"]
 
     def apply(

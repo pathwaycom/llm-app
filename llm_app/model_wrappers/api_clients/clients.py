@@ -1,7 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
-import requests
+from typing import Optional
 
+import requests
 
 logfun = logging.debug
 
@@ -13,10 +14,24 @@ class APIClient(ABC):
 
 
 class OpenAIClient(APIClient):
-    def __init__(self, api_key: str):
+    def __init__(
+        self,
+        api_key: str,
+        api_type: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_version: Optional[str] = None,
+    ):
         import openai
+
+        openai.api_key = api_key
+        if api_type:
+            openai.api_type = api_type
+        if api_base:
+            openai.api_base = api_base
+        if api_version:
+            openai.api_version = api_version
+
         self.api = openai
-        self.api.api_key = api_key
 
 
 class OpenAIChatCompletionClient(OpenAIClient):
@@ -32,9 +47,13 @@ class OpenAIEmbeddingClient(OpenAIClient):
 
 
 class HuggingFaceClient(APIClient):
-    def __init__(self, api_key: str) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        api_base: str = "https://api-inference.huggingface.co/models",
+    ) -> None:
         self.headers = {"Authorization": f"Bearer {api_key}"}
-        self.api_url_prefix = "https://api-inference.huggingface.co/models"
+        self.api_url_prefix = api_base
 
     def make_request(self, **kwargs):
         logfun("Calling HuggingFace %s", str(kwargs)[:100])

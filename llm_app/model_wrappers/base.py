@@ -1,11 +1,10 @@
 import functools
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Union
 
 import diskcache
 import pathway as pw
-from llm_app.model_wrappers.api_clients.clients import APIClient
 
 
 class _Cache:
@@ -31,8 +30,7 @@ class _Cache:
 
 
 class BaseModel(ABC):
-    def __init__(self, **kwargs):
-        self.config = kwargs
+    def __init__(self):
         self.cache = _Cache()
 
     def __call__(self, text: str, **kwargs):
@@ -44,13 +42,3 @@ class BaseModel(ABC):
         **kwargs,
     ) -> pw.ColumnExpression:
         return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)
-
-
-class APIModel(BaseModel):
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(**kwargs)
-        self.api_client = self.get_client(api_key)
-
-    @abstractmethod
-    def get_client(self, api_key: str) -> APIClient:
-        pass

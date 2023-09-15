@@ -29,12 +29,13 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pathway = "^0.2.0"
-openai = "^0.27.8"
+pathway = "^0.3.0"
+openai = ">=0.27.8,<0.29.0"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
 sentence-transformers = { version = "^2.2.2", optional = true }
 torch = { version = ">=2.0.0, !=2.0.1", optional = true }
+streamlit = "^1.26.0"
 
 [tool.poetry.extras]
 local = ["torch", "sentence-transformers"]
@@ -51,11 +52,15 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 88
-exclude = '''/(
-    | .git
-)/'''
+target-version = ["py310", "py311"]
 
 [tool.isort]
 profile = "black"
 known_first_party = ["llm_app"]
+
+[tool.mypy]
+python_version = "3.10"
+exclude = ['examples']
+ignore_missing_imports = true
+follow_imports_for_stubs = true
+check_untyped_defs = true

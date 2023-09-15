@@ -66,7 +66,7 @@ def common_options(func):
     )
     @click.option(
         "--max_tokens",
-        "-m",
+        "-x",
         envvar="MAX_OUTPUT_TOKENS",
         type=int,
         required=False,
@@ -96,6 +96,13 @@ def common_options(func):
         required=False,
         help="LLM temperature, controls the randomness of the outputs.",
     )
+    @click.option(
+        "--device",
+        envvar="DEVICE",
+        type=str,
+        required=False,
+        help="Device to run models on, e.g. 'cpu', 'cuda'",
+    )
     @functools.wraps(func)
     def wrapper(**kwargs):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
@@ -122,7 +129,7 @@ def contextful(**kwargs):
 
 @cli.command()
 @common_options
-def contextful_s3(**kwargs):
+def s3(**kwargs):
     from examples.pipelines.contextful_s3 import run
 
     return run(**kwargs)

@@ -24,7 +24,6 @@ You can also run this example directly in the environment with llm_app instaslle
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
 """
-
 import os
 
 import pathway as pw
@@ -53,9 +52,10 @@ def run(
     embedder_locator: str = "intfloat/e5-large-v2",
     embedding_dimension: int = 1024,
     max_tokens: int = 60,
+    device: str = "cpu",
     **kwargs,
 ):
-    embedder = SentenceTransformerTask(model=embedder_locator)
+    embedder = SentenceTransformerTask(model=embedder_locator, device=device)
 
     documents = pw.io.jsonlines.read(
         data_dir,
@@ -65,10 +65,12 @@ def run(
     )
 
     enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc)
+        vector=embedder.apply(text=pw.this.doc)
     )
 
-    index = KNNIndex(enriched_documents, d=embedding_dimension)
+    index = KNNIndex(
+        enriched_documents.vector, enriched_documents, n_dimensions=embedding_dimension
+    )
 
     query, response_writer = pw.io.http.rest_connector(
         host=host,
@@ -78,12 +80,12 @@ def run(
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query),
+        vector=embedder.apply(text=pw.this.query),
     )
 
-    query_context = index.query(query, k=1).select(
-        pw.this.query, documents_list=pw.this.result
-    )
+    query_context = query + index.get_nearest_items(
+        query.vector, k=3, collapse_rows=True
+    ).select(documents_list=pw.this.doc).promise_universe_is_equal_to(query)
 
     @pw.udf
     def build_prompt(documents, query):
@@ -95,7 +97,7 @@ def run(
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = HFTextGenerationTask(model=model_locator)
+    model = HFTextGenerationTask(model=model_locator, device=device)
 
     responses = prompt.select(
         query_id=pw.this.id,

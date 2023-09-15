@@ -1,0 +1,42 @@
+name: lint PR
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main'}}
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11     
+    - name: Install linters
+      run: |
+        pip install "black==23.*" \
+          "flake8==6.1.*" \
+          "isort==5.*" \
+          "mypy==1.5.*" \
+          toml \
+          types-requests \
+          pytest
+    - name: run black
+      run: |
+        black --check .
+    - name: run Flake8
+      run: |
+        flake8 .
+    - name: run mypy
+      run: |
+        mypy .
+    - name: run isort
+      run: |
+        isort --check .
