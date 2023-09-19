@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "llm-app"
 version = "0.1.1"
-description = "A Pathway LLM App"
+description = "LLM-App is a library for creating responsive AI applications leveraging OpenAI/Hugging Face APIs to provide responses to user queries based on live data sources. Build your own LLM application in 30 lines of code, no vector database required."
 authors = [
     "Jan Chorowski <janek@pathway.com>",
     "Kamil Piechowiak <kamil@pathway.com>",
