@@ -143,6 +143,14 @@ def contextless(**kwargs):
     return run(**kwargs)
 
 
+@cli.command()
+@common_options
+def unstruct(**kwargs):
+    from examples.pipelines.unstructured import run
+
+    return run(**kwargs)
+
+
 def main():
     cli.main()
 

@@ -33,12 +33,16 @@ pathway = "^0.3.0"
 openai = ">=0.27.8,<0.29.0"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
+streamlit = "^1.26.0"
 sentence-transformers = { version = "^2.2.2", optional = true }
 torch = { version = ">=2.0.0, !=2.0.1", optional = true }
-streamlit = "^1.26.0"
+unstructured = {extras = ["all-docs"], version = "^0.10.15", optional = true}
+tiktoken = {version = "^0.5.1", optional = true}
+
 
 [tool.poetry.extras]
 local = ["torch", "sentence-transformers"]
+unstructured = ["unstructured", "tiktoken"]
 
 [tool.poetry.group.examples]
 optional = true
