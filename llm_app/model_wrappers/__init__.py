@@ -6,6 +6,10 @@ from llm_app.model_wrappers.huggingface_wrapper.pipelines import (
     HFFeatureExtractionTask,
     HFTextGenerationTask,
 )
+from llm_app.model_wrappers.litellm_wrapper.api_models import (
+    LiteLLMChatModel,
+    LiteLLMEmbeddingModel,
+)
 from llm_app.model_wrappers.openai_wrapper.api_models import (
     OpenAIChatGPTModel,
     OpenAIEmbeddingModel,
@@ -19,6 +23,8 @@ __all__ = [
     "HFApiTextGenerationTask",
     "HFFeatureExtractionTask",
     "HFTextGenerationTask",
+    "LiteLLMChatModel",
+    "LiteLLMEmbeddingModel",
     "OpenAIChatGPTModel",
     "OpenAIEmbeddingModel",
     "SentenceTransformerTask",

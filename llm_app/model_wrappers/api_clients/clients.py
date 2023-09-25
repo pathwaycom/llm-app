@@ -61,3 +61,44 @@ class HuggingFaceClient(APIClient):
         url = f"{self.api_url_prefix}/{endpoint}"
         response = requests.post(url, headers=self.headers, json=kwargs)
         return response.json()
+
+
+class LiteLLMClient(APIClient):
+    """
+    A wrapper for the LiteLLM.
+
+    Attributes:
+        task_fn (Callable): Function reference for the specified task.
+
+    Args:
+        task (str, optional): Type of task to be executed. Defaults to "completion".
+            Supported tasks are:
+                - "completion"
+                - "embedding"
+
+    Raises:
+        ValueError: If the provided task is not supported.
+    """
+
+    def __init__(self, task: str = "completion") -> None:
+        """
+        Initializes the client with the specified task type.
+
+        Args:
+            task (str, optional): Type of task. Defaults to "completion".
+            Supported are 'completion' and 'embedding'.
+        """
+        from litellm import completion, embedding
+
+        if task == "completion":
+            self.task_fn = completion
+        elif task == "embedding":
+            self.task_fn = embedding
+        else:
+            raise ValueError("Supported tasks are (completion, embedding).")
+
+    def make_request(self, **kwargs):
+        """
+        Makes a request to the LLM service using the specified task function.
+        """
+        return self.task_fn(**kwargs)
