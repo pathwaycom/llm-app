@@ -1,7 +1,6 @@
 import functools
 import os
 from abc import ABC
-from typing import Union
 
 import diskcache
 import pathway as pw
@@ -38,7 +37,7 @@ class BaseModel(ABC):
 
     def apply(
         self,
-        text: Union[pw.ColumnExpression, str],
+        text: pw.ColumnExpression | str,
         **kwargs,
     ) -> pw.ColumnExpression:
         return pw.apply_async(self.cache(self.__call__), text=text, **kwargs)

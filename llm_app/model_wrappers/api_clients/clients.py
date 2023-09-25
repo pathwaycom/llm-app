@@ -1,6 +1,5 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import requests
 
@@ -17,9 +16,9 @@ class OpenAIClient(APIClient):
     def __init__(
         self,
         api_key: str,
-        api_type: Optional[str] = None,
-        api_base: Optional[str] = None,
-        api_version: Optional[str] = None,
+        api_type: str | None = None,
+        api_base: str | None = None,
+        api_version: str | None = None,
     ):
         import openai
 
