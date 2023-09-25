@@ -5,7 +5,6 @@ on:
       - 'v*.*.*'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   Build_package:
     name: Build package
@@ -20,7 +19,7 @@ jobs:
             python-version: '3.11'
 
       - name: Git checkout
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2
@@ -39,17 +38,79 @@ jobs:
         with:
           name: CHANGELOG.md
           path: CHANGELOG.md
+
+  Verify_package:
+    needs: 
+      - Build_package
+    name: Verify package
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+      fail-fast: false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+            python-version: ${{ matrix.python-version }}
+
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+
+      - name: create dir for wheels
+        run: |
+          mkdir wheels
+
+      - uses: actions/download-artifact@master
+        with:
+          name: llm-app
+          path: ./wheels/
+
+      - name: Build ENV
+        run: |
+          cat <<EOF > .env
+          APP_VARIANT=contextful
+          PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
+          PATHWAY_REST_CONNECTOR_PORT=8080
+          OPENAI_API_TOKEN=${{ secrets.OPENAI_TOKEN }}
+          PATHWAY_CACHE_DIR=/tmp/cache
+          EOF
+
+      - name: Install and verify ${{ matrix.os }} package
+        run: |
+          set -ex
+          ENV_NAME="testenv_llm_app"
+          rm -rf $ENV_NAME
+          python -m venv ${ENV_NAME}
+          source ${ENV_NAME}/bin/activate
+          pip install python-dotenv
+          pip install --prefer-binary wheels/*.whl
+          python ./run_examples.py contextful > /dev/null 2>&1 &
+          sleep 5
+          curl -s --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/
+
   Test_pypi: # test.pypi.org first
     needs:
       - Build_package
-    name: Publish package
+      - Verify_package
+    name: Test pypi
     strategy:
-      # When true GitHub will cancel all in-progress and queued jobs in the matrix if any job in the matrix fails.
       fail-fast: false
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
-      # Add wheelhouse
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+            python-version: '3.11'
+
       - name: create dir for wheels
         run: |
           mkdir wheels
@@ -63,7 +124,17 @@ jobs:
         with:
           name: CHANGELOG.md
           path: .
-  
+
+      - name: Build ENV
+        run: |
+          cat <<EOF > .env
+          APP_VARIANT=contextful
+          PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
+          PATHWAY_REST_CONNECTOR_PORT=8080
+          OPENAI_API_TOKEN=${{ secrets.OPENAI_TOKEN }}
+          PATHWAY_CACHE_DIR=/tmp/cache
+          EOF  
+
       # https://github.com/marketplace/actions/pypi-publish
       # https://test.pypi.org/project/llm-app/
       - name: Publish package distributions to PyPI
@@ -73,9 +144,24 @@ jobs:
           packages-dir: './wheels/'
           repository-url: https://test.pypi.org/legacy/
   
+      - name: Install and verify ${{ matrix.os }} package
+        run: |
+          set -ex
+          ENV_NAME="testenv_llm_app"
+          rm -rf $ENV_NAME
+          python -m venv ${ENV_NAME}
+          source ${ENV_NAME}/bin/activate
+          pip install python-dotenv
+          pip install -i https://test.pypi.org/simple/ llm-app
+          pip show llm-app
+          python ./run_examples.py contextful > /dev/null 2>&1 &
+          sleep 5
+          curl -s --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/
   Publish:
     needs:
       - Build_package
+      - Verify_package
+      - Test_pypi
     environment: PROD
     name: Publish package
     strategy:
@@ -109,7 +195,7 @@ jobs:
           
       # https://github.com/marketplace/actions/create-release   
       - name: Create Release
-        uses: ncipollo/release-action@v1.12.0    
+        uses: ncipollo/release-action@v1.13.0    
         with:
           draft: true
           artifacts: "./wheels/*.whl"
@@ -126,11 +212,11 @@ jobs:
         with:
           password: ${{ secrets.PYPI_TOKEN }}
           packages-dir: './wheels/'
-          repository-url: https://pypi.org/legacy/ # change it after test on test.pypi
 
   post-release-message:
     runs-on: ubuntu-latest
     needs: Publish
+    if: success()
     steps:
       - name: Post to a Slack channel
         id: slack
