@@ -15,7 +15,7 @@ and sent to the OpenAI GPT-4 chat service for processing.
 
 Usage:
 In the root of this repository run:
-`poetry run ./run_examples.py unstruct`
+`poetry run ./run_examples.py unstructured`
 or, if all dependencies are managed manually rather than using poetry
 `python examples/pipelines/unstructured/app.py`
 

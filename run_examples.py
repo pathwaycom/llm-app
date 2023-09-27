@@ -145,7 +145,7 @@ def contextless(**kwargs):
 
 @cli.command()
 @common_options
-def unstruct(**kwargs):
+def unstructured(**kwargs):
     from examples.pipelines.unstructured import run
 
     return run(**kwargs)
