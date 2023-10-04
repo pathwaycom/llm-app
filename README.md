@@ -32,13 +32,13 @@ Pathway's **LLM (Large Language Model) App** is a Python library that helps you 
 
 ## Introduction
 
-With the LLM App, you can directly connect your unstructured, structured, semi-structured, or live data sources to create LLM Apps that take into account real-time changes.
+Connects your unstructured, structured, semi-structured, or live data sources to create LLM Apps that take into account real-time changes.
 
-![Connect data input to LLM App](https://github.com/pathway-labs/dropbox-ai-chat/blob/main/assets/any-type-of-data.gif)
+![Connect any data input to LLM App](/assets/any-data-input.gif)
 
 Simplifies your AI pipeline architecture by consolidating capabilities into one platform. No need to integrate and maintain separate modules for your Gen AI app.
 
-![Simple architecture](https://github.com/pathway-labs/dropbox-ai-chat/blob/main/assets/simple-architecture.png)
+![Simple architecture](/assets/simple-architecture.png)
 
 ## Get Started
 
