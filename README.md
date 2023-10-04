@@ -16,73 +16,29 @@
 
 Pathway's **LLM (Large Language Model) App** is a Python library that helps you build innovative AI applications by providing real-time human-like responses to user queries based on the most up-to-date knowledge available in your data sources.
 
-**Quick links** - 👀[Why LLM App?](#why-llm-app) 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🎬 [Showcases](#showcases) 🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🛠️ [Troubleshooting](#troubleshooting)
-👥 [Contributing](#troubleshooting)
+## Quick References
 
-## Why LLM App?
+- 👀 [Introduction](#why-llm-app)
+- ❓ [Why LLM App?](#why-llm-app)
+- 💡 [Use cases](#use-cases)
+- 📚 [How it works?](#how-it-works)
+- 🆚 [LLM App versus Langchain](#key-features)
+- 🌟 [Key Features](#key-features)
+- 🎬 [Showcases](#showcases)
+- 🏁 [Get Started](#get-started)
+- 🛠️ [Troubleshooting](#troubleshooting)
+- 👥 [Contributing](#troubleshooting)
+- 🗺️ [Roadmap](#troubleshooting)
 
-1. **Simplicity** - Simplifies your AI pipeline by consolidating capabilities into one platform. No need to integrate and maintain separate modules for your Gen AI app: ~Vector Databases (e.g. Pinecone/Weaviate/Qdrant) + LangChain + Cache (e.g. Redis) + API Framework (e.g. Fast API)~.
-2. **Real-time data syncing** - Syncs both structured and unstructured data from diverse sources, enabling real-time Retrieval Augmented Generation (RAG).
-3. **Easy alert setup** - Configure alerts for key business events with simple configurations.
-4. **Scalability** - Handles heavy data loads and usage without degradation in performance. Metrics help track usage and scalability.
-5. **Monitoring** - Provide visibility into model behavior via monitoring, tracing errors, anomaly detection, and replay for debugging. Helps with response quality.
-6. **Security** - Designed for the enterprise with capabilities like Personally Identifiable Information (PII) detection, content moderation, permissions, and version control. Run this in your private cloud with local LLMs.
+## Introduction
 
-## Use cases
+With the LLM App, you can directly connect your unstructured, structured, semi-structured, or live data sources to create LLM Apps that take into account real-time changes.
 
-LLM App examples can be used as templates for developing multiple applications running on top of Pathway. Here are examples of possible uses:
+![Connect data input to LLM App](https://github.com/pathway-labs/dropbox-ai-chat/blob/main/assets/any-type-of-data.gif)
 
-* **Build your own Discord AI chatbot** that answers questions (this is what you see covered in the video!). Or any similar AI chatbot.
-* **Ask privacy-preserving queries** to an LLM using a private knowledge base that is frequently updated.
-* **Extend Kafka-based streaming architectures with LLMs**.
-* **Process LLM queries in bulk** with prompts created automatically out of input data streams.
-* **Obtain structured data on the fly** out of streams of documents.
-* **Validate incoming documents** against existing documents with an LLM.
-* **Monitor live information streams** with an LLM: news and social media, spotting fake news, travel disruptions...
+Simplifies your AI pipeline architecture by consolidating capabilities into one platform. No need to integrate and maintain separate modules for your Gen AI app.
 
-## How it works
-
-The default [`LLM-Augmented Pipeline`](examples/pipelines/contextful/app.py) takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is that the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
-
-The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example, to eliminate **the ambiguity problems** of natural language with clearer prompts and better contexts.
-
-Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
-
-### Watch it in action
-
-[![Build your LLM App without a vector database (in 30 lines of code)](https://d14l3brkh44201.cloudfront.net/video-th.png)](https://www.youtube.com/watch?v=kcrJSk00duw)
-
-▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
-
-## Showcases
-
-* [ChatGPT Python API for discounts](https://github.com/Boburmirzo/chatgpt-api-python-sales) - ChatGPT + real-time data use-case to answer user queries about current discounts from online markets like [Amazon product deals](https://www.amazon.com/gp/goldbox?ref_=nav_cs_gb) in a specific location.
-
-## Features
-
-### Key Features
-
-* **HTTP REST queries** - The system is capable of responding in real-time to HTTP REST queries.
-* **Real-time document indexing pipeline** - This pipeline reads data directly from S3-compatible storage, without the need to query an extra vector document database.
-* **Code reusability for offline evaluation** - The same code can be used for static evaluation of the system.
-* **Model testing** - Present and past queries can be run against fresh models to evaluate their quality.
-
-### Advanced Features
-
-* **Local Machine Learning models** - LLM App can be configured to run with local Machine Learning models, without making API calls outside of the User's Organization.
-
-* **Live data sources** - The library can be used to handle live data sources (news feeds, APIs, data streams in Kafka), as well as to include user permissions, a data security layer, and an LLMops monitoring layer.
-
-* **User session handling** - The library's query-building process can be used to handle user sessions.
-
-* To learn more about advanced features see: [Features for Organizations](FEATURES-for-organizations.md).
-
-### Coming Soon
-
-* Splitting the application into indexing and request-serving processes easily.
-* Expanding context doc selection with a graph walk / support for a HNSW variant.
-* Model drift and monitoring setup.
-* A guide to model A/B testing.
+![Simple architecture](https://github.com/pathway-labs/dropbox-ai-chat/blob/main/assets/simple-architecture.png)
 
 ## Get Started
 
