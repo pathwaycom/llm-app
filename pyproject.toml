@@ -28,7 +28,7 @@ classifiers = [
 "Source Code" = "https://github.com/pathwaycom/llm-app"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.13"
 pathway = "^0.3.0"
 openai = ">=0.27.8,<0.29.0"
 requests = "^2.31.0"
