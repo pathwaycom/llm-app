@@ -28,7 +28,7 @@ def chunk_texts(
         texts: string or list of strings.
         min_tokens: minimum tokens in a chunk of text.
         max_tokens: maximum size of a chunk in tokens.
-        encoding_name: name of the encoding from tiktoken.
+        encoding_name: name of the encoding from `tiktoken`.
 
     Example:
 
