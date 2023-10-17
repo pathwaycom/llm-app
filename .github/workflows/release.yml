@@ -90,7 +90,7 @@ jobs:
           pip install python-dotenv
           pip install --prefer-binary wheels/*.whl
           python ./run_examples.py contextful > /dev/null 2>&1 &
-          sleep 5
+          sleep 60
           curl -s --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/
 
   Test_pypi: # test.pypi.org first
@@ -155,7 +155,7 @@ jobs:
           pip install -i https://test.pypi.org/simple/ llm-app
           pip show llm-app
           python ./run_examples.py contextful > /dev/null 2>&1 &
-          sleep 5
+          sleep 60
           curl -s --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/
   Publish:
     needs:
