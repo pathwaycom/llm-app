@@ -89,7 +89,7 @@ def run(
 
     query_context = query + index.get_nearest_items(
         query.vector, k=3, collapse_rows=True
-    ).select(documents_list=pw.this.chunk).promise_universe_is_equal_to(query)
+    ).select(documents_list=pw.this.chunk)
 
     @pw.udf
     def build_prompt(documents, query):

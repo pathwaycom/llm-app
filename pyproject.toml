@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "llm-app"
-version = "0.3.0"
+version = "0.3.1"
 description = "LLM-App is a library for creating responsive AI applications leveraging OpenAI/Hugging Face APIs to provide responses to user queries based on live data sources. Build your own LLM application in 30 lines of code, no vector database required."
 authors = [
     "Jan Chorowski <janek@pathway.com>",
@@ -29,15 +29,15 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-pathway = "^0.3.0"
+pathway = "=0.5.2"
 openai = ">=0.27.8,<0.29.0"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
 streamlit = "^1.26.0"
 sentence-transformers = { version = "^2.2.2", optional = true }
 torch = { version = ">=2.0.0, !=2.0.1", optional = true }
-unstructured = {extras = ["all-docs"], version = "^0.10.15", optional = true}
-tiktoken = {version = "^0.5.1", optional = true}
+unstructured = { extras = ["all-docs"], version = "^0.10.15", optional = true }
+tiktoken = { version = "^0.5.1", optional = true }
 
 
 [tool.poetry.extras]
