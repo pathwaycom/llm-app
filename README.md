@@ -14,9 +14,9 @@
 [![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM (Large Language Model) App** is a Python library that helps you build innovative AI applications by providing real-time human-like responses to user queries based on the most up-to-date knowledge available in your data sources.
+Pathway's **LLM (Large Language Model) App** is a Python library that helps you create and launch AI-powered applications based on the most up-to-date knowledge available in your data sources. You can use it to answer natural language queries asked by your users, or to run data transformation pipelines with LLM's.
 
-**Quick links** - 👀[Why LLM App?](#why-llm-app) 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🎬 [Showcases](#showcases) 🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🛠️ [Troubleshooting](#troubleshooting)
+**Quick links** - 👀[Why LLM App?](#why-llm-app) 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🎬 [Showcases](#showcases) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
 
 ## Why LLM App?
@@ -42,7 +42,7 @@ LLM App examples can be used as templates for developing multiple applications r
 
 ## How it works
 
-The default [`LLM-Augmented Pipeline`](examples/pipelines/contextful/app.py) takes a bunch of documents that might be stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. Then it processes and organizes these documents by building a 'vector index' using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. The cool part is that the app is always aware of changes in the documents. If new pieces of information are added, it updates its index in real-time and uses this new knowledge to answer the next questions. In this way, it provides the most accurate **real-time data** answers.
+The default [`contextful`](examples/pipelines/contextful/app.py) pipeline launches an application which connects to a source folder with documents, stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. The app is always in sync with updates to your documents, building in real-time a "vector index" using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. This way, it provides answers that are always best on the freshest and most accurate **real-time data**.
 
 The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example, to eliminate **the ambiguity problems** of natural language with clearer prompts and better contexts.
 
@@ -54,9 +54,6 @@ Read more about the implementation details and how to extend this application in
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
 
-## Showcases
-
-* [ChatGPT Python API for discounts](https://github.com/Boburmirzo/chatgpt-api-python-sales) - ChatGPT + real-time data use-case to answer user queries about current discounts from online markets like [Amazon product deals](https://www.amazon.com/gp/goldbox?ref_=nav_cs_gb) in a specific location.
 
 ## Features
 
@@ -84,6 +81,7 @@ Read more about the implementation details and how to extend this application in
 * Model drift and monitoring setup.
 * A guide to model A/B testing.
 
+
 ## Get Started
 
 ### Prerequisites
@@ -104,7 +102,7 @@ To get started explore one of the examples:
 | [`unstructured`](examples/pipelines/unstructured/app.py)   | Process unstructured documents such as PDF, HTML, DOCX, PPTX and more. Visit [unstructured-io](https://unstructured-io.github.io/unstructured/) for the full list of supported formats.                                                                                                                                                 |
 | [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                 |
 
-And follow the easy steps to install and run one of those examples.
+Follow these easy steps to install and get started with your favorite examples. You can also take a look at the [application showcases](#showcases).
 
 ### Step 1: Clone the repository
 
@@ -150,9 +148,9 @@ You can install and run the LLM App in two different ways.
 
 Docker is a tool designed to make it easier to create, deploy, and run applications by using containers. Here is how to use Docker to build and run the LLM App:
 
-    ```bash
-    docker compose run --build --rm -p 8080:8080 llm-app-examples
-    ```
+```bash
+docker compose run --build --rm -p 8080:8080 llm-app-examples
+```
 
 If you have set a different port in `PATHWAY_REST_CONNECTOR_PORT`, replace the second `8080` with this port in the command above.
 
@@ -220,6 +218,13 @@ Go to the `examples/ui/` directory (or `examples/pipelines/unstructured/ui` if y
 ### Bonus: Build your own Pathway-powered LLM App
 
 Simply add `llm-app` to your project's dependencies and copy one of the examples to get started!
+
+## Showcases
+
+* [Python sales](https://github.com/Boburmirzo/chatgpt-api-python-sales) - Find real-time sales with AI-powered Python API using ChatGPT and LLM (Large Language Model) App.
+
+* [Dropbox Data Observability](https://github.com/pathway-labs/dropbox-ai-chat) - See how to get started with chatting with your Dropbox and having data observability. 
+
 
 ## Troubleshooting
 
