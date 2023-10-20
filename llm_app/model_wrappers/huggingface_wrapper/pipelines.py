@@ -118,7 +118,9 @@ class HFTextGenerationTask(HFPipelineTask):
             },
             {"role": "user", "content": text},
         ]
-        prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        prompt = self.tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
 
         output = self.pipeline(prompt, max_new_tokens=max_new_tokens, **kwargs)
         return output[0]["generated_text"]
