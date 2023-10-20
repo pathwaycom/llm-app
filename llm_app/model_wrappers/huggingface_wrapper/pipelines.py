@@ -111,5 +111,14 @@ class HFTextGenerationTask(HFPipelineTask):
 
         max_new_tokens = kwargs.pop("max_new_tokens", self.max_new_tokens)
 
-        output = self.pipeline(text, max_new_tokens=max_new_tokens, **kwargs)
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful virtual assistant that only responds in english clearly and precisely.",
+            },
+            {"role": "user", "content": text},
+        ]
+        prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+        output = self.pipeline(prompt, max_new_tokens=max_new_tokens, **kwargs)
         return output[0]["generated_text"]
