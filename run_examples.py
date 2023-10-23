@@ -151,6 +151,14 @@ def unstructured(**kwargs):
     return run(**kwargs)
 
 
+@cli.command()
+@common_options
+def alert(**kwargs):
+    from examples.pipelines.alert import run
+
+    return run(**kwargs)
+
+
 def main():
     cli.main()
 
