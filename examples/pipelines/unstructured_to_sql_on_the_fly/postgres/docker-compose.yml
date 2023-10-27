@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  postgres:
+    container_name: postgres
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=STRUCTUREDDB
+      - PGPASSWORD=password
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    expose:
+      - 5432

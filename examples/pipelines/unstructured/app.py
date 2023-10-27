@@ -34,10 +34,6 @@ from llm_app import chunk_texts, extract_texts
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
-class DocumentInputSchema(pw.Schema):
-    doc: str
-
-
 class QueryInputSchema(pw.Schema):
     query: str
     user: str

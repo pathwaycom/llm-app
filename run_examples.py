@@ -153,6 +153,14 @@ def unstructured(**kwargs):
 
 @cli.command()
 @common_options
+def unstructuredtosql(**kwargs):
+    from examples.pipelines.unstructured_to_sql_on_the_fly import run
+
+    return run(**kwargs)
+
+
+@cli.command()
+@common_options
 def alert(**kwargs):
     from examples.pipelines.alert import run
 
