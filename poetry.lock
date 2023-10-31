@@ -245,17 +245,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.28.72"
+version = "1.28.74"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.28.72-py3-none-any.whl", hash = "sha256:73e2b56dcbe1b856274185c908dcb5973b007d62c74b646e6bd2ac09a303983a"},
-    {file = "boto3-1.28.72.tar.gz", hash = "sha256:cc7d939cdbb4ad3980274c96c589e95f028f740ac49a3547c8f4aaec6a7a6409"},
+    {file = "boto3-1.28.74-py3-none-any.whl", hash = "sha256:a12619d23d50523bdfa6bd2d0c124a9567a5434ec63e47df71c3e88fc9d482f6"},
+    {file = "boto3-1.28.74.tar.gz", hash = "sha256:c4d89ff98cf53e1e74ed8c1c1bb13a7bd7d909e1c0d9ad25792ccfe2cb1575bc"},
 ]
 
 [package.dependencies]
-botocore = ">=1.31.72,<1.32.0"
+botocore = ">=1.31.74,<1.32.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.7.0,<0.8.0"
 
@@ -264,13 +264,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.31.72"
+version = "1.31.74"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.31.72-py3-none-any.whl", hash = "sha256:1a0f5063a9a5e1ef40907c67778625cf14a8c47c8e09cd2b3f9dc53a8adb52cf"},
-    {file = "botocore-1.31.72.tar.gz", hash = "sha256:37763f40c2fcc48114015fe43bbd75ec1aabef48b418e1a5e28cb1c350967260"},
+    {file = "botocore-1.31.74-py3-none-any.whl", hash = "sha256:3eef070a8d8c4240aad07e5c89395002b140af213bcfc4dcd1d441e3ee4b3bee"},
+    {file = "botocore-1.31.74.tar.gz", hash = "sha256:2549ca7dc0f9227d8692a56a133c1346642efb38736c7c3f1330724d937ad6ec"},
 ]
 
 [package.dependencies]
@@ -738,19 +738,19 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "filelock"
-version = "3.12.4"
+version = "3.13.1"
 description = "A platform independent file lock."
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "filelock-3.12.4-py3-none-any.whl", hash = "sha256:08c21d87ded6e2b9da6728c3dff51baf1dcecf973b768ef35bcbc3447edb9ad4"},
-    {file = "filelock-3.12.4.tar.gz", hash = "sha256:2e6f249f1f3654291606e046b09f1fd5eac39b360664c27f5aad072012f8bcbd"},
+    {file = "filelock-3.13.1-py3-none-any.whl", hash = "sha256:57dbda9b35157b05fb3e58ee91448612eb674172fab98ee235ccb0b5bee19a1c"},
+    {file = "filelock-3.13.1.tar.gz", hash = "sha256:521f5f56c50f8426f5e03ad3b281b490a87ef15bc6c526f168290f0c7148d44e"},
 ]
 
 [package.extras]
-docs = ["furo (>=2023.7.26)", "sphinx (>=7.1.2)", "sphinx-autodoc-typehints (>=1.24)"]
-testing = ["covdefaults (>=2.3)", "coverage (>=7.3)", "diff-cover (>=7.7)", "pytest (>=7.4)", "pytest-cov (>=4.1)", "pytest-mock (>=3.11.1)", "pytest-timeout (>=2.1)"]
-typing = ["typing-extensions (>=4.7.1)"]
+docs = ["furo (>=2023.9.10)", "sphinx (>=7.2.6)", "sphinx-autodoc-typehints (>=1.24)"]
+testing = ["covdefaults (>=2.3)", "coverage (>=7.3.2)", "diff-cover (>=8)", "pytest (>=7.4.3)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)", "pytest-timeout (>=2.2)"]
+typing = ["typing-extensions (>=4.8)"]
 
 [[package]]
 name = "filetype"
@@ -1111,13 +1111,13 @@ files = [
 
 [[package]]
 name = "jsonschema"
-version = "4.19.1"
+version = "4.19.2"
 description = "An implementation of JSON Schema validation for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jsonschema-4.19.1-py3-none-any.whl", hash = "sha256:cd5f1f9ed9444e554b38ba003af06c0a8c2868131e56bfbef0550fb450c0330e"},
-    {file = "jsonschema-4.19.1.tar.gz", hash = "sha256:ec84cc37cfa703ef7cd4928db24f9cb31428a5d0fa77747b8b51a847458e0bbf"},
+    {file = "jsonschema-4.19.2-py3-none-any.whl", hash = "sha256:eee9e502c788e89cb166d4d37f43084e3b64ab405c795c03d343a4dbc2c810fc"},
+    {file = "jsonschema-4.19.2.tar.gz", hash = "sha256:c9ff4d7447eed9592c23a12ccee508baf0dd0d59650615e847feb6cdca74f392"},
 ]
 
 [package.dependencies]
@@ -1763,13 +1763,13 @@ files = [
 
 [[package]]
 name = "networkx"
-version = "3.2"
+version = "3.2.1"
 description = "Python package for creating and manipulating graphs and networks"
 optional = true
 python-versions = ">=3.9"
 files = [
-    {file = "networkx-3.2-py3-none-any.whl", hash = "sha256:8b25f564bd28f94ac821c58b04ae1a3109e73b001a7d476e4bb0d00d63706bf8"},
-    {file = "networkx-3.2.tar.gz", hash = "sha256:bda29edf392d9bfa5602034c767d28549214ec45f620081f0b74dc036a1fbbc1"},
+    {file = "networkx-3.2.1-py3-none-any.whl", hash = "sha256:f18c69adc97877c42332c170849c96cefa91881c99a7cb3e95b7c659ebdc1ec2"},
+    {file = "networkx-3.2.1.tar.gz", hash = "sha256:9f1bb5cf3409bf324e0a722c20bdb4c20ee39bf1c30ce8ae499c8502b0b5e0c6"},
 ]
 
 [package.extras]
@@ -2315,24 +2315,27 @@ files = [
 ]
 
 [[package]]
-name = "psycopg2"
-version = "2.9.9"
-description = "psycopg2 - Python-PostgreSQL Database Adapter"
-optional = false
+name = "psycopg"
+version = "3.1.12"
+description = "PostgreSQL database adapter for Python"
+optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "psycopg2-2.9.9-cp310-cp310-win32.whl", hash = "sha256:38a8dcc6856f569068b47de286b472b7c473ac7977243593a288ebce0dc89516"},
-    {file = "psycopg2-2.9.9-cp310-cp310-win_amd64.whl", hash = "sha256:426f9f29bde126913a20a96ff8ce7d73fd8a216cfb323b1f04da402d452853c3"},
-    {file = "psycopg2-2.9.9-cp311-cp311-win32.whl", hash = "sha256:ade01303ccf7ae12c356a5e10911c9e1c51136003a9a1d92f7aa9d010fb98372"},
-    {file = "psycopg2-2.9.9-cp311-cp311-win_amd64.whl", hash = "sha256:121081ea2e76729acfb0673ff33755e8703d45e926e416cb59bae3a86c6a4981"},
-    {file = "psycopg2-2.9.9-cp37-cp37m-win32.whl", hash = "sha256:5e0d98cade4f0e0304d7d6f25bbfbc5bd186e07b38eac65379309c4ca3193efa"},
-    {file = "psycopg2-2.9.9-cp37-cp37m-win_amd64.whl", hash = "sha256:7e2dacf8b009a1c1e843b5213a87f7c544b2b042476ed7755be813eaf4e8347a"},
-    {file = "psycopg2-2.9.9-cp38-cp38-win32.whl", hash = "sha256:ff432630e510709564c01dafdbe996cb552e0b9f3f065eb89bdce5bd31fabf4c"},
-    {file = "psycopg2-2.9.9-cp38-cp38-win_amd64.whl", hash = "sha256:bac58c024c9922c23550af2a581998624d6e02350f4ae9c5f0bc642c633a2d5e"},
-    {file = "psycopg2-2.9.9-cp39-cp39-win32.whl", hash = "sha256:c92811b2d4c9b6ea0285942b2e7cac98a59e166d59c588fe5cfe1eda58e72d59"},
-    {file = "psycopg2-2.9.9-cp39-cp39-win_amd64.whl", hash = "sha256:de80739447af31525feddeb8effd640782cf5998e1a4e9192ebdf829717e3913"},
-    {file = "psycopg2-2.9.9.tar.gz", hash = "sha256:d1454bde93fb1e224166811694d600e746430c006fbb031ea06ecc2ea41bf156"},
+    {file = "psycopg-3.1.12-py3-none-any.whl", hash = "sha256:8ec5230d6a7eb654b4fb3cf2d3eda8871d68f24807b934790504467f1deee9f8"},
+    {file = "psycopg-3.1.12.tar.gz", hash = "sha256:cec7ad2bc6a8510e56c45746c631cf9394148bdc8a9a11fd8cf8554ce129ae78"},
 ]
+
+[package.dependencies]
+typing-extensions = ">=4.1"
+tzdata = {version = "*", markers = "sys_platform == \"win32\""}
+
+[package.extras]
+binary = ["psycopg-binary (==3.1.12)"]
+c = ["psycopg-c (==3.1.12)"]
+dev = ["black (>=23.1.0)", "dnspython (>=2.1)", "flake8 (>=4.0)", "mypy (>=1.4.1)", "types-setuptools (>=57.4)", "wheel (>=0.37)"]
+docs = ["Sphinx (>=5.0)", "furo (==2022.6.21)", "sphinx-autobuild (>=2021.3.14)", "sphinx-autodoc-typehints (>=1.12)"]
+pool = ["psycopg-pool"]
+test = ["anyio (>=3.6.2,<4.0)", "mypy (>=1.4.1)", "pproxy (>=2.7)", "pytest (>=6.2.5)", "pytest-cov (>=3.0)", "pytest-randomly (>=3.5)"]
 
 [[package]]
 name = "pyarrow"
@@ -4129,13 +4132,13 @@ devenv = ["check-manifest", "pytest (>=4.3)", "pytest-cov", "pytest-mock (>=3.3)
 
 [[package]]
 name = "unstructured"
-version = "0.10.27"
+version = "0.10.28"
 description = "A library that prepares raw documents for downstream ML tasks."
 optional = true
 python-versions = ">=3.7.0"
 files = [
-    {file = "unstructured-0.10.27-py3-none-any.whl", hash = "sha256:3a8a8e44302388ddc39c184059e8b4458f1cdc58032540b9af7d85f6c3eca3be"},
-    {file = "unstructured-0.10.27.tar.gz", hash = "sha256:f567b5c4385993a9ab48db5563dd7b413aac4f2002bb22e6250496ea8f440f5e"},
+    {file = "unstructured-0.10.28-py3-none-any.whl", hash = "sha256:0965567c2477c5a926517a295fd0318c2823a603d79c6f47f2bbe58f5aacb89e"},
+    {file = "unstructured-0.10.28.tar.gz", hash = "sha256:c995015c5d51d4732f2aa49663eebac4aacf51d7e905c8f240d14ff2269d392f"},
 ]
 
 [package.dependencies]
@@ -4468,8 +4471,9 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [extras]
 local = ["sentence-transformers", "torch"]
 unstructured = ["tiktoken", "unstructured"]
+unstructured-to-sql = ["psycopg", "tiktoken", "unstructured"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "6520cd62c58c8c4a927343fa83fd8bd7678d6d52498d1b438692496ea815cdb8"
+content-hash = "840a848d6e29c5fa746fbc66ab3e1ba3441b14a7667781022caccab092f971ed"

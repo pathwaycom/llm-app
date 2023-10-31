@@ -11,6 +11,7 @@ authors = [
     "Sergey Kulik <sergey@pathway.com>",
     "Adrian Kosowski <adrian@pathway.com>",
     "Mateusz Lewandowski <mateusz@pathway.com>",
+    "Olivier Ruas <olivier@pathway.com>",
 ]
 license = "MIT"
 readme = "README.md"
@@ -38,12 +39,13 @@ sentence-transformers = { version = "^2.2.2", optional = true }
 torch = { version = ">=2.0.0, !=2.0.1", optional = true }
 unstructured = { extras = ["all-docs"], version = "^0.10.15", optional = true }
 tiktoken = { version = "^0.5.1", optional = true }
-psycopg2 = "2.9.9"
+psycopg = { version = "^3.1.12", optional = true }
 
 
 [tool.poetry.extras]
 local = ["torch", "sentence-transformers"]
 unstructured = ["unstructured", "tiktoken"]
+unstructured_to_sql = ["tiktoken", "psycopg", "unstructured"]
 
 [tool.poetry.group.examples]
 optional = true

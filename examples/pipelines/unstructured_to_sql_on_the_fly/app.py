@@ -63,7 +63,9 @@ A postgreSQL docker compose project is provided in
 
 
 🔵 Usage:
-In the root of this repository run:
+1) To install the dependencies, run in the root of this repository:
+`poetry install --with examples --extras local --extras unstructured_to_sql`
+2) In the root of this repository run:
 `poetry run ./run_examples.py unstructuredtosql`
 or, if all dependencies are managed manually rather than using poetry
 `python examples/pipelines/unstructured_to_sql_on_the_fly/app.py`
@@ -93,7 +95,7 @@ import logging
 import os
 
 import pathway as pw
-import psycopg2
+import psycopg
 import tiktoken
 from pathway.stdlib.utils.col import unpack_col
 
@@ -261,13 +263,8 @@ def unstructured_query(
     )
 
     # Connecting to the document database for queries
-    conn = psycopg2.connect(
-        database=postgreSQL_settings["dbname"],
-        host=postgreSQL_settings["host"],
-        user=postgreSQL_settings["user"],
-        password=postgreSQL_settings["password"],
-        port=postgreSQL_settings["port"],
-    )
+    connection_string = psycopg.conninfo.make_conninfo(**postgreSQL_settings)
+    conn = psycopg.connect(connection_string)
     cursor = conn.cursor()
 
     @pw.udf
