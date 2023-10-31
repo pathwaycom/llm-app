@@ -38,7 +38,7 @@ sentence-transformers = { version = "^2.2.2", optional = true }
 torch = { version = ">=2.0.0, !=2.0.1", optional = true }
 unstructured = { extras = ["all-docs"], version = "^0.10.15", optional = true }
 tiktoken = { version = "^0.5.1", optional = true }
-psycopg2 = "2.9.6"
+psycopg2 = "2.9.9"
 
 
 [tool.poetry.extras]
