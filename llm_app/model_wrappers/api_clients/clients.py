@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 logfun = logging.debug
 
@@ -22,6 +23,7 @@ class OpenAIClient(APIClient):
     ):
         import openai
 
+        openai.api_requestor.TIMEOUT_SECS = 90
         openai.api_key = api_key
         if api_type:
             openai.api_type = api_type
@@ -34,6 +36,7 @@ class OpenAIClient(APIClient):
 
 
 class OpenAIChatCompletionClient(OpenAIClient):
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def make_request(self, **kwargs):
         logfun("Calling OpenAI chat completion service %s", str(kwargs)[:100])
         return self.api.ChatCompletion.create(**kwargs)
