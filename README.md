@@ -128,7 +128,7 @@ Create an .env file in the root directory and add the following environment vari
 | APP_VARIANT                 | Determines which pipeline to run in your application. Available modes are [`contextful`, `s3`, `contextless`, `local`, `unstructuredtosql`]. By default, the mode is set to `contextful`.                                                                                       |
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set itto `0.0.0.0` Natively, you can use `127.0.01`                                                                                                                 |
 | PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to8080.                                                                                                                                       |
-| OPENAI_API_TOKEN            | The API token for accessing OpenAI services. If you are not running the local version, pleaseremember to replace it with your personal API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
+| OPENAI_API_KEY            | The API token for accessing OpenAI services. If you are not running the local version, pleaseremember to replace it with your personal API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
 | PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmpcache.                                                                                                                                                                                  |
 
 For example:
@@ -137,7 +137,7 @@ For example:
 APP_VARIANT=contextful
 PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
 PATHWAY_REST_CONNECTOR_PORT=8080
-OPENAI_API_TOKEN=<Your Token>
+OPENAI_API_KEY=<Your Token>
 PATHWAY_CACHE_DIR=/tmp/cache
 ```
 

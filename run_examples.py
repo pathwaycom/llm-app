@@ -83,7 +83,7 @@ def common_options(func):
     @click.option(
         "--api_key",
         "-k",
-        envvar="OPENAI_API_TOKEN",
+        envvar="OPENAI_API_KEY",
         type=str,
         required=False,
         help="API Key for OpenAI/HuggingFace Inference APIs.",

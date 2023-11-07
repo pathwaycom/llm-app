@@ -289,7 +289,7 @@ def unstructured_query(
 def run(
     *,
     data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/q_earnings/"),
-    api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
+    api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
     model_locator: str = "gpt-3.5-turbo-16k",  # "gpt-4",  # gpt-3.5-turbo-16k

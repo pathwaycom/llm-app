@@ -76,7 +76,7 @@ jobs:
           APP_VARIANT=contextful
           PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
           PATHWAY_REST_CONNECTOR_PORT=8080
-          OPENAI_API_TOKEN=${{ secrets.OPENAI_TOKEN }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_TOKEN }}
           PATHWAY_CACHE_DIR=/tmp/cache
           EOF
 
@@ -131,7 +131,7 @@ jobs:
           APP_VARIANT=contextful
           PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
           PATHWAY_REST_CONNECTOR_PORT=8080
-          OPENAI_API_TOKEN=${{ secrets.OPENAI_TOKEN }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_TOKEN }}
           PATHWAY_CACHE_DIR=/tmp/cache
           EOF  
 

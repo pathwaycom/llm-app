@@ -112,7 +112,7 @@ def decision_to_bool(decision: str) -> bool:
 def run(
     *,
     data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/pathway-docs/"),
-    api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
+    api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
     embedder_locator: str = "text-embedding-ada-002",

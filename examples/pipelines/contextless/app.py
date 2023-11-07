@@ -29,7 +29,7 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    api_key: str = os.environ.get("OPENAI_API_TOKEN", ""),
+    api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
     model_locator: str = "gpt-3.5-turbo",
