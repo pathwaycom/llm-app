@@ -1,28 +1,46 @@
 """
-Microservice for  a context-aware ChatGPT assistant.
+Microservice for a context-aware alerting ChatGPT assistant.
 
-The following program reads in a collection of documents,
-embeds each document using the OpenAI document embedding model,
-then builds an index for fast retrieval of documents relevant to a question,
-effectively replacing a vector database.
+This demo is very similar to `contextful` example with an additional real time alerting capability.
+For the demo, alerts are sent to the Slack (you need `slack_alert_channel_id` and `slack_alert_token`), you can
+either put these env variables in .env file under llm-app directory,
+or create env variables in terminal (ie. export in bash)
+If you don't have Slack, you can leave them empty and app will print the notifications to standard output instead.
 
-The program then starts a REST API endpoint serving queries about programming in Pathway.
+Upon starting, a REST API endpoint is opened by the app to serve queries about input folder `data_dir`.
+
+We can create notifications by sending query to API stating we want to be modified.
+Alternatively, the provided Streamlit chat app can be used.
+One example would be `Tell me and alert about start date of campaign for Magic Cola`
+
+How It Works?
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed
 for documents in the corpus. A prompt is build from the relevant documentations pages
-and sent to the OpenAI GPT-4 chat service for processing.
+and sent to the OpenAI GPT3.5 chat service for processing and answering.
+
+Once you run, Pathway looks for any changes in data sources, and efficiently detects changes to the relevant documents.
+When a change of source documents is detected, the LLM is asked to answer the query again,
+and if the new answer is sufficiently different, a notification is created.
 
 Usage:
 In the root of this repository run:
 `poetry run ./run_examples.py alerts`
 or, if all dependencies are managed manually rather than using poetry
+You can either
 `python examples/pipelines/alerts/app.py`
+or
+`python ./run_examples.py alert`
 
-You can also run this example directly in the environment with llm_app instaslled.
+You can also run this example directly in the environment with llm_app installed.
 
-To call the REST API:
+To create alerts:
+You can call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+Or start streamlit UI:
+First go to examples/ui directory with `cd llm-app/examples/ui/`
+run `streamlit run server.py`
 """
 
 import os
@@ -30,6 +48,7 @@ import os
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
+from examples.example_utils import find_last_modified_file, get_file_info
 from llm_app import deduplicate, send_slack_alerts
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
@@ -46,12 +65,14 @@ class QueryInputSchema(pw.Schema):
 # Helper Functions
 @pw.udf
 def build_prompt(documents, query):
-    docs_str = "\n".join(documents)
-    prompt = f"""Please process the documents below:
-{docs_str}
+    docs_str = "\n".join(
+        [f"Doc-({idx}) -> {doc}" for idx, doc in enumerate(documents[::-1])]
+    )
+    prompt = f"""Given a set of documents, answer user query. If answer is not in docs, say it can't be inferred.
 
-Respond to query: '{query}'
-"""
+Docs: {docs_str}
+Query: '{query}'
+Final Response:"""
     return prompt
 
 
@@ -94,13 +115,15 @@ def make_query_id(user, query) -> str:
 
 
 @pw.udf
-def construct_notification_message(query: str, response: str) -> str:
-    return f'New response for question "{query}":\n{response}'
+def construct_notification_message(query: str, response: str, metainfo=None) -> str:
+    return f'New response for question "{query}":\n{response}\n{str(metainfo)}'
 
 
 @pw.udf
-def construct_message(response, alert_flag):
+def construct_message(response, alert_flag, metainfo=None):
     if alert_flag:
+        if metainfo:
+            response += "\n" + str(metainfo)
         return response + "\n\n🔔 Activated"
     return response
 
@@ -109,9 +132,18 @@ def decision_to_bool(decision: str) -> bool:
     return "yes" in decision.lower()
 
 
+@pw.udf
+def add_meta_info(file_path) -> dict:
+    fname = find_last_modified_file(file_path)
+    info_dict = get_file_info(fname)
+    return f"""\nBased on file: {info_dict['File']} modified by {info_dict['Owner']} on {info_dict['Last Edit']}."""
+
+
 def run(
     *,
-    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/pathway-docs/"),
+    data_dir: str = os.environ.get(
+        "PATHWAY_DATA_DIR", "./examples/data/magic-cola/live/"
+    ),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
@@ -130,7 +162,7 @@ def run(
     documents = pw.io.jsonlines.read(
         data_dir,
         schema=DocumentInputSchema,
-        mode="streaming",
+        mode="streaming_with_deletions",
         autocommit_duration_ms=50,
     )
 
@@ -162,7 +194,7 @@ def run(
             model.apply(
                 pw.this.prompt,
                 locator=model_locator,
-                temperature=0.3,
+                temperature=temperature,
                 max_tokens=100,
             )
         ),
@@ -222,9 +254,8 @@ def run(
             locator=model_locator,
             max_tokens=20,
         )
-        return decision_to_bool(decision)
 
-    pw.io.jsonlines.write(responses, "./examples/ui/data/new_responses.jsonl")
+        return decision_to_bool(decision)
 
     deduplicated_responses = deduplicate(
         responses,
@@ -232,13 +263,13 @@ def run(
         acceptor=acceptor,
         instance=responses.query_id,
     )
-    pw.io.jsonlines.write(
-        deduplicated_responses, "./examples/ui/data/deduped_responses.jsonl"
-    )
 
     alerts = deduplicated_responses.select(
-        message=construct_notification_message(pw.this.query, pw.this.response)
+        message=construct_notification_message(
+            pw.this.query, pw.this.response, add_meta_info(data_dir)
+        )
     )
+
     send_slack_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
 
     pw.run()

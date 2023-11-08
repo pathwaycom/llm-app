@@ -1,7 +1,10 @@
+import logging
 from typing import Any, Callable, TypeVar
 
 import pathway as pw
 import requests
+
+logfun = logging.info
 
 
 def send_slack_alerts(
@@ -11,6 +14,7 @@ def send_slack_alerts(
         if not is_addition:
             return
         alert_message = row[message.name]
+        logfun(alert_message)
         requests.post(
             "https://slack.com/api/chat.postMessage",
             data="text={}&channel={}".format(alert_message, slack_alert_channel_id),

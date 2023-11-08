@@ -160,3 +160,6 @@ cython_debug/
 #.idea/
 
 pw-env/
+
+# llm debug
+examples/ui/data/*

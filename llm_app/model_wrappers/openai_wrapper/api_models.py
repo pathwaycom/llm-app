@@ -1,3 +1,5 @@
+import logging
+
 import pathway as pw
 
 from llm_app.model_wrappers.api_clients.clients import (
@@ -6,6 +8,8 @@ from llm_app.model_wrappers.api_clients.clients import (
     OpenAIEmbeddingClient,
 )
 from llm_app.model_wrappers.base import BaseModel
+
+logfun = logging.debug
 
 
 class MessagePreparer:
@@ -43,7 +47,10 @@ class OpenAIChatGPTModel(BaseModel):
             kwargs["model"] = locator
 
         messages = MessagePreparer.prepare_chat_messages(text)
+
+        logfun(f"Calling OpenAI API with: {messages}\n")
         response = self.api_client.make_request(messages=messages, **kwargs)
+        logfun(f"API Response: {response.choices[0].message.content}\n")
         return response.choices[0].message.content
 
     def apply(

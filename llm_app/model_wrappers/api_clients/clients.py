@@ -24,6 +24,7 @@ class OpenAIClient(APIClient):
         import openai
 
         openai.api_requestor.TIMEOUT_SECS = 90
+
         openai.api_key = api_key
         if api_type:
             openai.api_type = api_type
