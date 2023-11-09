@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Adding the "untructured to SQL on the fly" example
+- Bump Pathway from v0.5.2 to v0.5.3
 
 ## [0.3.1] - 2023-10-19
 
