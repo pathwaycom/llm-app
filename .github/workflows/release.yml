@@ -152,7 +152,7 @@ jobs:
           python -m venv ${ENV_NAME}
           source ${ENV_NAME}/bin/activate
           pip install python-dotenv
-          pip install -i https://test.pypi.org/simple/ llm-app
+          pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple llm-app
           pip show llm-app
           python ./run_examples.py contextful > /dev/null 2>&1 &
           sleep 60
@@ -229,13 +229,13 @@ jobs:
           # For posting a simple plain text message
           payload: |
             {
-              "text":  ":tada:\n Hey, it's Manul here. I've made a new release. llm-app ${{ github.event.release.tag_name }} released: has been published:\n${{ github.event.release.html_url }} \nhttps://pypi.org/project/llm-app/ \n:tada:",
+              "text":  ":tada:\n Hey, it's Manul here. I've made a new release llm-app ${{ github.event.release.tag_name }} released: has been published:\n${{ github.event.release.html_url }} \nhttps://pypi.org/project/llm-app/ \n:tada:",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text":  ":tada:\n Hey, it's Manul here. I've made a new release. llm-app ${{ github.event.release.tag_name }} released: has been published:\n${{ github.event.release.html_url }} \nhttps://pypi.org/project/llm-app/ \n:tada:"
+                    "text":  ":tada:\n Hey, it's Manul here. I've made a new release llm-app ${{ github.event.release.tag_name }} released: has been published:\n${{ github.event.release.html_url }} \nhttps://pypi.org/project/llm-app/ \n:tada:"
                   }
                 }
               ]
