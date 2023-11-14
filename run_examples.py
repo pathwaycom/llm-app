@@ -167,6 +167,14 @@ def alert(**kwargs):
     return run(**kwargs)
 
 
+@cli.command()
+@common_options
+def drivealert(**kwargs):
+    from examples.pipelines.drive_alert import run
+
+    return run(**kwargs)
+
+
 def main():
     cli.main()
 

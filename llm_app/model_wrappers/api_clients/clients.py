@@ -44,6 +44,7 @@ class OpenAIChatCompletionClient(OpenAIClient):
 
 
 class OpenAIEmbeddingClient(OpenAIClient):
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def make_request(self, **kwargs):
         logfun("Calling OpenAI embedding service %s", str(kwargs)[:100])
         return self.api.Embedding.create(**kwargs)
