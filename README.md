@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Pathway banner](https://d14l3brkh44201.cloudfront.net/pathway-llm.png)](https://pathway.com/)
+[![pathwaycom/llm-app: Build your LLM App in 30 lines of code](https://d14l3brkh44201.cloudfront.net/pathway-llm.png)](https://pathway.com/)
 
 # LLM App
 
@@ -14,110 +14,20 @@
 [![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM App** is a Python framework to create and deploy pipelines for data ingestion, processing, and retrieval for your AI Application, based on the most up-to-date knowledge available in your data sources. 
+Pathway's **LLM (Large Language Model) App** is a Python library that helps you create and launch AI-powered applications based on the most up-to-date knowledge available in your data sources. You can use it to answer natural language queries asked by your users, or to run data transformation pipelines with LLM's.
 
-You can:
-* Process streaming data with LLMs, and get realtime updates for your questions. See the [`alert`](examples/pipelines/alert/app.py) example.
-* Run data transformation pipelines with LLMs. With our [`unstructured to sql` example](examples/pipelines/unstructured_to_sql_on_the_fly/app.py), you can easily insert data from your PDF documents directly into an SQL database.
-* Connect static and dynamic information sources to LLMs and apply custom transformation/decision/filtering processes with natural language.
-* Unify back-end, embedding, retrieval, and LLM tech stack into a single application.
-
-**Quick links** - 👀[Why LLM App?](#why-llm-app) 💡[Use cases](#use-cases) 📚 [How it works](#how-it-works) 🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 🎬 [Showcases](#showcases) 🛠️ [Troubleshooting](#troubleshooting)
+**Quick links** - 👀 [Why LLM App?](#why-llm-app) 💡 [Use Cases](#use-cases) 📚 [How it works](#how-it-works) 🎬 [Watch it in action](#watch-it-in-action) 🌟 [Key Features](#key-features) 🏁 [Get Started](#get-started) 💼 [Showcases](#showcases) 🚀 [Get Assistance on your App](#get-assistance) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting)
-
-
-## Examples
-| Example                                                    | Description                                                                                                                                                                                                                                                                                                                             |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`alert`](examples/pipelines/alert/app.py)     | Ask questions, get alerted whenever response changes. Pathway is always listening for changes, whenever new relevant information is added to the stream (local files in this example), LLM decides if there is a substantial difference in response and notifies the user with a Slack message.                                                                                                                                              |
-| [`drive_alert`](examples/pipelines/drive_alert/app.py)     | [`Alert`](examples/pipelines/alert/app.py) example on steroids. Whenever relevant information on Google Docs is modified or added, get real-time alerts via Slack.                                                                                                                                            |
-| [`contextless`](examples/pipelines/contextless/app.py)     | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
-| [`contextful`](examples/pipelines/contextful/app.py)       | This default example of the app will index the jsonlines documents located in the `data/pathway-docs` directory. These indexed documents are then taken into account when processing queries. The pathway pipeline running in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
-| [`contextful_s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                               |
-| [`unstructured`](examples/pipelines/unstructured/app.py)   | Process unstructured documents such as PDF, HTML, DOCX, PPTX, and more. Visit [unstructured-io](https://unstructured-io.github.io/unstructured/) for the full list of supported formats.                                                                                                                                                 |
-| [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                 |
-| [`unstructuredtosql`](examples/pipelines/unstructured_to_sql_on_the_fly/app.py) | This example extracts the data from unstructured files and stores it into a PostgreSQL table. It also transforms the user query into an SQL query which is then executed on the PostgreSQL table.                                                                                                                                 |
-
-## Quickstart
-In Pathway, we can create tables from different stream sources, whether incoming customer e-mails or PDFs on Google Drive.
-Let us create an example table of applicants and a set of universities. We want GPT to filter out applicants based on their universities and majors.
-We then set up notifications where we will be kept up to date with the latest applications that meet the criteria.
-
-```python
-import pathway as pw
-from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
-# we create static table for debugging purpose, in real world, this can be any streaming data connector or any data source such as local folder or S3 bucket
-applications_table = pw.debug.parse_to_table("""name degree GPA University
-1 Alice Math 3.2 UBC
-2 Matthew Linguistics 3.4 CalTech
-3 Bob CS 3.25 MIT""")
-
-tracked_universities = pw.debug.parse_to_table("""University
-1 Stanford
-2 MIT
-3 Rice""")
-
-agg_universities = tracked_universities.reduce(universities_list=pw.reducers.tuple(tracked_universities.University))
-#  make a tuple with column, ('Stanford', 'MIT', 'Rice')
-model = OpenAIChatGPTModel(api_key=api_key)
-
-combined_tables = applications_table.join(agg_universities).select(*pw.left, *pw.right)  # horizontal stack and keep all columns
-
-# we want to filter candidates coming from streaming source, lets create a user defined function with parameters that will be filled on run time
-@pw.udf
-def create_prompt(user_degree, user_university, tracked_universities):
-    prompt = f"""Given list of tracked universities, applicant degree and university, return True if:
-    applicant studies in a tracked university towards a software related degree.
-    tracked universities: {tracked_universities}
-    Applicant degree: {user_degree}
-    Applicant university: {user_university}
-    Bool:"""
-    return prompt
-
-prompt_table = combined_tables.select(prompt=create_prompt(pw.this.degree, pw.this.University , pw.this.universities_list))
-
-import ast
-# we will filter based on the value of this column, LLM returns a string ('True' or 'False') and we evaluate it as bool
-@pw.udf
-def udf_eval(input) -> bool:  #  type hinting allows pathway to pick on type
-    return ast.literal_eval(input)
-
-# ask gpt to fill the decision and parse it as bool
-response_table = combined_tables + prompt_table.select(
-        result=udf_eval(model.apply(
-            pw.this.prompt,
-            locator="gpt-3.5-turbo",
-            temperature=0,
-            max_tokens=200,
-        )),
-    )
-
-notification_table = (response_table.filter(response_table.result)
-                      .without('universities_list', 'result'))  # filter rows based on the result decided by GPT, discard some useless columns
-
-# set up alert function that will be run on each update to this table
-def send_alert(key, row: dict, time: int, is_addition: bool):
-    print("New candidate!")
-    if not is_addition:
-        return
-    print(f"{key}, {row}, {time}, {is_addition}")
-
-# pipe together table and alerting
-pw.io.subscribe(notification_table, send_alert)
-
-pw.run()  # run the pipeline
-# Out: New candidate!
-# Out: 2, Matthew Linguistics 3.4 CalTech, 1699888372, True
-```
 
 ## Why LLM App?
 
 1. **Simplicity** - Simplifies your AI pipeline by consolidating capabilities into one platform. No need to integrate and maintain separate modules for your Gen AI app: ~Vector Databases (e.g. Pinecone/Weaviate/Qdrant) + LangChain + Cache (e.g. Redis) + API Framework (e.g. Fast API)~.
 2. **Real-time data syncing** - Syncs both structured and unstructured data from diverse sources, enabling real-time Retrieval Augmented Generation (RAG).
-3. **Easy alert setup** - Configure alerts for key business events with simple configurations. Ask a question, get updated when new info is available.
-4. **Scalability** - Handles heavy data loads and usage without degradation in performance. Metrics help track usage and scalability.
+3. **Easy alert setup** - Configure alerts for key business events with simple configurations. Ask a question, and get updated when new info is available.  
+4. **Scalability** - Handles heavy data loads and usage without degradation in performance. Metrics help track usage and scalability. Learn more about the performance of the underlying [Pathway data processing framework](https://github.com/pathwaycom/pathway/).
 5. **Monitoring** - Provide visibility into model behavior via monitoring, tracing errors, anomaly detection, and replay for debugging. Helps with response quality.
 6. **Security** - Designed for the enterprise with capabilities like Personally Identifiable Information (PII) detection, content moderation, permissions, and version control. Run this in your private cloud with local LLMs.
+7. **Unification** - You can cover multiple aspects of your choice with a unified application logic: back-end, embedding, retrieval, LLM tech stack.
 
 ## Use cases
 
@@ -127,23 +37,47 @@ LLM App examples can be used as templates for developing multiple applications r
 * **Ask privacy-preserving queries** to an LLM using a private knowledge base that is frequently updated.
 * **Extend Kafka-based streaming architectures with LLMs**.
 * **Process LLM queries in bulk** with prompts created automatically out of input data streams.
-* **Obtain structured data on the fly** out of streams of documents.
+* **Obtain structured data on the fly** out of streams of documents in PDF and other formats. See the [`unstructured to sql`](examples/pipelines/unstructured_to_sql_on_the_fly/app.py) example.
 * **Validate incoming documents** against existing documents with an LLM.
 * **Monitor live information streams** with an LLM: news and social media, spotting fake news, travel disruptions...
 
+
 ## How it works
 
-The default [`contextful`](examples/pipelines/contextful/app.py) pipeline launches an application which connects to a source folder with documents, stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. The app is always in sync with updates to your documents, building in real-time a "vector index" using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. This way, it provides answers that are always best on the freshest and most accurate **real-time data**.
+The default [`contextful`](examples/pipelines/contextful/app.py) pipeline launches an application that connects to a source folder with documents, stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. The app is **always in sync** with updates to your documents, building in real-time a "vector index" using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. This way, it provides answers that are always best on the freshest and most accurate **real-time data**.
 
-The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, for example, to eliminate **the ambiguity problems** of natural language with clearer prompts and better contexts.
+The app can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, to provide more relevant answers and reduce LLM hallucination.
 
 Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
 
-### Watch it in action
+## Watch it in action
 
-[![Build your LLM App without a vector database (in 30 lines of code)](https://d14l3brkh44201.cloudfront.net/video-th.png)](https://www.youtube.com/watch?v=kcrJSk00duw)
+### Effortlessly extract and organize unstructured data from PDFs, docs, and more into SQL tables - in real-time.
+
+Analysis of live documents streams.
+
+![Effortlessly extract and organize unstructured data from PDFs, docs, and more into SQL tables - in real-time](examples/pipelines/unstructured_to_sql_on_the_fly/unstructured_to_sql_demo.gif)
+
+(See: [`unstructuredtosql`](#examples) example.)
+
+### Automated real-time knowledge mining and alerting. 
+
+Monitor streams of changing documents, get real-time alerts when answers change. 
+
+Using incremental vector search, only the most relevant context is automatically passed into the LLM for analysis, minimizing token use - even when thousands of documents change every minute. This is real-time RAG taken to a new level 😊.
+
+![Automated real-time knowledge mining and alerting](examples/pipelines/drive_alert/drive_alert_demo.gif)
+
+
+
+(See: [`drivealert`](#examples) example.)
+
+### Instructional videos
 
 ▶️ [Building an LLM Application without a vector database](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
+
+▶️ [Let's build a real-world LLM app in 11 minutes](https://www.youtube.com/watch?v=k1XGo7ts4tI) - by [Pau Labarta Bajo](https://substack.com/@paulabartabajo)
+
 
 
 ## Features
@@ -151,7 +85,7 @@ Read more about the implementation details and how to extend this application in
 ### Key Features
 
 * **Extract meaning from raw text** - Set up data ingestion pipelines to extract information, entities, and other structured data from raw text. 
-* **Real-time Alerts** - Set up custom logic on top of streaming data and get realtime alerts.
+* **Real-time Alerts** - Set up custom logic on top of streaming data and get real-time alerts.
 * **Real-time document indexing pipeline** - This pipeline reads data directly from S3-compatible storage, without the need to query an extra vector document database.
 * **Model testing** - Present and past queries can be run against fresh models to evaluate their quality.
 * **HTTP REST queries** - The system is capable of responding in real-time to HTTP REST queries.
@@ -159,11 +93,8 @@ Read more about the implementation details and how to extend this application in
 ### Advanced Features
 
 * **Local Machine Learning models** - LLM App can be configured to run with local LLMs and embedding models, without making API calls outside of the User's Organization.
-
 * **Live data sources** - The library can be used to handle live data sources (news feeds, APIs, data streams in Kafka), as well as to include user permissions, a data security layer, and an LLMops monitoring layer.
-
 * **User session handling** - The library's query-building process can be used to handle user sessions.
-
 * To learn more about advanced features see: [Features for Organizations](FEATURES-for-organizations.md).
 
 ### Coming Soon
@@ -176,16 +107,34 @@ Read more about the implementation details and how to extend this application in
 
 
 ## Get Started
-
 ### Prerequisites
+
 
 1. Make sure that [Python](https://www.python.org/downloads/) 3.10 or above installed on your machine.
 2. Download and Install [Pip](https://pip.pypa.io/en/stable/installation/) to manage project packages.
 3. [Optional if you use OpenAI models]. Create an [OpenAI](https://openai.com/) account and generate a new API Key: To access the OpenAI API, you will need to create an API Key. You can do this by logging into the [OpenAI website](https://openai.com/product) and navigating to the API Key management page.
-4. [Important if you use Windows OS]. Example only supports Unix-like systems (such as Linux, macOS, BSD). If you are a Windows user, we highly recommend leveraging [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) or Dockerize the app to run as a container.
+4. [Important if you use Windows OS]. The examples only support Unix-like systems (such as Linux, macOS, and BSD). If you are a Windows user, we highly recommend leveraging [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) or Dockerize the app to run as a container.
 5. [Optional if you use Docker to run samples]. Download and install [docker](https://www.docker.com/).
 
-Follow these steps to install and get started with [examples](#Examples). You can also take a look at the [application showcases](#showcases).
+Now, follow the steps to install and get started with one of the examples we provided [examples](#examples). You can pick any example that you find interesting - if not sure, pick `contextful`.
+
+Alternatively, you can also take a look at the [application showcases](#showcases).
+
+### Examples
+
+Pick one that is closest to your needs.
+
+| Example                                                    | Description                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`contextless`](examples/pipelines/contextless/app.py)     | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
+| [`contextful`](examples/pipelines/contextful/app.py)       | This default example of the app will index the jsonlines documents located in the [`data/pathway-docs`](examples/data/pathway-docs) directory. These indexed documents are then taken into account when processing queries. The pathway pipeline running in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
+| [`contextful_s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                               |
+| [`unstructured`](examples/pipelines/unstructured/app.py)   | Process unstructured documents such as PDF, HTML, DOCX, PPTX, and more. Visit [unstructured-io](https://unstructured-io.github.io/unstructured/) for the full list of supported formats.                                                                                                                                                 |
+| [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                 |
+| [`unstructuredtosql`](examples/pipelines/unstructured_to_sql_on_the_fly/app.py) | This example extracts the data from unstructured files and stores it into a PostgreSQL table. It also transforms the user query into an SQL query which is then executed on the PostgreSQL table.                                                                                                                                 |
+| [`alert`](examples/pipelines/alert/app.py)     | Ask questions, get alerted whenever response changes. Pathway is always listening for changes, whenever new relevant information is added to the stream (local files in this example), LLM decides if there is a substantial difference in response and notifies the user with a Slack message.                                                                                                                                              |
+| [`drive_alert`](examples/pipelines/drive_alert/app.py)     | The [`alert`](examples/pipelines/alert/app.py) example on steroids. Whenever relevant information on Google Docs is modified or added, get real-time alerts via Slack.                                                                                                                                            |
+
 
 ### Step 1: Clone the repository
 
@@ -209,9 +158,9 @@ Create an .env file in the root directory and add the following environment vari
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | APP_VARIANT                 | Determines which pipeline to run in your application. Available modes are [`contextful`, `s3`, `contextless`, `local`, `unstructuredtosql`]. By default, the mode is set to `contextful`.                                                                                       |
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`                                                                                                                 |
-| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen.Here, it is set to 8080.                                                                                                                                       |
-| OPENAI_API_KEY            | The API token for accessing OpenAI services. If you are not running the local version, pleaseremember to replace it with your personal API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
-| PATHWAY_CACHE_DIR           | Specifies the directory where cache is stored. You could use /tmpcache.                                                                                                                                                                                  |
+| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen. Here, it is set to 8080.                                                                                                                                       |
+| OPENAI_API_KEY            | The API token for accessing OpenAI services. If you are not running the local version, please remember to replace it with your API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
+| PATHWAY_CACHE_DIR           | Specifies the directory where the cache is stored. You could use /tmpcache.                                                                                                                                                                                  |
 
 For example:
 
@@ -300,14 +249,17 @@ Go to the `examples/ui/` directory (or `examples/pipelines/unstructured/ui` if y
 
 ### Bonus: Build your own Pathway-powered LLM App
 
-Simply add `llm-app` to your project's dependencies and copy one of the examples to get started!
+Want to learn more about building your own app? See step-by-step guide [Building a llm-app tutorial](https://pathway.com/developers/showcases/llm-app-pathway)
+
+Or,
+
+Simply add `llm-app` to your project's dependencies and copy one of the [examples](#examples) to get started!
 
 ## Showcases
 
 * [Python sales](https://github.com/Boburmirzo/chatgpt-api-python-sales) - Find real-time sales with AI-powered Python API using ChatGPT and LLM (Large Language Model) App.
 
 * [Dropbox Data Observability](https://github.com/pathway-labs/dropbox-ai-chat) - See how to get started with chatting with your Dropbox and having data observability. 
-
 
 ## Troubleshooting
 
@@ -325,13 +277,25 @@ To join, just raise your hand on the [Pathway Discord server](https://discord.co
 
 If you are unfamiliar with how to contribute to GitHub projects, here is a [Get Started Guide](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). A full set of contribution guidelines, along with templates, are in progress.
 
+## Need help?
+
+Interested in using Pathway llm-app with your data source, stack, and custom use cases? Connect with us to get help with:
+
+* Connecting your own live data sources to your LLM application (e.g. Google or Microsoft Drive documents, Kafka, databases, API's, ...).
+* Explore how you can get your LLM application up and running in popular cloud platforms such as Azure and AWS.
+* End-to-end solution implementation.
+
+Reach us at contact@pathway.com or via <a href="https://pathway.com/">Pathway's website</a>.
+
+
 ## Supported and maintained by
 
 <div align="center">
   <a href="https://github.com/pathwaycom/"><img src="https://pathway.com/logo-light.svg" /></a>
 </div>
 
+
 <p align="center">
   Pathway is a free ultra-performant data processing framework
-to power your real-time data products and pipelines. To learn more, checkout <a href="https://pathway.com/">Pathway's website</a>.
+to power your real-time data products and pipelines. 
 </p>
