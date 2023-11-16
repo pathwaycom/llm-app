@@ -42,6 +42,7 @@ def run(
         port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
+        delete_completed_queries=True,
     )
 
     model = OpenAIChatGPTModel(api_key=api_key)

@@ -247,6 +247,7 @@ def unstructured_query(
         port=port,
         schema=NLQuerySchema,
         autocommit_duration_ms=50,
+        delete_completed_queries=True,
     )
 
     query += query.select(prompt=build_prompt_query(postgreSQL_table, pw.this.query))

@@ -1,5 +1,5 @@
 """
-Microservice for  a context-aware ChatGPT assistant.
+Microservice for a context-aware ChatGPT assistant.
 
 The following program reads in a collection of documents,
 embeds each document using the OpenAI document embedding model,
@@ -77,6 +77,7 @@ def run(
         port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
+        delete_completed_queries=True,
     )
 
     query += query.select(

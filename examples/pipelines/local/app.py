@@ -1,5 +1,5 @@
 """
-Microservice for  a privacy preserving LLM assistant.
+Microservice for a privacy preserving LLM assistant.
 
 The following program reads in a collection of documents from local directory,
 embeds each document using a locally deployed SentenceTransformer,
@@ -77,6 +77,7 @@ def run(
         port=port,
         schema=QueryInputSchema,
         autocommit_duration_ms=50,
+        delete_completed_queries=True,
     )
 
     query += query.select(
