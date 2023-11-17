@@ -44,7 +44,7 @@ In the root of this repository run:
 `poetry run ./run_examples.py drivealert`
 or, if all dependencies are managed manually rather than using poetry
 You can either
-`python examples/pipelines/drivealert/app.py`
+`python examples/pipelines/drive_alert/app.py`
 or
 `python ./run_examples.py drivealert`
 
