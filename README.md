@@ -68,7 +68,9 @@ Using incremental vector search, only the most relevant context is automatically
 
 ![Automated real-time knowledge mining and alerting](examples/pipelines/drive_alert/drive_alert_demo.gif)
 
-For the code, see the [`drive_alert`](#examples) example. You can find more details in a [blog post on alerting with LLM-App](https://pathway.com/developers/showcases/llm-alert-pathway). 
+
+
+(For details, refer to [`blogpost`](pathway.com/developers/showcases/llm-alert-pathway), code is available at: [`drive_alert`](#examples).)
 
 ### Instructional videos
 

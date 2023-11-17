@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2023-11-17
+
+### Added
+- Alerting examples: standalone and Google Drive with native connector.
+- Bump Pathway from v0.5.3 to v0.7.1.
+
 ## [0.3.3] - 2023-11-14
 
 ### Added
@@ -19,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Adding the "untructured to SQL on the fly" example.
-- Bump Pathway from v0.5.2 to v0.5.3
+- Bump Pathway from v0.5.2 to v0.5.3.
 
 ## [0.3.1] - 2023-10-19
 
