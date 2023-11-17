@@ -58,7 +58,7 @@ Analysis of live documents streams.
 
 ![Effortlessly extract and organize unstructured data from PDFs, docs, and more into SQL tables - in real-time](examples/pipelines/unstructured_to_sql_on_the_fly/unstructured_to_sql_demo.gif)
 
-(See: [`unstructuredtosql`](#examples) example.)
+(See: [`unstructured-to-sql`](#examples) example.)
 
 ### Automated real-time knowledge mining and alerting. 
 
@@ -70,7 +70,7 @@ Using incremental vector search, only the most relevant context is automatically
 
 
 
-(See: [`drivealert`](#examples) example.)
+(For details, refer to [`blogpost`](pathway.com/developers/showcases/llm-alert-pathway), code is available at: [`drive_alert`](#examples).)
 
 ### Instructional videos
 
@@ -128,12 +128,12 @@ Pick one that is closest to your needs.
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`contextless`](examples/pipelines/contextless/app.py)     | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                            |
 | [`contextful`](examples/pipelines/contextful/app.py)       | This default example of the app will index the jsonlines documents located in the [`data/pathway-docs`](examples/data/pathway-docs) directory. These indexed documents are then taken into account when processing queries. The pathway pipeline running in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
-| [`contextful_s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                               |
+| [`contextful-s3`](examples/pipelines/contextful_s3/app.py) | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                               |
 | [`unstructured`](examples/pipelines/unstructured/app.py)   | Process unstructured documents such as PDF, HTML, DOCX, PPTX, and more. Visit [unstructured-io](https://unstructured-io.github.io/unstructured/) for the full list of supported formats.                                                                                                                                                 |
 | [`local`](examples/pipelines/local/app.py)                 | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                 |
-| [`unstructuredtosql`](examples/pipelines/unstructured_to_sql_on_the_fly/app.py) | This example extracts the data from unstructured files and stores it into a PostgreSQL table. It also transforms the user query into an SQL query which is then executed on the PostgreSQL table.                                                                                                                                 |
+| [`unstructured-to-sql`](examples/pipelines/unstructured_to_sql_on_the_fly/app.py) | This example extracts the data from unstructured files and stores it into a PostgreSQL table. It also transforms the user query into an SQL query which is then executed on the PostgreSQL table.                                                                                                                                 |
 | [`alert`](examples/pipelines/alert/app.py)     | Ask questions, get alerted whenever response changes. Pathway is always listening for changes, whenever new relevant information is added to the stream (local files in this example), LLM decides if there is a substantial difference in response and notifies the user with a Slack message.                                                                                                                                              |
-| [`drive_alert`](examples/pipelines/drive_alert/app.py)     | The [`alert`](examples/pipelines/alert/app.py) example on steroids. Whenever relevant information on Google Docs is modified or added, get real-time alerts via Slack.                                                                                                                                            |
+| [`drive-alert`](examples/pipelines/drive_alert/app.py)     | The [`alert`](examples/pipelines/alert/app.py) example on steroids. Whenever relevant information on Google Docs is modified or added, get real-time alerts via Slack. See the [`tutorial`](https://pathay.com/developers/showcases/llm-alert-pathway).                                                                                                                                            |
 
 
 ### Step 1: Clone the repository
@@ -156,7 +156,7 @@ Create an .env file in the root directory and add the following environment vari
 
 | Environment Variable        | Description                                                                                                                                                                                                                                              |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| APP_VARIANT                 | Determines which pipeline to run in your application. Available modes are [`contextful`, `s3`, `contextless`, `local`, `unstructuredtosql`]. By default, the mode is set to `contextful`.                                                                                       |
+| APP_VARIANT                 | Determines which pipeline to run in your application. Available modes are [`contextful`, `contextful-s3`, `contextless`, `local`, `unstructured-to-sql`, `alert`, `drive-alert`]. By default, the mode is set to `contextful`.                                                                                       |
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`                                                                                                                 |
 | PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen. Here, it is set to 8080.                                                                                                                                       |
 | OPENAI_API_KEY            | The API token for accessing OpenAI services. If you are not running the local version, please remember to replace it with your API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |

@@ -137,6 +137,14 @@ def s3(**kwargs):
 
 @cli.command()
 @common_options
+def contextful_s3(**kwargs):
+    from examples.pipelines.contextful_s3 import run
+
+    return run(**kwargs)
+
+
+@cli.command()
+@common_options
 def contextless(**kwargs):
     from examples.pipelines.contextless import run
 
@@ -161,6 +169,14 @@ def unstructuredtosql(**kwargs):
 
 @cli.command()
 @common_options
+def unstructured_to_sql(**kwargs):
+    from examples.pipelines.unstructured_to_sql_on_the_fly import run
+
+    return run(**kwargs)
+
+
+@cli.command()
+@common_options
 def alert(**kwargs):
     from examples.pipelines.alert import run
 
@@ -170,6 +186,14 @@ def alert(**kwargs):
 @cli.command()
 @common_options
 def drivealert(**kwargs):
+    from examples.pipelines.drive_alert import run
+
+    return run(**kwargs)
+
+
+@cli.command()
+@common_options
+def drive_alert(**kwargs):
     from examples.pipelines.drive_alert import run
 
     return run(**kwargs)

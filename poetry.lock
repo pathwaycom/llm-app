@@ -245,17 +245,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.29.1"
+version = "1.29.2"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.29.1-py3-none-any.whl", hash = "sha256:192695305fa65012d21f78ee852b91cb56dd571e84d51fb71f756302bf19d23f"},
-    {file = "boto3-1.29.1.tar.gz", hash = "sha256:20285ebf4e98b2905a88aeb162b4f77ff908b2e3e31038b3223e593789290aa3"},
+    {file = "boto3-1.29.2-py3-none-any.whl", hash = "sha256:6617ac176efb21485ebc3a058a3a97feb1300141421ae3d1809562c4cac1d5f9"},
+    {file = "boto3-1.29.2.tar.gz", hash = "sha256:f3024bba9ac980007ba7b5f28a9734d111fb5466e2426ac76c5edbd6dedd8db2"},
 ]
 
 [package.dependencies]
-botocore = ">=1.32.1,<1.33.0"
+botocore = ">=1.32.2,<1.33.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.7.0,<0.8.0"
 
@@ -264,13 +264,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.32.1"
+version = "1.32.2"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.32.1-py3-none-any.whl", hash = "sha256:1d9c0ff3eb7828a8bd8c5c7f12cd9d8c05c6fe4c616ef963fdaab538a0da3809"},
-    {file = "botocore-1.32.1.tar.gz", hash = "sha256:fcf3cc2913afba8e5f7ebcc15e8f6bfae844ab64bf983bf5a6fe3bb54cce239d"},
+    {file = "botocore-1.32.2-py3-none-any.whl", hash = "sha256:a68a33193d8cd59e3b2142bff632e562afc02f9c4417e3dcc81a6e1b1f47148e"},
+    {file = "botocore-1.32.2.tar.gz", hash = "sha256:0e231524e9b72169fe0b8d9310f47072c245fb712778e0669f53f264f0e49536"},
 ]
 
 [package.dependencies]
@@ -999,6 +999,101 @@ gitdb = ">=4.0.1,<5"
 test = ["black", "coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock", "mypy", "pre-commit", "pytest", "pytest-cov", "pytest-instafail", "pytest-subtests", "pytest-sugar"]
 
 [[package]]
+name = "google-api-core"
+version = "2.14.0"
+description = "Google API client core library"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "google-api-core-2.14.0.tar.gz", hash = "sha256:5368a4502b793d9bbf812a5912e13e4e69f9bd87f6efb508460c43f5bbd1ce41"},
+    {file = "google_api_core-2.14.0-py3-none-any.whl", hash = "sha256:de2fb50ed34d47ddbb2bd2dcf680ee8fead46279f4ed6b16de362aca23a18952"},
+]
+
+[package.dependencies]
+google-auth = ">=2.14.1,<3.0.dev0"
+googleapis-common-protos = ">=1.56.2,<2.0.dev0"
+protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0.dev0"
+requests = ">=2.18.0,<3.0.0.dev0"
+
+[package.extras]
+grpc = ["grpcio (>=1.33.2,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "grpcio-status (>=1.33.2,<2.0.dev0)", "grpcio-status (>=1.49.1,<2.0.dev0)"]
+grpcgcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
+grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
+
+[[package]]
+name = "google-api-python-client"
+version = "2.108.0"
+description = "Google API Client Library for Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "google-api-python-client-2.108.0.tar.gz", hash = "sha256:6396efca83185fb205c0abdbc1c2ee57b40475578c6af37f6d0e30a639aade99"},
+    {file = "google_api_python_client-2.108.0-py2.py3-none-any.whl", hash = "sha256:9d1327213e388943ebcd7db5ce6e7f47987a7e6874e3e1f6116010eea4a0e75d"},
+]
+
+[package.dependencies]
+google-api-core = ">=1.31.5,<2.0.dev0 || >2.3.0,<3.0.0.dev0"
+google-auth = ">=1.19.0,<3.0.0.dev0"
+google-auth-httplib2 = ">=0.1.0"
+httplib2 = ">=0.15.0,<1.dev0"
+uritemplate = ">=3.0.1,<5"
+
+[[package]]
+name = "google-auth"
+version = "2.23.4"
+description = "Google Authentication Library"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "google-auth-2.23.4.tar.gz", hash = "sha256:79905d6b1652187def79d491d6e23d0cbb3a21d3c7ba0dbaa9c8a01906b13ff3"},
+    {file = "google_auth-2.23.4-py2.py3-none-any.whl", hash = "sha256:d4bbc92fe4b8bfd2f3e8d88e5ba7085935da208ee38a134fc280e7ce682a05f2"},
+]
+
+[package.dependencies]
+cachetools = ">=2.0.0,<6.0"
+pyasn1-modules = ">=0.2.1"
+rsa = ">=3.1.4,<5"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.6.2,<4.0.0.dev0)", "requests (>=2.20.0,<3.0.0.dev0)"]
+enterprise-cert = ["cryptography (==36.0.2)", "pyopenssl (==22.0.0)"]
+pyopenssl = ["cryptography (>=38.0.3)", "pyopenssl (>=20.0.0)"]
+reauth = ["pyu2f (>=0.1.5)"]
+requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
+
+[[package]]
+name = "google-auth-httplib2"
+version = "0.1.1"
+description = "Google Authentication Library: httplib2 transport"
+optional = false
+python-versions = "*"
+files = [
+    {file = "google-auth-httplib2-0.1.1.tar.gz", hash = "sha256:c64bc555fdc6dd788ea62ecf7bccffcf497bf77244887a3f3d7a5a02f8e3fc29"},
+    {file = "google_auth_httplib2-0.1.1-py2.py3-none-any.whl", hash = "sha256:42c50900b8e4dcdf8222364d1f0efe32b8421fb6ed72f2613f12f75cc933478c"},
+]
+
+[package.dependencies]
+google-auth = "*"
+httplib2 = ">=0.19.0"
+
+[[package]]
+name = "googleapis-common-protos"
+version = "1.61.0"
+description = "Common protobufs used in Google APIs"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "googleapis-common-protos-1.61.0.tar.gz", hash = "sha256:8a64866a97f6304a7179873a465d6eee97b7a24ec6cfd78e0f575e96b821240b"},
+    {file = "googleapis_common_protos-1.61.0-py2.py3-none-any.whl", hash = "sha256:22f1915393bb3245343f6efe87f6fe868532efc12aa26b391b15132e1279f1c0"},
+]
+
+[package.dependencies]
+protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0.dev0"
+
+[package.extras]
+grpc = ["grpcio (>=1.44.0,<2.0.0.dev0)"]
+
+[[package]]
 name = "h3"
 version = "3.7.6"
 description = "Hierarchical hexagonal geospatial indexing system"
@@ -1049,6 +1144,20 @@ files = [
 all = ["flake8", "numpy", "pylint", "pytest", "pytest-cov"]
 numpy = ["numpy"]
 test = ["flake8", "pylint", "pytest", "pytest-cov"]
+
+[[package]]
+name = "httplib2"
+version = "0.22.0"
+description = "A comprehensive HTTP client library."
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+files = [
+    {file = "httplib2-0.22.0-py3-none-any.whl", hash = "sha256:14ae0a53c1ba8f3d37e9e27cf37eabb0fb9980f435ba405d546948b009dd64dc"},
+    {file = "httplib2-0.22.0.tar.gz", hash = "sha256:d7a10bc5ef5ab08322488bde8c726eeee5c8618723fdb399597ec58f3d82df81"},
+]
+
+[package.dependencies]
+pyparsing = {version = ">=2.4.2,<3.0.0 || >3.0.0,<3.0.1 || >3.0.1,<3.0.2 || >3.0.2,<3.0.3 || >3.0.3,<4", markers = "python_version > \"3.0\""}
 
 [[package]]
 name = "huggingface-hub"
@@ -1186,13 +1295,13 @@ files = [
 
 [[package]]
 name = "jsonschema"
-version = "4.19.2"
+version = "4.20.0"
 description = "An implementation of JSON Schema validation for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jsonschema-4.19.2-py3-none-any.whl", hash = "sha256:eee9e502c788e89cb166d4d37f43084e3b64ab405c795c03d343a4dbc2c810fc"},
-    {file = "jsonschema-4.19.2.tar.gz", hash = "sha256:c9ff4d7447eed9592c23a12ccee508baf0dd0d59650615e847feb6cdca74f392"},
+    {file = "jsonschema-4.20.0-py3-none-any.whl", hash = "sha256:ed6231f0429ecf966f5bc8dfef245998220549cbbcf140f913b7464c52c3b6b3"},
+    {file = "jsonschema-4.20.0.tar.gz", hash = "sha256:4f614fd46d8d61258610998997743ec5492a648b33cf478c1ddc23ed4598a5fa"},
 ]
 
 [package.dependencies]
@@ -2345,14 +2454,14 @@ xml = ["lxml (>=4.8.0)"]
 
 [[package]]
 name = "pathway"
-version = "0.7.0"
+version = "0.7.1"
 description = "Pathway is a data processing framework which takes care of streaming data updates for you."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "pathway-0.7.0-cp310-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:b525efcf2e019589c4ae045065b5194732511ec2fb52469d80b328c21c7d1643"},
-    {file = "pathway-0.7.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:91ad089050fd00ffec1e9d14028491b2b546bf135a4175647740147957bc6031"},
-    {file = "pathway-0.7.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:da3791a27cc2af4dcf75cd1d69dc489a58787634fa556ad93298b2ede838c52e"},
+    {file = "pathway-0.7.1-cp310-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:8d15c048079042f437c93d7414e1d9863f774f37a89a893147864a4e7330a834"},
+    {file = "pathway-0.7.1-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4c6da26733157f0dfb6549c904ace19f7e87ff84e3bfae2db2ee51cdec9b86bc"},
+    {file = "pathway-0.7.1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4978960f417b494828580fd8ea45f0f0303369e00667ce57ad4de98e4ada2fad"},
 ]
 
 [package.dependencies]
@@ -2363,6 +2472,7 @@ click = ">=8.1"
 diskcache = ">=5.2.1"
 exceptiongroup = {version = ">=1.1.3", markers = "python_version < \"3.11\""}
 geopy = ">=2.4.0"
+google-api-python-client = ">=2.108.0"
 h3 = ">=3.7.6"
 numba = {version = ">=0.56", markers = "python_version < \"3.12\""}
 numpy = ">=1.21"
@@ -2606,6 +2716,31 @@ files = [
 numpy = ">=1.16.6"
 
 [[package]]
+name = "pyasn1"
+version = "0.5.0"
+description = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
+files = [
+    {file = "pyasn1-0.5.0-py2.py3-none-any.whl", hash = "sha256:87a2121042a1ac9358cabcaf1d07680ff97ee6404333bacca15f76aa8ad01a57"},
+    {file = "pyasn1-0.5.0.tar.gz", hash = "sha256:97b7290ca68e62a832558ec3976f15cbf911bf5d7c7039d8b861c2a0ece69fde"},
+]
+
+[[package]]
+name = "pyasn1-modules"
+version = "0.3.0"
+description = "A collection of ASN.1-based protocols modules"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
+files = [
+    {file = "pyasn1_modules-0.3.0-py2.py3-none-any.whl", hash = "sha256:d3ccd6ed470d9ffbc716be08bd90efbd44d0734bc9303818f7336070984a162d"},
+    {file = "pyasn1_modules-0.3.0.tar.gz", hash = "sha256:5bd01446b736eb9d31512a30d46c1ac3395d676c6f3cafa4c03eb54b9925631c"},
+]
+
+[package.dependencies]
+pyasn1 = ">=0.4.6,<0.6.0"
+
+[[package]]
 name = "pycocotools"
 version = "2.0.7"
 description = "Official APIs for the MS-COCO dataset"
@@ -2697,7 +2832,7 @@ files = [
 name = "pyparsing"
 version = "3.1.1"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
-optional = true
+optional = false
 python-versions = ">=3.6.8"
 files = [
     {file = "pyparsing-3.1.1-py3-none-any.whl", hash = "sha256:32c7c0b711493c72ff18a981d24f28aaf9c1fb7ed5e9667c9e84e3db623bdbfb"},
@@ -3409,6 +3544,20 @@ files = [
     {file = "rpds_py-0.13.0-pp39-pypy39_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:fea99967d4a978ce95dd52310bcb4a943b77c61725393bca631b0908047d6e2f"},
     {file = "rpds_py-0.13.0.tar.gz", hash = "sha256:35cc91cbb0b775705e0feb3362490b8418c408e9e3c3b9cb3b02f6e495f03ee7"},
 ]
+
+[[package]]
+name = "rsa"
+version = "4.9"
+description = "Pure-Python RSA implementation"
+optional = false
+python-versions = ">=3.6,<4"
+files = [
+    {file = "rsa-4.9-py3-none-any.whl", hash = "sha256:90260d9058e514786967344d0ef75fa8727eed8a7d2e43ce9f4bcf1b536174f7"},
+    {file = "rsa-4.9.tar.gz", hash = "sha256:e38464a49c6c85d7f1351b0126661487a7e0a14a50f1675ec50eb34d4f20ef21"},
+]
+
+[package.dependencies]
+pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "s3transfer"
@@ -4517,6 +4666,17 @@ packaging = ">=21.3"
 Pillow = ">=8.0.0"
 
 [[package]]
+name = "uritemplate"
+version = "4.1.1"
+description = "Implementation of RFC 6570 URI Templates"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "uritemplate-4.1.1-py2.py3-none-any.whl", hash = "sha256:830c08b8d99bdd312ea4ead05994a38e8936266f84b9a7878232db50b044e02e"},
+    {file = "uritemplate-4.1.1.tar.gz", hash = "sha256:4346edfc5c3b79f694bccd6d6099a322bbeb628dbf2cd86eea55a456ce5124f0"},
+]
+
+[[package]]
 name = "urllib3"
 version = "2.0.7"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -4731,4 +4891,4 @@ unstructured-to-sql = ["psycopg", "tiktoken", "unstructured"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "de3cb7ba73391021d27583463c7383c9b410e85daa85756973104f2d35b10d15"
+content-hash = "5f504f1a7df8b147ba59b846b4dc89c45cd3fe287fc3f01e4841f30d1c990a39"

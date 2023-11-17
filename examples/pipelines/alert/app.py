@@ -2,27 +2,29 @@
 Microservice for a context-aware alerting ChatGPT assistant.
 
 This demo is very similar to `contextful` example with an additional real time alerting capability.
-For the demo, alerts are sent to the Slack (you need `slack_alert_channel_id` and `slack_alert_token`), you can
-either put these env variables in .env file under llm-app directory,
+In the demo, alerts are sent to the Slack (you need `slack_alert_channel_id` and `slack_alert_token`),
+you can either put these env variables in .env file under llm-app directory,
 or create env variables in terminal (ie. export in bash)
-If you don't have Slack, you can leave them empty and app will print the notifications to standard output instead.
+If you don't have Slack, you can leave them empty and app will print the notifications to
+standard output instead.
 
-Upon starting, a REST API endpoint is opened by the app to serve queries about input folder `data_dir`.
+Upon starting, a REST API endpoint is opened by the app to serve queries about files inside
+the input folder `data_dir`.
 
 We can create notifications by sending query to API stating we want to be modified.
 Alternatively, the provided Streamlit chat app can be used.
 One example would be `Tell me and alert about start date of campaign for Magic Cola`
 
-How It Works?
+What happens next?
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed
 for documents in the corpus. A prompt is build from the relevant documentations pages
 and sent to the OpenAI GPT3.5 chat service for processing and answering.
 
-Once you run, Pathway looks for any changes in data sources, and efficiently detects changes to the relevant documents.
-When a change of source documents is detected, the LLM is asked to answer the query again,
-and if the new answer is sufficiently different, a notification is created.
+Once you run, Pathway looks for any changes in data sources, and efficiently detects changes
+to the relevant documents. When a change is detected, the LLM is asked to answer the query
+again, and if the new answer is sufficiently different, an alert is created.
 
 Usage:
 In the root of this repository run:
@@ -48,8 +50,7 @@ import os
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from examples.example_utils import find_last_modified_file, get_file_info
-from llm_app import deduplicate, send_slack_alerts
+from llm_app import send_slack_alerts
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
@@ -115,8 +116,8 @@ def make_query_id(user, query) -> str:
 
 
 @pw.udf
-def construct_notification_message(query: str, response: str, metainfo=None) -> str:
-    return f'New response for question "{query}":\n{response}\n{str(metainfo)}'
+def construct_notification_message(query: str, response: str) -> str:
+    return f'New response for question "{query}":\n{response}'
 
 
 @pw.udf
@@ -130,13 +131,6 @@ def construct_message(response, alert_flag, metainfo=None):
 
 def decision_to_bool(decision: str) -> bool:
     return "yes" in decision.lower()
-
-
-@pw.udf
-def add_meta_info(file_path) -> dict:
-    fname = find_last_modified_file(file_path)
-    info_dict = get_file_info(fname)
-    return f"""\nBased on file: {info_dict['File']} modified by {info_dict['Owner']} on {info_dict['Last Edit']}."""
 
 
 def run(
@@ -257,7 +251,7 @@ def run(
 
         return decision_to_bool(decision)
 
-    deduplicated_responses = deduplicate(
+    deduplicated_responses = pw.stateful.deduplicate(
         responses,
         col=responses.response,
         acceptor=acceptor,
@@ -265,9 +259,7 @@ def run(
     )
 
     alerts = deduplicated_responses.select(
-        message=construct_notification_message(
-            pw.this.query, pw.this.response, add_meta_info(data_dir)
-        )
+        message=construct_notification_message(pw.this.query, pw.this.response)
     )
 
     send_slack_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)

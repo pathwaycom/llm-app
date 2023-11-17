@@ -2,90 +2,45 @@
 Microservice for a context-aware alerting ChatGPT assistant.
 
 This demo is very similar to `alert` example, only difference is the data source (Google Drive)
-For the demo, alerts are sent to the Slack (you need `slack_alert_channel_id` and `slack_alert_token`), you can
-either put these env variables in .env file under llm-app directory,
-or create env variables in terminal (ie. export in bash)
+For the demo, alerts are sent to Slack (you need to provide `slack_alert_channel_id` and `slack_alert_token`),
+you can either put these env variables in .env file under llm-app directory,
+or create env variables in terminal (i.e. export in bash)
 If you don't have Slack, you can leave them empty and app will print the notifications instead.
 
-The program then starts a REST API endpoint serving queries about input folder `data_dir`.
+The program then starts a REST API endpoint serving queries about Google Docs stored in a
+Google Drive folder.
 
-We can create notifications by asking from Streamlit or sending query to API stating we want to be modified.
+We can create notifications by asking from Streamlit or sending query to API stating we want to be notified.
 One example would be `Tell me and alert about start date of campaign for Magic Cola`
 
 How It Works?
-We sync a local folder with Google Drive, whenever there is a change, Pathway captures it.
-Native support for Drive to Pathway can be also added with Python connectors.
+First, Pathway connects to Google Drive, extract all documents, split into chunks, turn them into
+vectors using OpenAI embedding service, and store in a nearest neighbor index.
 
-Each query text is first turned into a vector using OpenAI embedding service,
-then relevant documentation pages are found using a Nearest Neighbor index computed
-for documents in the corpus. A prompt is build from the relevant documentations pages
+Each query text is first turned into a vector, then relevant document chunks are found
+using the nearest neighbor index. A prompt is build from the relevant chunk
 and sent to the OpenAI GPT3.5 chat service for processing and answering.
 
-Once you run, Pathway looks for any changes in data sources, if any change is done, pipeline is triggered.
-If new answer is different than the previous one, a notification is created.
-
-Setting up before use:
-Download rclone:
-https://rclone.org/downloads/
-
-
-Follow config steps here:
-https://rclone.org/drive/#configuration
-
-During config, it will ask `Use web browser to automatically authenticate rclone with remote?`
-If you are working on your own computer, press enter or say `Y` and you will be prompted to authorize.
-You can skip following if you accessed browser and authorized the app.
-
-If you are on a virtual machine with no browser access, see below.
-        You need this only if you are working on virtual machine!!!
-
-        Open a terminal where you can execute Python or an empty notebook,
-        install dependencies
-        ```
-        pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
-        ```
-
-        Run the following code, it will prompt an URL, go there and give permission
-        ```
-        from google.auth.transport.requests import Request
-        from google.oauth2.credentials import Credentials
-        from google_auth_oauthlib.flow import InstalledAppFlow
-
-        creds = None
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'creds.txt', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-        ```
-        You need this only if you are working on virtual machine!!!
-
-You are ready to go!
-
-If you need client and and secret, follow the guide here:
-https://rclone.org/drive/#making-your-own-client-id
+After an initial answer is provided, Pathway monitors changes to documents and selectively
+re-triggers potentially affected queries. If new answer is significantly different form
+the previously presented one, a new notification is created.
 
 Usage:
-First, set you env variables in .env file placed in root of repo
-`OPENAI_API_KEY=sk-...
+First, obtain the Google credentials as in the examples/pipelines/drive_alert/README_GDRIVE_AUTH.md
+
+set you env variables in .env file placed in root of repo
+
+```
+OPENAI_API_KEY=sk-...
 PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
 PATHWAY_REST_CONNECTOR_PORT=8181
-SLACK_ALERT_CHANNEL_ID=
+SLACK_ALERT_CHANNEL_ID=  # if unset, alerts will be printed to terminal
 SLACK_ALERT_TOKEN=
-REMOTE_NAME=<<your config name from rclone>>
-REMOTE_FOLDER=magic-cola #  folder name under your google drive
-TRACKED_FILE=staging/campaign.docx  # file that is under the folder you want to track
-LOCAL_FOLDER=./examples/data/magic-cola/local-drive/`  # synced drive in local
+FILE_OR_DIRECTORY_ID=  # file or folder id that you want to track that we have retrieved earlier
+GOOGLE_CREDS=examples/pipelines/drive_alert/secrets.json  # Default location of Google Drive authorization secrets
+```
 
 In the root of this repository run:
-`poetry run examples/pipelines/drive_alert/drive_script.py`
-keep this open.
-
-In another terminal,
 `poetry run ./run_examples.py drivealert`
 or, if all dependencies are managed manually rather than using poetry
 You can either
@@ -112,8 +67,7 @@ import os
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 
-from examples.example_utils import find_last_modified_file, get_file_info
-from llm_app import chunk_texts, deduplicate, extract_texts, send_slack_alerts
+from llm_app import chunk_texts, extract_texts, send_slack_alerts
 from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
@@ -175,12 +129,12 @@ def build_prompt_compare_answers(new: str, old: str) -> str:
 
 
 def make_query_id(user, query) -> str:
-    return str(hash(query + user))  # + str(time.time())
+    return str(hash(query + user))
 
 
 @pw.udf
-def construct_notification_message(query: str, response: str, metainfo=None) -> str:
-    return f'New response for question "{query}":\n{response}\nFrom: {str(metainfo)}'
+def construct_notification_message(query: str, response: str) -> str:
+    return f'New response for question "{query}":\n{response}'
 
 
 @pw.udf
@@ -196,18 +150,9 @@ def decision_to_bool(decision: str) -> bool:
     return "yes" in decision.lower()
 
 
-@pw.udf
-def add_meta_info(file_path) -> dict:
-    fname = find_last_modified_file(file_path)
-    info_dict = get_file_info(fname)
-    return f"""\nBased on file: {info_dict['File']} modified by {info_dict['Owner']} on {info_dict['Last Edit']}."""
-
-
 def run(
     *,
-    data_dir: str = os.environ.get(
-        "PATHWAY_DATA_DIR", "./examples/data/magic-cola/local-drive/staging/"
-    ),
+    object_id=os.environ.get("FILE_OR_DIRECTORY_ID", ""),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = "0.0.0.0",
     port: int = 8080,
@@ -218,17 +163,27 @@ def run(
     temperature: float = 0.0,
     slack_alert_channel_id=os.environ.get("SLACK_ALERT_CHANNEL_ID", ""),
     slack_alert_token=os.environ.get("SLACK_ALERT_TOKEN", ""),
+    service_user_credentials_file=os.environ.get(
+        "GOOGLE_CREDS", "examples/pipelines/drive_alert/secrets.json"
+    ),
     **kwargs,
 ):
     # Part I: Build index
     embedder = OpenAIEmbeddingModel(api_key=api_key)
 
-    files = pw.io.fs.read(
-        data_dir,
-        mode="streaming_with_deletions",  # streaming, streaming_with_deletions
-        format="binary",
-        autocommit_duration_ms=50,
-        object_pattern="*.docx",
+    # We start building the computational graph. Each pathway variable represents a
+    # dynamically changing table.
+
+    # The files table contains contents of documents in Google Drive.
+    # Pathway automatically tracks changes to files and propagates these changes through
+    # following computations.
+    # Other Pathway connectors can be used as well - notably:
+    # - pw.io.fs.read to load and track changes to the local drive and
+    # - pw.io.s3.read to use an S3-compatible storage
+    files = pw.io.gdrive.read(
+        object_id=object_id,
+        service_user_credentials_file=service_user_credentials_file,
+        refresh_interval=30,  # interval between fetch operations in seconds, lower this for more responsiveness
     )
     documents = files.select(texts=extract_texts(pw.this.data))
     documents = documents.select(
@@ -240,11 +195,14 @@ def run(
         data=embedder.apply(text=pw.this.doc, locator=embedder_locator)
     )
 
+    # The index is updated each time a file changes.
     index = KNNIndex(
         enriched_documents.data, enriched_documents, n_dimensions=embedding_dimension
     )
+
     # Part II: receive queries, detect intent and prepare cleaned query
 
+    # The rest_connector returns a table of all queries under processing
     query, response_writer = pw.io.http.rest_connector(
         host=host,
         port=port,
@@ -255,6 +213,9 @@ def run(
 
     model = OpenAIChatGPTModel(api_key=api_key)
 
+    # Pre-process the queries:
+    # - detect alerting intent
+    # - then embed the query for nearest neighbor retrieval
     query += query.select(
         prompt=build_prompt_check_for_alert_request_and_extract_query(query.query)
     )
@@ -281,10 +242,15 @@ def run(
 
     # Part III: respond to queries
 
+    # The context is a dynamic table: Pathway updates it each time:
+    # - a new query arrives
+    # - a source document is changed significantly enough to change the set of
+    #   nearest neighbors
     query_context = query + index.get_nearest_items(query.data, k=3).select(
         documents_list=pw.this.doc
     ).with_universe_of(query)
 
+    # then we answer the queries using retrieved documents
     prompt = query_context.select(
         pw.this.query_id,
         pw.this.query,
@@ -308,21 +274,19 @@ def run(
         result=construct_message(pw.this.response, pw.this.alert_enabled)
     )
 
+    # and send the answers back to the asking users
     response_writer(output)
 
     # Part IV: send alerts about responses which changed significantly.
 
+    # However, for the queries with alerts the processing continues
+    # whenever the set of documents retrieved for a query changes,
+    # the table of responses is updated.
     responses = responses.filter(pw.this.alert_enabled)
 
     def acceptor(new: str, old: str) -> bool:
         if new == old:
             return False
-
-        if "mention" in new or "cannot" in new or "inferred" in new:
-            return False
-
-        if "mention" in old or "cannot" in old or "inferred" in old:
-            return True
 
         decision = model(
             build_prompt_compare_answers(new, old),
@@ -331,20 +295,21 @@ def run(
         )
         return decision_to_bool(decision)
 
-    deduplicated_responses = deduplicate(
+    # Each update is compared with the previous one for deduplication
+    deduplicated_responses = pw.stateful.deduplicate(
         responses,
         col=responses.response,
         acceptor=acceptor,
         instance=responses.query_id,
     )
 
+    # Significant alerts are sent to the user
     alerts = deduplicated_responses.select(
-        message=construct_notification_message(
-            pw.this.query, pw.this.response, add_meta_info(data_dir)
-        )
+        message=construct_notification_message(pw.this.query, pw.this.response)
     )
     send_slack_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
 
+    # Finally, we execute the computation graph
     pw.run(monitoring_level=pw.MonitoringLevel.NONE)
 
 
