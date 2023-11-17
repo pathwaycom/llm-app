@@ -72,7 +72,7 @@ poetry run ./run_examples.py drivealert
 If all dependencies are managed manually rather than using poetry, you can run either:
 
 ```bash
-python examples/pipelines/drivealert/app.py
+python examples/pipelines/drive_alert/app.py
 ```
 
 or
