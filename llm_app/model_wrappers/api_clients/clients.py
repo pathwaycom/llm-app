@@ -23,8 +23,6 @@ class OpenAIClient(APIClient):
     ):
         import openai
 
-        openai.api_requestor.TIMEOUT_SECS = 90
-
         openai.api_key = api_key
         if api_type:
             openai.api_type = api_type
@@ -34,20 +32,21 @@ class OpenAIClient(APIClient):
             openai.api_version = api_version
 
         self.api = openai
+        self.client = openai.OpenAI(api_key=api_key)
 
 
 class OpenAIChatCompletionClient(OpenAIClient):
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def make_request(self, **kwargs):
         logfun("Calling OpenAI chat completion service %s", str(kwargs)[:100])
-        return self.api.ChatCompletion.create(**kwargs)
+        return self.client.chat.completions.create(**kwargs)
 
 
 class OpenAIEmbeddingClient(OpenAIClient):
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def make_request(self, **kwargs):
         logfun("Calling OpenAI embedding service %s", str(kwargs)[:100])
-        return self.api.Embedding.create(**kwargs)
+        return self.client.embeddings.create(**kwargs)
 
 
 class HuggingFaceClient(APIClient):

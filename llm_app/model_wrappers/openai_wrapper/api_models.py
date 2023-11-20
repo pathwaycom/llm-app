@@ -47,6 +47,8 @@ class OpenAIChatGPTModel(BaseModel):
             kwargs["model"] = locator
 
         messages = MessagePreparer.prepare_chat_messages(text)
+        if "response_format" in kwargs:
+            kwargs["response_format"] = kwargs["response_format"].value
 
         logfun(f"Calling OpenAI API with: {messages}\n")
         response = self.api_client.make_request(messages=messages, **kwargs)
@@ -126,7 +128,7 @@ class OpenAIEmbeddingModel(BaseModel):
             kwargs["model"] = locator
 
         response = self.api_client.make_request(input=[text], **kwargs)
-        return response["data"][0]["embedding"]
+        return response.data[0].embedding
 
     def apply(
         self,
