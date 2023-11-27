@@ -48,14 +48,15 @@ def run(
     ),
     host: str = "0.0.0.0",
     port: int = 8080,
-    model_locator: str = "gpt2",
-    embedder_locator: str = "intfloat/e5-large-v2",
+    model_locator: str = os.environ.get("MODEL", "gpt2"),
+    embedder_locator: str = os.environ.get("EMBEDDER", "intfloat/e5-large-v2"),
     embedding_dimension: int = 1024,
     max_tokens: int = 60,
     device: str = "cpu",
     **kwargs,
 ):
     embedder = SentenceTransformerTask(model=embedder_locator, device=device)
+    embedding_dimension = len(embedder(""))
 
     documents = pw.io.jsonlines.read(
         data_dir,
