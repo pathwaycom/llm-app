@@ -4,17 +4,25 @@ Microservice for accounting assistant.
 The aim of this project is to extract and structure the data out of unstructured data (PDFs, queries)
 on the fly.
 
-The following program reads in a collection of financial PDF documents from a local directory
+This example consists of two separate parts that can be used independently.
+1 - Pipeline 1: Proactive data pipeline that is always live and tracking file changes,
+    it reads documents, structures them and writes results to PostgreSQL.
+2 - Pipeline 2: Query answering pipeline that reads user queries, and answers them by
+    generating SQL queries that ar run on the data stored in PostgreSQL.
+
+
+Specifically, Pipeline 1 reads in a collection of financial PDF documents from a local directory
 (that can be synchronized with a Dropbox account), tokenizes each document using the tiktoken encoding,
 then extracts, using the OpenAI API, the wanted fields.
-The values are stored in a Pathway table which is then output to a postgreSQL instance.
+The values are stored in a Pathway table which is then output to a PostgreSQL instance.
 
-The program then starts a REST API endpoint serving queries about programming in Pathway.
+Pipeline 2 then starts a REST API endpoint serving queries about programming in Pathway.
 
 Each query text is converted into a SQL query using the OpenAI API.
 
-The diagram is available at:
-https://github.com/pathwaycom/llm-app/examples/pipelines/unstructure_to_sql_on_the_fly/Unstructured_to_SQL_diagram.png
+Architecture diagram and description are at
+https://pathway.com/developers/showcases/unstructured-to-structured
+
 
 ⚠️ This project requires a running postgreSQL instance.
 
@@ -304,6 +312,9 @@ def run(
     postresql_table: str = os.environ.get("POSTGRESQL_TABLE", "quarterly_earnings"),
     **kwargs,
 ):
+    #
+    # # Pipeline 1 - parsing documents into a PostgreSql table
+    #
     postgreSQL_settings = {
         "host": postresql_host,
         "port": postresql_port,
@@ -323,6 +334,9 @@ def run(
     pw.io.postgres.write(structured_table, postgreSQL_settings, postresql_table)
     pw.io.csv.write(structured_table, "./examples/data/quarterly_earnings.csv")
 
+    #
+    # # Pipeline 2 - query answering using PostgreSql
+    #
     unstructured_query(
         postgreSQL_settings,
         postresql_table,
