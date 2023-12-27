@@ -2930,14 +2930,14 @@ testing = ["docopt", "pytest (<6.0.0)"]
 
 [[package]]
 name = "pathway"
-version = "0.7.6"
+version = "0.7.7"
 description = "Pathway is a data processing framework which takes care of streaming data updates for you."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "pathway-0.7.6-cp310-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:7898a01ff5a45f9e43681077098049738606a66ef05534063ac97a1798d981d5"},
-    {file = "pathway-0.7.6-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:08e61f24ef87312fb3477e6b02912ed393811f8e4b03611afed883cda3a3ddd7"},
-    {file = "pathway-0.7.6-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2f12c208bea532ad39bb8e9856b0d7e05562bac2d4606fb2e5197586710680a5"},
+    {file = "pathway-0.7.7-cp310-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:b0ed667a9c48ef328fd267bea111c8cebf334598fbff39353b7e4522b5a77358"},
+    {file = "pathway-0.7.7-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c2e1a337f460d4762d4a9d0ac656ae9bdeec8557cc601518c4bf85426ecfe773"},
+    {file = "pathway-0.7.7-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a5652d2eb6bb7b309fead990dd3d759b2e7cc942dda9131d100a66e4ef8ef7e3"},
 ]
 
 [package.dependencies]
@@ -5737,4 +5737,4 @@ unstructured-to-sql = ["psycopg", "tiktoken", "unstructured"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "b721d3f38abf99023e5ffd2b251a95d200f3a74449296c6b67191aed2af7cba3"
+content-hash = "008a91a8d60c63b27089d909373f57afed5a8f0d5c9016f1e8b642b903ad38ac"
