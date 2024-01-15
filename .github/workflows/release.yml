@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+        uses: abatilo/actions-poetry@v3
 
       - name: Build package
         run: poetry build
@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+        uses: abatilo/actions-poetry@v3
 
       - name: create dir for wheels
         run: |
