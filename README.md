@@ -16,8 +16,8 @@
 
 Pathway's **LLM (Large Language Model) App** is a Python library that helps you create and launch AI-powered applications based on the most up-to-date knowledge available in your data sources. You can use it to answer natural language queries asked by your users, or to run data transformation pipelines with LLM's.
 
-**Quick links** - 👀 [Why LLM App?](#why-llm-app) 🚀 [Watch it in action](#watch-it-in-action) 📚 [How it works](#how-it-works) 🌟 [Examples](#examples) 🏁 [Get Started](#get-started) 💼 [Showcases](#showcases)  🛠️ [Troubleshooting](#troubleshooting)
-👥 [Contributing](#troubleshooting) 💡 [Need help?](#need-help) 
+**Quick links** - 👀 [Why LLM App?](#why-llm-app) 🚀 [Watch it in action](#watch-it-in-action) 📚 [How it works](#how-it-works) 🌟 [Examples](#examples) 🏁 [Get Started](#get-started) 💼 [Showcases](#showcases) 🛠️ [Troubleshooting](#troubleshooting)
+👥 [Contributing](#troubleshooting) ⚙️ [Hosted Version](#%EF%B8%8F-hosted-version-%EF%B8%8F) 💡 [Need help?](#need-help) 
 
 ## Why LLM App?
 
@@ -255,6 +255,9 @@ If you are unfamiliar with how to contribute to GitHub projects, here is a [Get 
 * Templates for model A/B testing.
 * Real-time OpenAI API observability.
 
+## ☁️ Hosted Version ☁️
+
+Please see <a href="https://cloud.pathway.com/">cloud.pathway.com</a> for hosted services. You can quickly set up variants of the `unstructured` pipeline, which connect live data sources on Google Drive and Sharepoint to your Gen AI app.
 
 ## Need help?
 
