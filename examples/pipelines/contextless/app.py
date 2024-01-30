@@ -18,8 +18,7 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 import os
 
 import pathway as pw
-
-from llm_app.model_wrappers import OpenAIChatGPTModel
+from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 
 
 class QueryInputSchema(pw.Schema):
@@ -45,16 +44,18 @@ def run(
         delete_completed_queries=True,
     )
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        model=model_locator,
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     responses = query.select(
         query_id=pw.this.id,
-        result=model.apply(
-            pw.this.query,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        ),
+        result=model(prompt_chat_single_qa(pw.this.query)),
     )
 
     response_writer(responses)

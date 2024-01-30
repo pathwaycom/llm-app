@@ -12,6 +12,8 @@ class _Cache:
     def __init__(self) -> None:
         if cache_dir := os.environ.get("PATHWAY_CACHE_DIR"):
             self.cache = diskcache.Cache(cache_dir)
+        elif cache_dir := os.environ.get("PATHWAY_PERSISTENT_STORAGE"):
+            self.cache = diskcache.Cache(cache_dir)
         else:
             self.cache = {}
 

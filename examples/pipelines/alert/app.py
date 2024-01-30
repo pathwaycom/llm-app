@@ -2,27 +2,27 @@
 Microservice for a context-aware alerting ChatGPT assistant.
 
 This demo is very similar to `contextful` example with an additional real time alerting capability.
-In the demo, alerts are sent to the Slack (you need `slack_alert_channel_id` and `slack_alert_token`),
+In the demo, alerts are sent to Slack (you need `slack_alert_channel_id` and `slack_alert_token`),
 you can either put these env variables in .env file under llm-app directory,
-or create env variables in terminal (ie. export in bash)
+or create env variables in the terminal (ie. export in bash)
 If you don't have Slack, you can leave them empty and app will print the notifications to
 standard output instead.
 
 Upon starting, a REST API endpoint is opened by the app to serve queries about files inside
 the input folder `data_dir`.
 
-We can create notifications by sending query to API stating we want to be modified.
+We can create notifications by sending a query to API and stating we want to be notified of the changes.
 Alternatively, the provided Streamlit chat app can be used.
-One example would be `Tell me and alert about start date of campaign for Magic Cola`
+One example would be `Tell me and alert about the start date of the campaign for Magic Cola`
 
 What happens next?
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed
-for documents in the corpus. A prompt is build from the relevant documentations pages
+for documents in the corpus. A prompt is built from the relevant documentations pages
 and sent to the OpenAI GPT3.5 chat service for processing and answering.
 
-Once you run, Pathway looks for any changes in data sources, and efficiently detects changes
+Once you run, Pathway looks for any changes in data sources and efficiently detects changes
 to the relevant documents. When a change is detected, the LLM is asked to answer the query
 again, and if the new answer is sufficiently different, an alert is created.
 
@@ -45,13 +45,15 @@ First go to examples/ui directory with `cd llm-app/examples/ui/`
 run `streamlit run server.py`
 """
 
+import asyncio
 import os
 
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
+from pathway.xpacks.llm.embedders import OpenAIEmbedder
+from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 
 from llm_app import send_slack_alerts
-from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
 
 
 class DocumentInputSchema(pw.Schema):
@@ -151,7 +153,12 @@ def run(
     **kwargs,
 ):
     # Part I: Build index
-    embedder = OpenAIEmbeddingModel(api_key=api_key)
+    embedder = OpenAIEmbedder(
+        api_key=api_key,
+        model=embedder_locator,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     documents = pw.io.jsonlines.read(
         data_dir,
@@ -160,9 +167,7 @@ def run(
         autocommit_duration_ms=50,
     )
 
-    enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc, locator=embedder_locator)
-    )
+    enriched_documents = documents + documents.select(data=embedder(pw.this.doc))
 
     index = KNNIndex(
         enriched_documents.data, enriched_documents, n_dimensions=embedding_dimension
@@ -178,20 +183,20 @@ def run(
         delete_completed_queries=False,
     )
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        api_key=api_key,
+        model=model_locator,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     query += query.select(
         prompt=build_prompt_check_for_alert_request_and_extract_query(query.query)
     )
     query += query.select(
-        tupled=split_answer(
-            model.apply(
-                pw.this.prompt,
-                locator=model_locator,
-                temperature=temperature,
-                max_tokens=100,
-            )
-        ),
+        tupled=split_answer(model(prompt_chat_single_qa(pw.this.prompt))),
     )
     query = query.select(
         pw.this.user,
@@ -200,7 +205,7 @@ def run(
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query, locator=embedder_locator),
+        data=embedder(pw.this.query),
         query_id=pw.apply(make_query_id, pw.this.user, pw.this.query),
     )
 
@@ -221,12 +226,7 @@ def run(
         pw.this.query_id,
         pw.this.query,
         pw.this.alert_enabled,
-        response=model.apply(
-            pw.this.prompt,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        ),
+        response=model(prompt_chat_single_qa(pw.this.prompt)),
     )
 
     output = responses.select(
@@ -243,12 +243,9 @@ def run(
         if new == old:
             return False
 
-        decision = model(
-            build_prompt_compare_answers(new, old),
-            locator=model_locator,
-            max_tokens=20,
-        )
-
+        # TODO: clean after udfs can be used as common functions
+        prompt = [dict(role="system", content=build_prompt_compare_answers(new, old))]
+        decision = asyncio.run(model.__wrapped__(prompt, max_tokens=20))
         return decision_to_bool(decision)
 
     deduplicated_responses = pw.stateful.deduplicate(

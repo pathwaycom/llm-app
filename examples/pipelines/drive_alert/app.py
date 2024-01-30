@@ -1,40 +1,39 @@
 """
 Microservice for a context-aware alerting ChatGPT assistant.
 
-This demo is very similar to `alert` example, only difference is the data source (Google Drive)
+This demo is very similar to the `alert` example, the only difference is the data source (Google Drive)
 For the demo, alerts are sent to Slack (you need to provide `slack_alert_channel_id` and `slack_alert_token`),
 you can either put these env variables in .env file under llm-app directory,
-or create env variables in terminal (i.e. export in bash)
+or create env variables in the terminal (i.e. export in bash)
 If you don't have Slack, you can leave them empty and app will print the notifications instead.
 
 The program then starts a REST API endpoint serving queries about Google Docs stored in a
 Google Drive folder.
 
 We can create notifications by asking from Streamlit or sending query to API stating we want to be notified.
-One example would be `Tell me and alert about start date of campaign for Magic Cola`
+One example would be `Tell me and alert about the start date of the campaign for Magic Cola`
 
-How It Works?
-First, Pathway connects to Google Drive, extract all documents, split into chunks, turn them into
+How Does It Work?
+First, Pathway connects to Google Drive, extracts all documents, splits them into chunks, turns them into
 vectors using OpenAI embedding service, and store in a nearest neighbor index.
 
 Each query text is first turned into a vector, then relevant document chunks are found
-using the nearest neighbor index. A prompt is build from the relevant chunk
+using the nearest neighbor index. A prompt is built from the relevant chunk
 and sent to the OpenAI GPT3.5 chat service for processing and answering.
 
 After an initial answer is provided, Pathway monitors changes to documents and selectively
-re-triggers potentially affected queries. If new answer is significantly different form
+re-triggers potentially affected queries. If the new answer is significantly different from
 the previously presented one, a new notification is created.
 
 Usage:
 First, obtain the Google credentials as in the examples/pipelines/drive_alert/README_GDRIVE_AUTH.md
-
-set you env variables in .env file placed in root of repo
+Then, set the env variables in the .env file placed in the root of this repo
 
 ```
 OPENAI_API_KEY=sk-...
 PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
 PATHWAY_REST_CONNECTOR_PORT=8181
-SLACK_ALERT_CHANNEL_ID=  # if unset, alerts will be printed to terminal
+SLACK_ALERT_CHANNEL_ID=  # if unset, alerts will be printed to the terminal
 SLACK_ALERT_TOKEN=
 FILE_OR_DIRECTORY_ID=  # file or folder id that you want to track that we have retrieved earlier
 GOOGLE_CREDS=examples/pipelines/drive_alert/secrets.json  # Default location of Google Drive authorization secrets
@@ -62,13 +61,17 @@ First go to examples/pipelines/drive_alert/ui directory with `cd examples/pipeli
 run `streamlit run server.py`
 """
 
+import asyncio
 import os
 
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
+from pathway.xpacks.llm.embedders import OpenAIEmbedder
+from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
+from pathway.xpacks.llm.parsers import ParseUnstructured
+from pathway.xpacks.llm.splitters import TokenCountSplitter
 
-from llm_app import chunk_texts, extract_texts, send_slack_alerts
-from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
+from llm_app import send_slack_alerts
 
 
 class DocumentInputSchema(pw.Schema):
@@ -169,7 +172,12 @@ def run(
     **kwargs,
 ):
     # Part I: Build index
-    embedder = OpenAIEmbeddingModel(api_key=api_key)
+    embedder = OpenAIEmbedder(
+        api_key=api_key,
+        model=embedder_locator,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     # We start building the computational graph. Each pathway variable represents a
     # dynamically changing table.
@@ -185,15 +193,19 @@ def run(
         service_user_credentials_file=service_user_credentials_file,
         refresh_interval=30,  # interval between fetch operations in seconds, lower this for more responsiveness
     )
-    documents = files.select(texts=extract_texts(pw.this.data))
-    documents = documents.select(
-        chunks=chunk_texts(pw.this.texts, min_tokens=40, max_tokens=120)
-    )
-    documents = documents.flatten(pw.this.chunks).rename_columns(doc=pw.this.chunks)
+    parser = ParseUnstructured()
+    documents = files.select(texts=parser(pw.this.data))
+    documents = documents.flatten(pw.this.texts)
+    documents = documents.select(texts=pw.this.texts[0])
 
-    enriched_documents = documents + documents.select(
-        data=embedder.apply(text=pw.this.doc, locator=embedder_locator)
+    splitter = TokenCountSplitter()
+    documents = documents.select(
+        chunks=splitter(pw.this.texts, min_tokens=40, max_tokens=120)
     )
+    documents = documents.flatten(pw.this.chunks)
+    documents = documents.select(chunk=pw.this.chunks[0])
+
+    enriched_documents = documents + documents.select(data=embedder(pw.this.chunk))
 
     # The index is updated each time a file changes.
     index = KNNIndex(
@@ -211,7 +223,14 @@ def run(
         delete_completed_queries=False,
     )
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        api_key=api_key,
+        model=model_locator,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     # Pre-process the queries:
     # - detect alerting intent
@@ -221,10 +240,8 @@ def run(
     )
     query += query.select(
         tupled=split_answer(
-            model.apply(
-                pw.this.prompt,
-                locator=model_locator,
-                temperature=temperature,
+            model(
+                prompt_chat_single_qa(pw.this.prompt),
                 max_tokens=100,
             )
         ),
@@ -236,7 +253,7 @@ def run(
     )
 
     query += query.select(
-        data=embedder.apply(text=pw.this.query, locator=embedder_locator),
+        data=embedder(pw.this.query),
         query_id=pw.apply(make_query_id, pw.this.user, pw.this.query),
     )
 
@@ -247,7 +264,7 @@ def run(
     # - a source document is changed significantly enough to change the set of
     #   nearest neighbors
     query_context = query + index.get_nearest_items(query.data, k=3).select(
-        documents_list=pw.this.doc
+        documents_list=pw.this.chunk
     ).with_universe_of(query)
 
     # then we answer the queries using retrieved documents
@@ -262,11 +279,8 @@ def run(
         pw.this.query_id,
         pw.this.query,
         pw.this.alert_enabled,
-        response=model.apply(
-            pw.this.prompt,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
+        response=model(
+            prompt_chat_single_qa(pw.this.prompt),
         ),
     )
 
@@ -288,11 +302,9 @@ def run(
         if new == old:
             return False
 
-        decision = model(
-            build_prompt_compare_answers(new, old),
-            locator=model_locator,
-            max_tokens=20,
-        )
+        # TODO: clean after udfs can be used as common functions
+        prompt = [dict(role="system", content=build_prompt_compare_answers(new, old))]
+        decision = asyncio.run(model.__wrapped__(prompt, max_tokens=20))
         return decision_to_bool(decision)
 
     # Each update is compared with the previous one for deduplication

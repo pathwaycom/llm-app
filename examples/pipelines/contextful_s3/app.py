@@ -1,5 +1,5 @@
 """
-Microservice for  a context-aware ChatGPT assistant.
+Microservice for a context-aware ChatGPT assistant.
 
 The following program reads in a collection of documents from a public AWS S3 bucket,
 embeds each document using the OpenAI document embedding model,
@@ -10,16 +10,16 @@ The program then starts a REST API endpoint serving queries about programming in
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed
-for documents in the corpus. A prompt is build from the relevant documentations pages
-and sent to the OpenAI GPT-4 chat service for processing.
+for documents in the corpus. A prompt is built from the relevant documentations pages
+and sent to the OpenAI chat service for processing.
 
 Usage:
 In the root of this repository run:
-`poetry run ./run_examples.py contextful_s3`
+`poetry run ./run_examples.py contextful-s3`
 or, if all dependencies are managed manually rather than using poetry
 `python examples/pipelines/contextful_s3/app.py`
 
-You can also run this example directly in the environment with llm_app instaslled.
+You can also run this example directly in the environment with llm_app installed.
 
 To call the REST API:
 curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
@@ -28,8 +28,8 @@ import os
 
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
-
-from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
+from pathway.xpacks.llm.embedders import OpenAIEmbedder
+from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 
 
 class DocumentInputSchema(pw.Schema):
@@ -54,7 +54,12 @@ def run(
     temperature: float = 0.0,
     **kwargs,
 ):
-    embedder = OpenAIEmbeddingModel(api_key=api_key)
+    embedder = OpenAIEmbedder(
+        api_key=api_key,
+        model=embedder_locator,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     documents = pw.io.s3.read(
         data_dir,
@@ -67,9 +72,7 @@ def run(
         mode="streaming",
     )
 
-    enriched_documents = documents + documents.select(
-        vector=embedder.apply(text=pw.this.doc, locator=embedder_locator)
-    )
+    enriched_documents = documents + documents.select(vector=embedder(pw.this.doc))
 
     index = KNNIndex(
         enriched_documents.vector, enriched_documents, n_dimensions=embedding_dimension
@@ -83,9 +86,7 @@ def run(
         delete_completed_queries=True,
     )
 
-    query += query.select(
-        vector=embedder.apply(text=pw.this.query, locator=embedder_locator),
-    )
+    query += query.select(vector=embedder(pw.this.query))
 
     query_context = query + index.get_nearest_items(
         query.vector, k=3, collapse_rows=True
@@ -101,16 +102,17 @@ def run(
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        api_key=api_key,
+        model=model_locator,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     responses = prompt.select(
-        query_id=pw.this.id,
-        result=model.apply(
-            pw.this.prompt,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        ),
+        query_id=pw.this.id, result=model(prompt_chat_single_qa(pw.this.prompt))
     )
 
     response_writer(responses)

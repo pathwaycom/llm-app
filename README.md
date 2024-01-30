@@ -83,7 +83,7 @@ Pick one that is closest to your needs.
 | Example app (template)                                                                           | Description                                                                                                                                                                                                                                                                                                                                                         |
 | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`contextless`](examples/pipelines/contextless/app.py)                            | This simple example calls OpenAI ChatGPT API but does not use an index when processing queries. It relies solely on the given user query. We recommend it to start your Pathway LLM journey.                                                                                                                                                                        |
-| [`contextful`](examples/pipelines/contextful/app.py)                              | This default example of the app will index the jsonlines documents located in the [`data/pathway-docs`](examples/data/pathway-docs) directory. These indexed documents are then taken into account when processing queries. The pathway pipeline running in this mode is located at [`examples/pipelines/contextful/app.py`](examples/pipelines/contextful/app.py). |
+| [`contextful`](examples/pipelines/contextful/app.py)                              | This default example of the app will index the jsonlines documents located in the [`data/pathway-docs`](examples/data/pathway-docs) directory. These indexed documents are then taken into account when processing queries. |
 | [`contextful-s3`](examples/pipelines/contextful_s3/app.py)                        | This example operates similarly to the contextful mode. The main difference is that the documents are stored and indexed from an S3 bucket, allowing the handling of a larger volume of documents. This can be more suitable for production environments.                                                                                                           |
 | [`unstructured`](examples/pipelines/unstructured/app.py)                          | Process unstructured documents such as PDF, HTML, DOCX, PPTX, and more. Visit [unstructured-io](https://unstructured-io.github.io/unstructured/) for the full list of supported formats.                                                                                                                                                                            |
 | [`local`](examples/pipelines/local/app.py)                                        | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                                             |
@@ -130,7 +130,7 @@ Create an .env file in the root directory and add the following environment vari
 | PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`                                                                                                       |
 | PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen. Here, it is set to 8080.                                                                                                                             |
 | OPENAI_API_KEY              | The API token for accessing OpenAI services. If you are not running the local version, please remember to replace it with your API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
-| PATHWAY_CACHE_DIR           | Specifies the directory where the cache is stored. You could use /tmpcache.                                                                                                                                                                      |
+| PATHWAY_PERSISTENT_STORAGE  | Specifies the directory where the cache is stored. You could use /tmpcache.                                                                                                                                                                      |
 
 For example:
 
@@ -139,7 +139,7 @@ APP_VARIANT=contextful
 PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
 PATHWAY_REST_CONNECTOR_PORT=8080
 OPENAI_API_KEY=<Your Token>
-PATHWAY_CACHE_DIR=/tmp/cache
+PATHWAY_PERSISTENT_STORAGE=/tmp/cache
 ```
 
 ### Step 3: Build and run the app

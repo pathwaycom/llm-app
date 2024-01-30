@@ -10,7 +10,7 @@ The program then starts a REST API endpoint serving queries about programming in
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed
-for documents in the corpus. A prompt is build from the relevant documentations pages
+for documents in the corpus. A prompt is built from the relevant documentations pages
 and sent to the OpenAI GPT-4 chat service for processing.
 
 Usage:
@@ -21,7 +21,7 @@ or, if all dependencies are managed manually rather than using poetry
 
 You can also run this example directly in the environment with llm_app installed.
 
-On another terminal, navigate to `examples/pipelines/unstructured/ui` and run
+In another terminal, navigate to `examples/pipelines/unstructured/ui` and run
 `streamlit run server.py`. You can interact with the app at `localhost:8501`
 """
 
@@ -29,9 +29,10 @@ import os
 
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
-
-from llm_app import chunk_texts, extract_texts
-from llm_app.model_wrappers import OpenAIChatGPTModel, OpenAIEmbeddingModel
+from pathway.xpacks.llm.embedders import OpenAIEmbedder
+from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
+from pathway.xpacks.llm.parsers import ParseUnstructured
+from pathway.xpacks.llm.splitters import TokenCountSplitter
 
 
 class QueryInputSchema(pw.Schema):
@@ -52,7 +53,12 @@ def run(
     temperature: float = 0.0,
     **kwargs,
 ):
-    embedder = OpenAIEmbeddingModel(api_key=api_key)
+    embedder = OpenAIEmbedder(
+        api_key=api_key,
+        model=embedder_locator,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     files = pw.io.fs.read(
         data_dir,
@@ -60,13 +66,17 @@ def run(
         format="binary",
         autocommit_duration_ms=50,
     )
-    documents = files.select(texts=extract_texts(pw.this.data))
-    documents = documents.select(chunks=chunk_texts(pw.this.texts))
-    documents = documents.flatten(pw.this.chunks).rename_columns(chunk=pw.this.chunks)
+    parser = ParseUnstructured()
+    documents = files.select(texts=parser(pw.this.data))
+    documents = documents.flatten(pw.this.texts)
+    documents = documents.select(texts=pw.this.texts[0])
 
-    enriched_documents = documents + documents.select(
-        vector=embedder.apply(text=pw.this.chunk, locator=embedder_locator)
-    )
+    splitter = TokenCountSplitter()
+    documents = documents.select(chunks=splitter(pw.this.texts))
+    documents = documents.flatten(pw.this.chunks)
+    documents = documents.select(chunk=pw.this.chunks[0])
+
+    enriched_documents = documents + documents.select(vector=embedder(pw.this.chunk))
 
     index = KNNIndex(
         enriched_documents.vector, enriched_documents, n_dimensions=embedding_dimension
@@ -81,7 +91,7 @@ def run(
     )
 
     query += query.select(
-        vector=embedder.apply(text=pw.this.query, locator=embedder_locator),
+        vector=embedder(pw.this.query),
     )
 
     query_context = query + index.get_nearest_items(
@@ -98,16 +108,17 @@ def run(
         prompt=build_prompt(pw.this.documents_list, pw.this.query)
     )
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        api_key=api_key,
+        model=model_locator,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     responses = prompt.select(
-        query_id=pw.this.id,
-        result=model.apply(
-            pw.this.prompt,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        ),
+        query_id=pw.this.id, result=model(prompt_chat_single_qa(pw.this.prompt))
     )
 
     response_writer(responses)

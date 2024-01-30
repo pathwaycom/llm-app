@@ -44,7 +44,7 @@ def common_options(func):
     @click.option(
         "--cache_dir",
         "-c",
-        envvar="PATHWAY_CACHE_DIR",
+        envvar="PATHWAY_PERSISTENT_STORAGE",
         type=str,
         default="/tmp/cache",
     )

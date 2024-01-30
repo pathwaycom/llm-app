@@ -8,7 +8,7 @@ This example consists of two separate parts that can be used independently.
 1 - Pipeline 1: Proactive data pipeline that is always live and tracking file changes,
     it reads documents, structures them and writes results to PostgreSQL.
 2 - Pipeline 2: Query answering pipeline that reads user queries, and answers them by
-    generating SQL queries that ar run on the data stored in PostgreSQL.
+    generating SQL queries that are run on the data stored in PostgreSQL.
 
 
 Specifically, Pipeline 1 reads in a collection of financial PDF documents from a local directory
@@ -24,7 +24,7 @@ Architecture diagram and description are at
 https://pathway.com/developers/showcases/unstructured-to-structured
 
 
-⚠️ This project requires a running postgreSQL instance.
+⚠️ This project requires a running PostgreSQL instance.
 
 🔵 The extracted fields from the PDFs documents are the following:
 - company_symbol: str
@@ -43,8 +43,8 @@ The allowed queries follow a particular pattern:
     with support for AND and OR logic.
 3. To prevent 'psycopg2.errors.GroupingError', relevant columns from the WHERE clause are included
     in the GROUP BY clause.
-4. For readability, if no aggregator are used, the company_symbol, year,
-    and quarter are included in addition of the wanted columns.
+4. For readability, if no aggregator is used, the company_symbol, year,
+    and quarter are included in addition to the wanted columns.
 
 Example:
 "What is the net income of all companies?" should return:
@@ -65,7 +65,7 @@ Response:
 ```
 
 🔵 PostgreSQL:
-A postgreSQL docker compose project is provided in
+A PostgreSQL docker compose project is provided in
 `examples/pipelines/unstructured_to_sql_on_the_fly/postgres/`. To run it, run:
 `docker compose up -d` inside the directory.
 
@@ -92,7 +92,7 @@ To call the Streamlit interface:
 🔵 Notes and TODOs:
 - The project contains two distinct and non overlapping parts:
     1) Extracting the data from PDFs in real time and storing the data in a postgreSQL table.
-    2) Transforming the query into a SQL query and then execute it.
+    2) Transforming the query into a SQL query and then executing it.
     Those could be done in two different Python files.
 - TODO: data extraction needs data cleaning as it may be prone to errors. Anomaly detection
     could be a nice next step to detect and possibly correct outliers.
@@ -106,9 +106,8 @@ import pathway as pw
 import psycopg
 import tiktoken
 from pathway.stdlib.utils.col import unpack_col
-
-from llm_app import extract_texts
-from llm_app.model_wrappers import OpenAIChatGPTModel
+from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
+from pathway.xpacks.llm.parsers import ParseUnstructured
 
 
 class FinancialStatementSchema(pw.Schema):
@@ -127,7 +126,9 @@ class NLQuerySchema(pw.Schema):
 
 @pw.udf
 def build_prompt_structure(
-    texts: list[str], max_tokens: int = 8000, encoding_name: str = "cl100k_base"
+    texts: list[str],
+    max_tokens: int = 8000,
+    encoding_name: str = "cl100k_base",
 ):
     """
     Insert instructions for the LLM here.
@@ -218,15 +219,17 @@ def structure_on_the_fly(
 ):
     prompt = documents.select(prompt=build_prompt_structure(pw.this.texts))
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        api_key=api_key,
+        model=model_locator,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     responses = prompt.select(
-        result=model.apply(
-            pw.this.prompt,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        ),
+        result=model(prompt_chat_single_qa(pw.this.prompt)),
     )
 
     responses = responses.select(values=parse_str_to_list(pw.this.result))
@@ -260,15 +263,17 @@ def unstructured_query(
 
     query += query.select(prompt=build_prompt_query(postgreSQL_table, pw.this.query))
 
-    model = OpenAIChatGPTModel(api_key=api_key)
+    model = OpenAIChat(
+        api_key=api_key,
+        model=model_locator,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        cache_strategy=pw.asynchronous.DefaultCache(),
+    )
 
     query += query.select(
-        sql_query=model.apply(
-            pw.this.prompt,
-            locator=model_locator,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        ),
+        sql_query=model(prompt_chat_single_qa(pw.this.prompt)),
     )
 
     # Connecting to the document database for queries
@@ -293,6 +298,11 @@ def unstructured_query(
     )
     answers = query.select(result=pw.make_tuple(pw.this.sql_query, pw.this.result))
     response_writer(answers)
+
+
+@pw.udf
+def strip_metadata(docs: list[tuple[str, dict]]) -> list[str]:
+    return [doc[0] for doc in docs]
 
 
 def run(
@@ -327,7 +337,10 @@ def run(
         data_dir,
         format="binary",
     )
-    unstructured_documents = files.select(texts=extract_texts(pw.this.data))
+    parser = ParseUnstructured()
+    unstructured_documents = files.select(texts=parser(pw.this.data)).select(
+        texts=strip_metadata(pw.this.texts)
+    )
     structured_table = structure_on_the_fly(
         unstructured_documents, api_key, model_locator, max_tokens, temperature
     )
