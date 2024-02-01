@@ -30,7 +30,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-pathway = "=0.7.10"
+pathway = "=0.8.0"
 openai = ">=1.2.4"
 requests = "^2.31.0"
 diskcache = "^5.6.1"
