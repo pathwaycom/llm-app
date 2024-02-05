@@ -14,20 +14,22 @@
 [![follow on Twitter](https://img.shields.io/twitter/follow/pathway_com?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM (Large Language Model) App** is a Python library that helps you create and launch AI-powered applications based on the most up-to-date knowledge available in your data sources. You can use it to answer natural language queries asked by your users, or to run data transformation pipelines with LLM's.
+Pathway's **LLM (Large Language Model) Apps** allow you to quickly put in production AI applications which use the most up-to-date knowledge available in your data sources. You can directly run a 24/7 service to answer natural language queries about an ever-changing private document knowledge base, or run an LLM-powered data transformation pipeline on a data stream. 
 
-**Quick links** - 👀 [Why LLM App?](#why-llm-app) 🚀 [Watch it in action](#watch-it-in-action) 📚 [How it works](#how-it-works) 🌟 [Examples](#examples) 🏁 [Get Started](#get-started) 💼 [Showcases](#showcases) 🛠️ [Troubleshooting](#troubleshooting)
+The Python application examples provided in this repo are ready-to-use. They can be run as Docker containers, and expose an HTTP API to the frontend. Most app examples also include an optional Streamlit UI which connects to this API. The apps rely on the [Pathway framework](https://github.com/pathwaycom/pathway) for data source synchronization, for serving API requests, and for all low-latency data processing. The apps connect to document data sources on S3, Google Drive, Sharepoint, etc. with no infrastructure dependencies (such as a vector database) that would need a separate setup.
+
+**Quick links** - 👀 [Why use Pathway LLM Apps?](#why-use-pathway-llm-apps) 🚀 [Watch it in action](#watch-it-in-action) 📚 [How it works](#how-it-works) 🌟 [Application examples](#application-examples) 🏁 [Get Started](#get-started) 💼 [Showcases](#showcases) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting) ⚙️ [Hosted Version](#%EF%B8%8F-hosted-version-%EF%B8%8F) 💡 [Need help?](#need-help) 
 
-## Why LLM App?
+## Why use Pathway LLM Apps?
 
-1. **Simplicity** - Simplifies your AI pipeline by consolidating capabilities into one platform. No need to integrate and maintain separate modules for your Gen AI app: ~Vector Database (e.g. Pinecone/Weaviate/Qdrant) + Framework for LLM chaining + Cache (e.g. Redis) + API Framework (e.g. Fast API)~.
-2. **Real-time data syncing** - Syncs both structured and unstructured data from diverse sources, enabling real-time Retrieval Augmented Generation (RAG).
+1. **Simplicity** - Simplify your AI pipeline by consolidating capabilities into one platform. No need to integrate and maintain separate modules for your Gen AI app: ~Vector Database (e.g. Pinecone/Weaviate/Qdrant) + Cache (e.g. Redis) + API Framework (e.g. Fast API)~.
+2. **Real-time data syncing** - Sync both structured and unstructured data from diverse sources, enabling real-time Retrieval Augmented Generation (RAG).
 3. **Easy alert setup** - Configure alerts for key business events with simple configurations. Ask a question, and get updated when new info is available.  
-4. **Scalability** - Handles heavy data loads and usage without degradation in performance. Metrics help track usage and scalability. Learn more about the performance of the underlying [Pathway data processing framework](https://github.com/pathwaycom/pathway/).
+4. **Scalability** - Handle heavy data loads and usage without degradation in performance. Metrics help track usage and scalability. Learn more about the performance of the underlying [Pathway data processing framework](https://github.com/pathwaycom/pathway/).
 5. **Monitoring** - Provide visibility into model behavior via monitoring, tracing errors, anomaly detection, and replay for debugging. Helps with response quality.
-6. **Security** - Designed for the enterprise with capabilities like Personally Identifiable Information (PII) detection, content moderation, permissions, and version control. Run this in your private cloud with local LLMs.
-7. **Unification** - You can cover multiple aspects of your choice with a unified application logic: back-end, embedding, retrieval, LLM tech stack.
+6. **Security** - Designed for Enterprise, with capabilities like Personally Identifiable Information (PII) detection, content moderation, permissions, and version control. Pathway apps can run in your private cloud with local LLMs.
+7. **Unification** - Cover multiple aspects of your choice with a unified application logic: back-end, embedding, retrieval, LLM tech stack.
 
 ## Watch it in action
 
@@ -37,7 +39,7 @@ Analysis of live documents streams.
 
 ![Effortlessly extract and organize unstructured data from PDFs, docs, and more into SQL tables - in real-time](examples/pipelines/unstructured_to_sql_on_the_fly/unstructured_to_sql_demo.gif)
 
-(See: [`unstructured-to-sql`](#examples) example.)
+(See: [`unstructured-to-sql`](#examples) app example.)
 
 ### Automated real-time knowledge mining and alerting. 
 
@@ -47,12 +49,12 @@ Using incremental vector search, only the most relevant context is automatically
 
 ![Automated real-time knowledge mining and alerting](examples/pipelines/drive_alert/drive_alert_demo.gif)
 
-For the code, see the [`drive_alert`](#examples) example. You can find more details in a [blog post on alerting with LLM-App](https://pathway.com/developers/showcases/llm-alert-pathway).
+For the code, see the [`drive_alert`](#examples) app example. You can find more details in a [blog post on alerting with LLM-App](https://pathway.com/developers/showcases/llm-alert-pathway).
 
 
 ## How it works
 
-The default [`contextful`](examples/pipelines/contextful/app.py) template launches an application that connects to a source folder with documents, stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. The app is **always in sync** with updates to your documents, building in real-time a "vector index" using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. This way, it provides answers that are always best on the freshest and most accurate **real-time data**.
+The default [`contextful`](examples/pipelines/contextful/app.py) app example launches an application that connects to a source folder with documents, stored in [AWS S3](https://aws.amazon.com/s3/) or locally on your computer. The app is **always in sync** with updates to your documents, building in real-time a "vector index" using the Pathway package. It waits for user queries that come as HTTP REST requests, then uses the index to find relevant documents and responds using [OpenAI API](https://openai.com/blog/openai-api) or [Hugging Face](https://huggingface.co/) in natural language. This way, it provides answers that are always best on the freshest and most accurate **real-time data**.
 
 This application template can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, to provide more relevant answers and reduce LLM hallucination.
 
@@ -67,16 +69,17 @@ Read more about the implementation details and how to extend this application in
 
 ## Advanced Features
 
-Applications built using LLM App can include the following capabilities:
+LLM Apps built with Pathway can also include the following capabilities:
 
-* **Local Machine Learning models** - LLM App can be configured to run with local LLMs and embedding models, without making API calls outside of the User's Organization.
-* **Multiple live data sources** - LLM App can be used to handle live data sources (news feeds, APIs, data streams in Kafka),
+* **Local Machine Learning models** - Pathway LLM Apps can run with local LLMs and embedding models, without making API calls outside of the User's Organization.
+* **Multiple live data sources** - Pathway LLM Apps can [connect to live data sources](https://pathway.com/developers/user-guide/connecting-to-data/connectors/) of diverse types (news feeds, APIs, data streams in Kafka, and others),
 * **Extensible enterprise logic** - user permissions, user session handling, and a data security layer can all be embedded in your application logic by integrating with your enterprise SSO, AD Domains, LDAP, etc.
+* **Live knowledge graphs** - the Pathway framework enables concept mining, organizing data and metadata as knowledge graphs, and knowledge-graph-based indexes, kept in sync with live data sources.
 
-To learn more about advanced features see: [Features for Organizations](FEATURES-for-organizations.md).
+To learn more about advanced features see: [Features for Organizations](FEATURES-for-organizations.md), or reach out to the Pathway team.
 
 
-## Examples
+## Application Examples
 
 Pick one that is closest to your needs.
 
@@ -144,7 +147,7 @@ PATHWAY_PERSISTENT_STORAGE=/tmp/cache
 
 ### Step 3: Build and run the app
 
-You can install and run the LLM App in two different ways.
+You can install and run your chosen LLM App example in two different ways.
 
 #### Using Docker
 
@@ -257,14 +260,15 @@ If you are unfamiliar with how to contribute to GitHub projects, here is a [Get 
 
 ## ☁️ Hosted Version ☁️
 
-Please see <a href="https://cloud.pathway.com/">cloud.pathway.com</a> for hosted services. You can quickly set up variants of the `unstructured` pipeline, which connect live data sources on Google Drive and Sharepoint to your Gen AI app.
+Please see <a href="https://cloud.pathway.com/">cloud.pathway.com</a> for hosted services. You can quickly set up variants of the `unstructured` app, which connect live data sources on Google Drive and Sharepoint to your Gen AI app.
 
 ## Need help?
 
-Interested in using LLM App with your data source, stack, and custom use cases? Connect with us to get help with:
+Interested in building your own Pathway LLM App with your data source, stack, and custom use cases? Connect with us to get help with:
 
 * Connecting your own live data sources to your LLM application (e.g. Google or Microsoft Drive documents, Kafka, databases, API's, ...).
 * Explore how you can get your LLM application up and running in popular cloud platforms such as Azure and AWS.
+* Developing knowledge graph use cases.
 * End-to-end solution implementation.
 
 Reach us at contact@pathway.com or via <a href="https://pathway.com/solutions/llm-app">Pathway's website</a>.
