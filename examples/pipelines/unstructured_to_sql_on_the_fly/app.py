@@ -98,6 +98,7 @@ To call the Streamlit interface:
     could be a nice next step to detect and possibly correct outliers.
 
 """
+
 import json
 import logging
 import os
@@ -234,11 +235,10 @@ def structure_on_the_fly(
 
     responses = responses.select(values=parse_str_to_list(pw.this.result))
     result = unpack_col(responses.values, *sorted(FinancialStatementSchema.keys()))
-    result = result.select(
-        *pw.this.without(pw.this.eps, pw.this.net_income_md, pw.this.revenue_md),
-        eps=pw.apply_with_type(float, float, pw.this.eps),
-        net_income_md=pw.apply_with_type(float, float, pw.this.net_income_md),
-        revenue_md=pw.apply_with_type(float, float, pw.this.revenue_md),
+    result = result.with_columns(
+        eps=pw.apply(float, pw.this.eps),
+        net_income_md=pw.apply(float, pw.this.net_income_md),
+        revenue_md=pw.apply(float, pw.this.revenue_md),
     )
     return result
 
