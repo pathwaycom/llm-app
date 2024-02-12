@@ -5,7 +5,7 @@ from pathway.xpacks.connectors import sharepoint as sharepoint_connector
 
 from .common import FILE_SIZE_LIMIT
 
-SHAREPOINT_MUTABLE_COLLECTION_PATH = "Shared Documents/IndexerSandbox"
+SHAREPOINT_COLLECTION_PATH = "Shared Documents/IndexerSandbox"
 
 SHAREPOINT_SITE_CONFIG = {
     "url": "https://navalgo.sharepoint.com/sites/ConnectorSandbox",
@@ -20,7 +20,7 @@ SHAREPOINT_SITE_CONFIG = {
 def get_table():
     sharepoint_table = sharepoint_connector.read(
         **SHAREPOINT_SITE_CONFIG,
-        root_path=SHAREPOINT_MUTABLE_COLLECTION_PATH,
+        root_path=SHAREPOINT_COLLECTION_PATH,
         with_metadata=True,
         object_size_limit=FILE_SIZE_LIMIT,
     )
