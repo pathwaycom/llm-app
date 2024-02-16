@@ -39,7 +39,11 @@ You can also run this example directly in the environment with llm_app installed
 
 To create alerts:
 You can call the REST API:
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+curl --data '{
+  "user": "user",
+  "query": "When does the magic cola campaign start? Alert me if the start date changes."
+}' http://localhost:8080/ | jq
+
 Or start streamlit UI:
 First go to examples/ui directory with `cd llm-app/examples/ui/`
 run `streamlit run server.py`
@@ -52,8 +56,6 @@ import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
-
-from llm_app import send_slack_alerts
 
 
 class DocumentInputSchema(pw.Schema):
@@ -259,7 +261,7 @@ def run(
         message=construct_notification_message(pw.this.query, pw.this.response)
     )
 
-    send_slack_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
+    pw.io.slack.send_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
 
     pw.run()
 

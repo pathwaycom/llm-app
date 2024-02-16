@@ -71,8 +71,6 @@ from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 from pathway.xpacks.llm.parsers import ParseUnstructured
 from pathway.xpacks.llm.splitters import TokenCountSplitter
 
-from llm_app import send_slack_alerts
-
 
 class DocumentInputSchema(pw.Schema):
     doc: str
@@ -319,7 +317,7 @@ def run(
     alerts = deduplicated_responses.select(
         message=construct_notification_message(pw.this.query, pw.this.response)
     )
-    send_slack_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
+    pw.io.slack.send_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
 
     # Finally, we execute the computation graph
     pw.run(monitoring_level=pw.MonitoringLevel.NONE)
