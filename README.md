@@ -16,7 +16,7 @@
 
 Pathway's **LLM (Large Language Model) Apps** allow you to quickly put in production AI applications which use the most up-to-date knowledge available in your data sources. You can directly run a 24/7 service to answer natural language queries about an ever-changing private document knowledge base, or run an LLM-powered data transformation pipeline on a data stream. 
 
-The Python application examples provided in this repo are ready-to-use. They can be run as Docker containers, and expose an HTTP API to the frontend. Most app examples also include an optional Streamlit UI which connects to this API. The apps rely on the [Pathway framework](https://github.com/pathwaycom/pathway) for data source synchronization, for serving API requests, and for all low-latency data processing. The apps connect to document data sources on S3, Google Drive, Sharepoint, etc. with no infrastructure dependencies (such as a vector database) that would need a separate setup.
+The Python application examples provided in this repo are ready-to-use. They can be run as Docker containers, and expose an HTTP API to the frontend. To allow quick testing and demos, most app examples also include an optional Streamlit UI which connects to this API. The apps rely on the [Pathway framework](https://github.com/pathwaycom/pathway) for data source synchronization, for serving API requests, and for all low-latency data processing. The apps connect to document data sources on S3, Google Drive, Sharepoint, etc. with no infrastructure dependencies (such as a vector database) that would need a separate setup.
 
 **Quick links** - 👀 [Why use Pathway LLM Apps?](#why-use-pathway-llm-apps) 🚀 [Watch it in action](#watch-it-in-action) 📚 [How it works](#how-it-works) 🌟 [Application examples](#application-examples) 🏁 [Get Started](#get-started) 💼 [Showcases](#showcases) 🛠️ [Troubleshooting](#troubleshooting)
 👥 [Contributing](#troubleshooting) ⚙️ [Hosted Version](#%EF%B8%8F-hosted-version-%EF%B8%8F) 💡 [Need help?](#need-help) 
@@ -220,7 +220,7 @@ When the process is complete, the App will be up and running inside a Docker con
     ```
 
 ### Step 5: Launch the User Interface:
-Go to the `examples/ui/` directory (or `examples/pipelines/unstructured/ui` if you are running the unstructured version.) and execute `streamlit run server.py`. Then, access the URL displayed in the terminal to engage with the LLM App using a chat interface.
+Go to the `examples/ui/` directory (or `examples/pipelines/unstructured/ui` if you are running the unstructured version.) and execute `streamlit run server.py`. Then, access the URL displayed in the terminal to engage with the LLM App using a chat interface. Please note: The provided Streamlit-based interface template is intended for internal rapid prototyping only. In production use, you would normally create your own component instead, taking into account security and authentication, multi-tennancy of data teams, integration with existing UI components, etc.
 
 ### Bonus: Build your own Pathway-powered LLM App
 
