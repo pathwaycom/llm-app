@@ -15,28 +15,19 @@ jobs:
     steps:
     - name: Git checkout
       uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.11     
+        python-version: 3.11
+    - name: Install poetry
+      uses: abatilo/actions-poetry@v3
     - name: Install linters
-      run: |
-        pip install "black==23.*" \
-          "flake8==6.1.*" \
-          "isort==5.*" \
-          "mypy==1.5.*" \
-          toml \
-          types-requests \
-          pytest
-    - name: run black
-      run: |
-        black --check .
-    - name: run Flake8
-      run: |
-        flake8 .
-    - name: run mypy
-      run: |
-        mypy .
-    - name: run isort
-      run: |
-        isort --check .
+      run: poetry install --no-root --only linters
+    - name: Run black
+      run: poetry run black --check .
+    - name: Run Flake8
+      run: poetry run flake8 .
+    - name: Run mypy
+      run: poetry run mypy .
+    - name: Run isort
+      run: poetry run isort --check .

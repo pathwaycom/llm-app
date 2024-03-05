@@ -141,8 +141,9 @@ def prompt_aggregate(question, answers):
 
 def run(
     with_cache: bool = True,
-    cache_backend: pw.persistence.Backend
-    | None = pw.persistence.Backend.filesystem("./Cache"),
+    cache_backend: pw.persistence.Backend | None = pw.persistence.Backend.filesystem(
+        "./Cache"
+    ),
 ):
     webserver = pw.io.http.PathwayWebserver(host=host, port=port)
     # Vectorserver

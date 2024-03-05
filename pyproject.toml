@@ -55,6 +55,17 @@ optional = true
 click = "^8.1.6"
 python-dotenv = "^1.0.0"
 
+[tool.poetry.group.linters]
+optional = true
+
+[tool.poetry.group.linters.dependencies]
+black = "^24.2.0"
+isort = "^5.13.2"
+mypy = "~1.8.0"
+flake8 = "~7.0.0"
+pytest = "^8.0.2"
+types-requests = "^2.31.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
