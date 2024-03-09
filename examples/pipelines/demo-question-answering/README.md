@@ -1,5 +1,7 @@
 ## How to run the project
 
+If you are on Windows, please refer to [running with docker](###Running-with-Docker) section below.
+
 To run the project, you will need
 - OpenAI API Key
 - (Optional) Google Drive folder and Google Service account
@@ -13,6 +15,32 @@ chat = llms.OpenAIChat(api_key='sk-...', ...)
 embedder = embedders.OpenAIEmbedder(api_key='sk-...', ...)
 ```
 
+### Running with Docker
+```bash
+# Make sure you are in the right directory.
+cd examples/pipelines/demo-question-answering
+
+# Build the image in this folder
+docker build -t qa .
+
+# Run the image and expose the port `8000`
+docker run -p 8000:8000 qa
+```
+
+### Using the app
+You will see the logs for parsing & embedding documents in the Docker image logs. 
+Give it few minutes to finish up on embeddings, you will see `0 entries (x minibatch(es)) have been...` message.
+If there are no more updates, this means app is ready for use!
+
+To test it, lets query the stats:
+```bash
+curl -X 'POST'   'http://localhost:8000/v1/statistics'   -H 'accept: */*'   -H 'Content-Type: application/json'
+```
+
+For more information on available endpoints by default, see (API docs)[https://pathway.com/solutions/ai-pipelines].
+
+### Adding different data sources
+
 The default version of the app uses local folder `data` as the source of documents. However, you can use any other pathway supported connector. For instance, to add a Google Drive folder as another source, uncomment the following code in the `app.py` and follow the steps below to learn how to set up your Service Account.
 
 ```python
@@ -25,6 +53,8 @@ drive_folder = pw.io.gdrive.read(
 
 data_sources.append(drive_folder)
 ```
+
+For the full list of available input connectors see [pw.io](https://pathway.com/developers/api-docs/pathway-io/)
 
 Before running the app, you will need to give the app access to the Google Drive folder, we follow the steps below.
 

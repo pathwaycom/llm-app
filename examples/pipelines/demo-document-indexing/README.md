@@ -13,15 +13,32 @@ Please refer to the Open API doc on Hosted Pipelines [website](https://cloud.pat
 
 This example can be run by executing `python main.py` in this directory. It has several command-line arguments:
 - `--host` denoting the host, where the server will run. The default setting is `0.0.0.0`;
-- `--port` denoting the port, where the server will accept requests. The default setting is `21401`;
-- `--source-types` denoting comma-separated types of the sources to index. The options are: `local`, `gdrive`, and `sharepoint`. The `local` option indexes files from the `file-for-indexing/` folder that already has some exemplary documents. The `gdrive` and `sharepoint` options correspond to Google Drive and SharePoint respectively and are used in the hosted demo. Please note that they will require certain certificates and credentials to be read locally or from environment variables. The default setting is `local`.
+- `--port` denoting the port, where the server will accept requests. The default setting is `8000`;
+- `--sources-config` points to a datasource configuration file, `sources_configuration.yaml` by default. You can customize it to change the fodlers indexed by the vector store. The free version supports `local` and `gdrive` hosted files, while the commercial one also supports `sharepoint` hosted folders. By default, the `local` option indexes files from the `file-for-indexing/` folder that is prefilled with exemplary documents.
+
+## Running with docker
+First create an `.env` file in this folder (`/demo-document-indexing`) with your OpenAI key `OPENAI_API_KEY=sk-`. 
+
+To run jointly the vector indexing pipeline and a simple UI please execute:
+
+```bash
+cd examples/pipelines/demo-document-indexing
+echo "Then UI will launch at http://127.0.0.1:8501 bu default"
+docker compose up --build
+```
+
+Alternatively, you can launch just the indexing pipeline as a single Docker container:
+
+```bash
+cd examples/pipelines/demo-document-indexing
+
+docker build -t vector_indexer .
+docker run vector_indexer
+```
 
 ## Adding Files to Index 💾
     
-To start playing with this demo, you can either:
-
-- Add a file to the `files-for-indexing/` folder if the local data source is used;
-- ...or add one to the common SharePoint [site](https://navalgo.sharepoint.com/:f:/s/ConnectorSandbox/EgBe-VQr9h1IuR7VBeXsRfIBuOYhv-8z02_6zf4uTH8WbQ?e=YmlA05) or Google Drive [directory](https://drive.google.com/drive/u/0/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs) if `sharepoint` and `gdrive` options are configured.
+To test index updates, simply add more files to the `files-for-indexing/` folder if the local data source is used. 
 
 Then you can use the similarity search and stats endpoints, provided below.
 
@@ -37,11 +54,3 @@ The capabilities of the service include:
 Supported document formats include plaintext, pdf, docx, and HTML. For the complete list, please refer to the supported formats of the [unstructured](https://github.com/Unstructured-IO/unstructured) library.
 
 In addition, this pipeline is capable of data removals: you can delete files and in a few seconds, a similarity search will undo the changes done to the index by their addition.
-
-## Demo Limitations🚦
-    
-Please keep in mind the following constraints:
-    
-- The maximum supported file size is 4 MB and 100 KB of the plaintext is obtained after parsing. Anything of a greater size will be ignored by the indexer. This setting is controlled by the setting in the `sources.common` module;
-- The files in the public shared in Google Drive and SharePoint spaces are removed within 15 minutes after their addition;
-- You hold responsibility for the contents of the files you upload to the public spaces.

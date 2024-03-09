@@ -1,29 +1,49 @@
 import argparse
 import os
+import sys
 
-from pathway.xpacks.llm.embedders import OpenAIEmbedder
-from pathway.xpacks.llm.parsers import ParseUnstructured
-from pathway.xpacks.llm.splitters import TokenCountSplitter
-from pathway.xpacks.llm.vector_store import VectorStoreServer
-from sources.gdrive import get_table as get_gdrive_table
-from sources.local import get_table as get_local_table
-from sources.sharepoint import get_table as get_sharepoint_table
+import pathway.io.fs as io_fs
+import pathway.io.gdrive as io_gdrive
+import yaml
+from dotenv import load_dotenv
+from pathway.xpacks.llm import embedders, parsers, splitters, vector_store
 
 
-def data_sources(source_types):
-    parsed_source_types = set([x.strip().lower() for x in source_types.split(",")])
+def data_sources(source_configs):
     sources = []
-    if "local" in parsed_source_types:
-        sources.append(get_local_table())
-    if "sharepoint" in parsed_source_types:
-        sources.append(get_sharepoint_table())
-    if "gdrive" in parsed_source_types:
-        sources.append(get_gdrive_table())
+    for source_config in source_configs:
+        if source_config["kind"] == "local":
+            source = io_fs.read(
+                **source_config["config"],
+                format="binary",
+                with_metadata=True,
+            )
+            sources.append(source)
+        elif source_config["kind"] == "gdrive":
+            source = io_gdrive.read(
+                **source_config["config"],
+                with_metadata=True,
+            )
+            sources.append(source)
+        elif source_config["kind"] == "sharepoint":
+            try:
+                import pathway.xpacks.connectors.sharepoint as io_sp
+
+                source = io_sp.read(**source_config["config"], with_metadata=True)
+                sources.append(source)
+            except ImportError:
+                print(
+                    "The Pathway Sharepoint connector is part of the commercial offering, "
+                    "please contact us for a commercial license."
+                )
+                sys.exit(1)
+
     return sources
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
+    load_dotenv()
+    argparser = argparse.ArgumentParser(
         prog="Pathway realtime document indexing demo",
         description="""
         This is the demo of real-time indexing of the documents from various data sources.
@@ -31,37 +51,45 @@ if __name__ == "__main__":
         /v1/retrieve, /v1/statistics, /v1/inputs. Please refer to the "Test the REST endpoint"
         section at Hosted Pipelines website: https://cloud.pathway.com.
 
-        Currently, it supports several data sources: the local one, Google Drive, and Microsoft SharePoint.
+        Currently, it supports several data sources: the local one, Google Drive, and,
+        in a commercial offering, Microsoft SharePoint.
 
-        For the demo, you need to store your Open AI key in the OPENAI_API_KEY environment variable.
+        For the demo, you need to store your Open AI key in the OPENAI_API_KEY environment variable,
+        the easiest way is to add it to the .env file.
         """,
     )
-    parser.add_argument(
+    argparser.add_argument(
         "--host",
-        help="Host that will be used for running the web server",
+        help="Host that will be used for running the web server.",
         default="0.0.0.0",
     )
-    parser.add_argument(
+    argparser.add_argument(
         "--port",
-        help="Port that will be used by the web server",
+        help="Port that will be used by the web server.",
         type=int,
-        default=21401,
+        default=8000,
     )
-    parser.add_argument(
-        "--source-types",
-        help="Comma-separated source types to be used. "
-        "Possible options are local, gdrive, sharepoint. If the local "
-        "source is chosen, it will read documents from the top level of "
-        "the 'files-for-indexing/' folder",
-        default="local",
+    argparser.add_argument(
+        "--sources-config",
+        help="Path to sources configuration file",
+        default="sources_configuration.yaml",
     )
-    args = parser.parse_args()
+    args = argparser.parse_args()
+    with open(args.sources_config) as config_f:
+        configuration = yaml.safe_load(config_f)
 
-    splitter = TokenCountSplitter(max_tokens=1000)
-    embedder = OpenAIEmbedder(api_key=os.environ["OPENAI_API_KEY"])
-    parser = ParseUnstructured()
-    vs_server = VectorStoreServer(
-        *data_sources(args.source_types),
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    if openai_api_key is None:
+        print(
+            "Please set OPENAI_API_KEY either as a configuration variable, or in the .env file"
+        )
+        sys.exit(1)
+
+    splitter = splitters.TokenCountSplitter(max_tokens=200)
+    embedder = embedders.OpenAIEmbedder(api_key=openai_api_key)
+    parser = parsers.ParseUnstructured()
+    vs_server = vector_store.VectorStoreServer(
+        *data_sources(configuration["sources"]),
         embedder=embedder,
         splitter=splitter,
         parser=parser,

@@ -98,6 +98,13 @@ Pick one that is closest to your needs.
 
 
 ## Get Started
+
+To run the `demo-document-indexing` vector indexing pipeline and UI please follow instructions under [examples/pipelines/demo-document-indexing/README.md](examples/pipelines/demo-document-indexing/README.md).
+
+To run the `demo-question-answering` question answering pipeline please follow instructions under [examples/pipelines/demo-question-answering/README.md](examples/pipelines/demo-question-answering/README.md).
+
+For all other demos follow the steps below.
+
 ### Prerequisites
 
 

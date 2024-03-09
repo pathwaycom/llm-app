@@ -1,0 +1,30 @@
+sources:
+  - local_files:
+    kind: local
+    config:
+      # Please refer to
+      # https://pathway.com/developers/api-docs/pathway-io/fs#pathway.io.fs.read
+      # for options definition
+      path: "files-for-indexing/"
+  # - google_drive_folder:
+  #   kind: gdrive
+  #   config:
+  #     # Please refer to
+  #     # https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.gdrive.read
+  #     # for options definition
+  #     # Please follow https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive
+  #     # for instructions on getting credentials
+  #     object_id: "1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs" # folder used in the managed demo
+  #     service_user_credentials_file: SERVICE_CREDENTIALS
+  #     refresh_interval: 5
+  # - sharepoint_folder:
+  #   kind: sharepoint
+  #   config:
+  #     # The sharepoint is part of our commercial offering, please contact us to use it
+  #     root_path: ROOT_PATH
+  #     url: SHAREPOINT_URL
+  #     tenant: SHAREPOINT_TENANT
+  #     client_id: SHAREPOINT_CLIENT_ID
+  #     cert_path: SHAREPOINT.pem
+  #     thumbprint: SHAREPOINT_THUMBPRINT
+  #     refresh_interval: 5

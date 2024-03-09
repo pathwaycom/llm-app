@@ -73,7 +73,7 @@ class PWAIQuery(pw.Schema):
     openai_api_key: str
 
 
-pw_ai_endpoint = "/pw_ai_answer"
+pw_ai_endpoint = "/v1/pw_ai_answer"
 
 
 class SummarizeQuery(pw.Schema):
@@ -82,7 +82,7 @@ class SummarizeQuery(pw.Schema):
     openai_api_key: str
 
 
-summarize_endpoint = "/pw_ai_summary"
+summarize_endpoint = "/v1/pw_ai_summary"
 
 
 class AggregateQuery(pw.Schema):
@@ -92,7 +92,7 @@ class AggregateQuery(pw.Schema):
     openai_api_key: str
 
 
-aggregate_endpoint = "/pw_ai_aggregate_responses"
+aggregate_endpoint = "/v1/pw_ai_aggregate_responses"
 
 
 def _unwrap_udf(func):
@@ -167,7 +167,7 @@ def run(
         vector_server.statistics_query,
     )
     serve(
-        "/pw_list_documents",
+        "/v1/pw_list_documents",
         vector_server.InputsQuerySchema,
         vector_server.inputs_query,
     )
