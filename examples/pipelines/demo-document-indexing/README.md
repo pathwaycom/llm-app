@@ -14,7 +14,7 @@ Please refer to the Open API doc on Hosted Pipelines [website](https://cloud.pat
 This example can be run by executing `python main.py` in this directory. It has several command-line arguments:
 - `--host` denoting the host, where the server will run. The default setting is `0.0.0.0`;
 - `--port` denoting the port, where the server will accept requests. The default setting is `8000`;
-- `--sources-config` points to a datasource configuration file, `sources_configuration.yaml` by default. You can customize it to change the fodlers indexed by the vector store. The free version supports `local` and `gdrive` hosted files, while the commercial one also supports `sharepoint` hosted folders. By default, the `local` option indexes files from the `file-for-indexing/` folder that is prefilled with exemplary documents.
+- `--sources-config` points to a datasource configuration file, `sources_configuration.yaml` by default. You can customize it to change the fodlers indexed by the vector store. The free version supports `local` and `gdrive` hosted files, while the commercial one also supports `sharepoint` hosted folders. By default, the `local` option indexes files from the `files-for-indexing/` folder that is prefilled with exemplary documents.
 
 ## Running with docker
 First create an `.env` file in this folder (`/demo-document-indexing`) with your OpenAI key `OPENAI_API_KEY=sk-`. 
@@ -23,9 +23,12 @@ To run jointly the vector indexing pipeline and a simple UI please execute:
 
 ```bash
 cd examples/pipelines/demo-document-indexing
-echo "Then UI will launch at http://127.0.0.1:8501 bu default"
+echo "Then UI will launch at http://127.0.0.1:8501 by default"
 docker compose up --build
 ```
+
+The `docker-compose.yml` file declares a [volume bind mount](https://docs.docker.com/reference/cli/docker/container/run/#volume) that makes changes to files under `files-for-indexing/` made on your host computer visible inside the docker container. If the index does not react to file changes, please check that the bind mount works 
+by running `docker compose exec pathway_vector_indexer ls -l /app/files-for-indexing/` and verifying that all files are visible.
 
 Alternatively, you can launch just the indexing pipeline as a single Docker container:
 
@@ -33,8 +36,10 @@ Alternatively, you can launch just the indexing pipeline as a single Docker cont
 cd examples/pipelines/demo-document-indexing
 
 docker build -t vector_indexer .
-docker run vector_indexer
+docker run -v `pwd`/files-for-indexing:/app/files-for-indexing vector_indexer
 ```
+
+The volume overlay is important - without it docker will not see changes to file under the `files-for-indexing` folder.
 
 ## Adding Files to Index 💾
     
