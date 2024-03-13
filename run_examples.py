@@ -199,6 +199,22 @@ def drive_alert(**kwargs):
     return run(**kwargs)
 
 
+@cli.command()
+@common_options
+def contextful_geometric(**kwargs):
+    from examples.pipelines.contextful_geometric import run
+
+    return run(**kwargs)
+
+
+@cli.command()
+@common_options
+def geometric(**kwargs):
+    from examples.pipelines.contextful_geometric import run
+
+    return run(**kwargs)
+
+
 def main():
     cli.main()
 
