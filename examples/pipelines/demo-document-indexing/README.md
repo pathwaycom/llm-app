@@ -91,8 +91,8 @@ Therefore, all you would need to do is the following:
 ### SharePoint Data Source
 
 This data source is the part of commercial Pathway offering. You can try it online in one of the following demos:
-- The real-time document indexing pipeline with similarity search available on the [Hosted Pipelines](https://pathway.com/solutions/ai-pipelines) webpage;
-- The chatbot answering questions about the uploaded files available on [Streamlit](https://chat-realtime-sharepoint-gdrive.streamlit.app/).
+- The real-time document indexing pipeline with similarity search, available on the [Hosted Pipelines](https://pathway.com/solutions/ai-pipelines) webpage;
+- The chatbot answering questions about the uploaded files, available on [Streamlit](https://chat-realtime-sharepoint-gdrive.demo.pathway.com/).
 
 ## Running the Example
 
@@ -168,5 +168,6 @@ Please make sure that you've changed the port in the requests if you did that wh
 ## Adding Files to Index
 
 To test index updates, simply add more files to the `files-for-indexing` folder if the local data source is used. 
+If you are using Google Drive, simply upload your files in the folder configured in the `sources_configuration.yaml` file.
 
 Then you can use the similarity search and stats endpoints, provided below.
