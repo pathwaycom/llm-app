@@ -1,4 +1,4 @@
-pathway==0.8.2
+pathway==0.8.4
 python-dotenv==1.0.1
 litellm==1.17.3
 unstructured[all-docs]==0.10.28
