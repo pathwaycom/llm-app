@@ -33,10 +33,12 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 import os
 
 import pathway as pw
-from pathway.stdlib.ml.index import KNNIndex
+from pathway.stdlib.indexing import VectorDocumentIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat
-from pathway.xpacks.llm.question_answering import answer_with_geometric_rag_strategy
+from pathway.xpacks.llm.question_answering import (
+    answer_with_geometric_rag_strategy_from_index,
+)
 
 
 class DocumentInputSchema(pw.Schema):
@@ -78,10 +80,11 @@ def run(
         autocommit_duration_ms=50,
     )
 
-    enriched_documents = documents + documents.select(vector=embedder(pw.this.doc))
-
-    index = KNNIndex(
-        enriched_documents.vector, enriched_documents, n_dimensions=embedding_dimension
+    index = VectorDocumentIndex(
+        documents.doc,
+        documents,
+        embedder,
+        n_dimensions=embedding_dimension,
     )
 
     query, response_writer = pw.io.http.rest_connector(
@@ -92,14 +95,6 @@ def run(
         delete_completed_queries=True,
     )
 
-    query += query.select(vector=embedder(pw.this.query))
-
-    max_documents = n_starting_documents * (factor ** (max_iterations - 1))
-
-    query_context = query + index.get_nearest_items(
-        query.vector, k=max_documents, collapse_rows=True
-    ).select(documents_list=pw.this.doc)
-
     model = OpenAIChat(
         api_key=api_key,
         model=model_locator,
@@ -109,10 +104,11 @@ def run(
         cache_strategy=pw.asynchronous.DefaultCache(),
     )
 
-    responses = query_context.select(
-        result=answer_with_geometric_rag_strategy(
-            query_context.query,
-            query_context.documents_list,
+    responses = query.select(
+        result=answer_with_geometric_rag_strategy_from_index(
+            query.query,
+            index,
+            documents.doc,
             model,
             n_starting_documents,
             factor,
