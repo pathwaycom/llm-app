@@ -204,7 +204,7 @@ When the process is complete, the App will be up and running inside a Docker con
     curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/
     ```
 
-    If you are on windows CMD, then the query would rather look like this
+    If you are on windows CMD, then the query would rather look like this:
 
     ```cmd
     curl --data "{\"user\": \"user\", \"query\": \"How to use LLMs in Pathway?\"}" http://localhost:8080/
