@@ -105,12 +105,27 @@ def split_answer(answer: str) -> tuple[bool, str]:
 
 def build_prompt_compare_answers(new: str, old: str) -> str:
     prompt = f"""
-    Are the two following responses deviating?
-    Answer with Yes or No.
+    Are the two following responses for a specific question deviating?
+    Answer with `Yes` or `No`.
+
+    Example:
+    First response: "Joe is going to lead the session"
+    Second response: "Alice will be lead of this session"
+    Answer: Yes
+
+    Example:
+    First response: "This car goes for around $45000"
+    Second response: "Price of this SUV is $45.000 including tax"
+    Answer: No
+
+    Example:
+    First response: "New show will air in 2024"
+    Second response: "Premier of the new show is set to be in March 2024"
+    Answer: Yes
 
     First response: "{old}"
-
     Second response: "{new}"
+    Answer:
     """
     return prompt
 
@@ -263,7 +278,7 @@ def run(
 
     pw.io.slack.send_alerts(alerts.message, slack_alert_channel_id, slack_alert_token)
 
-    pw.run()
+    pw.run(monitoring_level=pw.MonitoringLevel.NONE)
 
 
 if __name__ == "__main__":
