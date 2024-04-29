@@ -80,7 +80,7 @@ profile = "black"
 
 [tool.mypy]
 python_version = "3.10"
-exclude = ["examples/data"]
+exclude = ["examples/data", "examples/pipelines/adaptive-rag", "examples/pipelines/private-rag"]
 ignore_missing_imports = true
 check_untyped_defs = true
 warn_redundant_casts = true
