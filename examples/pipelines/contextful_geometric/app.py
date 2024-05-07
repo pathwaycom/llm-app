@@ -33,7 +33,7 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 import os
 
 import pathway as pw
-from pathway.stdlib.indexing import VectorDocumentIndex
+from pathway.stdlib.indexing import default_vector_document_index
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat
 from pathway.xpacks.llm.question_answering import (
@@ -80,11 +80,11 @@ def run(
         autocommit_duration_ms=50,
     )
 
-    index = VectorDocumentIndex(
-        documents.doc,
-        documents,
-        embedder,
-        n_dimensions=embedding_dimension,
+    index = default_vector_document_index(
+        data_column=documents.doc,
+        data_table=documents,
+        dimensions=embedding_dimension,
+        embedder=embedder,
     )
 
     query, response_writer = pw.io.http.rest_connector(
