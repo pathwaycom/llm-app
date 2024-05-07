@@ -63,7 +63,7 @@ def run(
     **kwargs,
 ):
     embedder = SentenceTransformerEmbedder(model=embedder_locator, device=device)
-    embedding_dimension = len(embedder.__wrapped__(""))
+    embedding_dimension = len(embedder.__wrapped__("."))
 
     documents = pw.io.jsonlines.read(
         data_dir,
