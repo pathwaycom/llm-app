@@ -1,9 +1,11 @@
+import os
+
 import pandas as pd
 import requests
 import streamlit as st
 
-api_host = "localhost"
-api_port = 8080
+api_host = os.environ.get("PATHWAY_HOST", "localhost")
+api_port = os.environ.get("PATHWAY_PORT", 8000)
 
 with st.sidebar:
     st.markdown(

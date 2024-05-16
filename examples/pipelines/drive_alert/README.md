@@ -1,3 +1,31 @@
+# Drive Alert pipeline
+
+Microservice for a context-aware alerting ChatGPT assistant.
+
+This demo is very similar to the `alert` example, the only difference is the data source (Google Drive)
+For the demo, alerts are sent to Slack (you need to provide `slack_alert_channel_id` and `slack_alert_token`),
+you can either put these env variables in .env file,
+or create env variables in the terminal (i.e. export in bash).
+
+The program then starts a REST API endpoint serving queries about Google Docs stored in a
+Google Drive folder.
+
+We can create notifications by asking from Streamlit or sending query to API stating we want to be notified.
+One example would be `Tell me and alert about the start date of the campaign for Magic Cola`
+
+## How Does It Work?
+
+First, Pathway connects to Google Drive, extracts all documents, splits them into chunks, turns them into
+vectors using OpenAI embedding service, and store in a nearest neighbor index.
+
+Each query text is first turned into a vector, then relevant document chunks are found
+using the nearest neighbor index. A prompt is built from the relevant chunk
+and sent to the OpenAI GPT3.5 chat service for processing and answering.
+
+After an initial answer is provided, Pathway monitors changes to documents and selectively
+re-triggers potentially affected queries. If the new answer is significantly different from
+the previously presented one, a new notification is created.
+
 ## How to run the project
 
 Before running the app, you will need to give the app access to the Google Drive folder, we follow the steps below.
@@ -45,7 +73,7 @@ For this demo, Slack notifications are optional and notifications will be printe
 Your Slack application  will need at least `chat:write.public` scope enabled.
 
 ### Setup environment:
-First, set your env variables in the .env file placed in the root of the repo.
+Set your env variables in the .env file placed in this directory or in the root of the repo.
 
 ```bash
 OPENAI_API_KEY=sk-...
@@ -53,6 +81,7 @@ SLACK_ALERT_CHANNEL_ID=  # If unset, alerts will be printed to the terminal
 SLACK_ALERT_TOKEN=
 FILE_OR_DIRECTORY_ID=  # file or folder ID that you want to track that we have retrieved earlier
 GOOGLE_CREDS=examples/pipelines/drive_alert/secrets.json  # Default location of Google Drive authorization secrets
+PATHWAY_PERSISTENT_STORAGE= # Set this variable if you want to use caching
 ```
 
 ### Run the project
@@ -66,22 +95,14 @@ poetry install --with examples --extras unstructured
 Run:
 
 ```bash
-poetry run ./run_examples.py drivealert
+poetry run python app.py
 ```
 
 If all dependencies are managed manually rather than using poetry, you can run either:
 
 ```bash
-python examples/pipelines/drive_alert/app.py
+python app.py
 ```
-
-or
-
-```bash
-python ./run_examples.py drivealert
-```
-
-You can also run this example directly in the environment with llm_app installed.
 
 To create alerts:
 You can call the REST API:
@@ -95,7 +116,7 @@ curl --data '{
 
 Or start streamlit UI:
 
-First go to `examples/pipelines/drive_alert/ui` directory with `cd examples/pipelines/drive_alert/ui/`
+First go to `ui` directory with `cd ui/`
 and run:
 
 ```bash

@@ -4,8 +4,7 @@ Microservice for a context-aware alerting ChatGPT assistant.
 This demo is very similar to the `alert` example, the only difference is the data source (Google Drive)
 For the demo, alerts are sent to Slack (you need to provide `slack_alert_channel_id` and `slack_alert_token`),
 you can either put these env variables in .env file under llm-app directory,
-or create env variables in the terminal (i.e. export in bash)
-If you don't have Slack, you can leave them empty and app will print the notifications instead.
+or create env variables in the terminal (i.e. export in bash).
 
 The program then starts a REST API endpoint serving queries about Google Docs stored in a
 Google Drive folder.
@@ -25,51 +24,21 @@ After an initial answer is provided, Pathway monitors changes to documents and s
 re-triggers potentially affected queries. If the new answer is significantly different from
 the previously presented one, a new notification is created.
 
-Usage:
-First, obtain the Google credentials as in the examples/pipelines/drive_alert/README_GDRIVE_AUTH.md
-Then, set the env variables in the .env file placed in the root of this repo
-
-```
-OPENAI_API_KEY=sk-...
-PATHWAY_REST_CONNECTOR_HOST=127.0.0.1
-PATHWAY_REST_CONNECTOR_PORT=8181
-SLACK_ALERT_CHANNEL_ID=  # if unset, alerts will be printed to the terminal
-SLACK_ALERT_TOKEN=
-FILE_OR_DIRECTORY_ID=  # file or folder id that you want to track that we have retrieved earlier
-GOOGLE_CREDS=examples/pipelines/drive_alert/secrets.json  # Default location of Google Drive authorization secrets
-```
-
-In the root of this repository run:
-`poetry run ./run_examples.py drivealert`
-or, if all dependencies are managed manually rather than using poetry
-You can either
-`python examples/pipelines/drive_alert/app.py`
-or
-`python ./run_examples.py drivealert`
-
-You can also run this example directly in the environment with llm_app installed.
-
-To create alerts:
-You can call the REST API:
-curl --data '{
-  "user": "user",
-  "query": "When does the magic cola campaign start? Alert me if the start date changes."
-}' http://localhost:8080/ | jq
-
-Or start streamlit UI:
-First go to examples/pipelines/drive_alert/ui directory with `cd examples/pipelines/drive_alert/ui/`
-run `streamlit run server.py`
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import asyncio
 import os
 
+import dotenv
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 from pathway.xpacks.llm.parsers import ParseUnstructured
 from pathway.xpacks.llm.splitters import TokenCountSplitter
+
+dotenv.load_dotenv()
 
 
 class DocumentInputSchema(pw.Schema):
@@ -155,8 +124,8 @@ def run(
     *,
     object_id=os.environ.get("FILE_OR_DIRECTORY_ID", ""),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
-    host: str = "0.0.0.0",
-    port: int = 8080,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     embedder_locator: str = "text-embedding-ada-002",
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",

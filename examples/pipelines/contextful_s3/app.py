@@ -27,10 +27,13 @@ curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' h
 
 import os
 
+import dotenv
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
+
+dotenv.load_dotenv()
 
 
 class DocumentInputSchema(pw.Schema):
@@ -46,8 +49,8 @@ def run(
     *,
     data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "llm_demo/data/"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
-    host: str = "0.0.0.0",
-    port: int = 8080,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     embedder_locator: str = "text-embedding-ada-002",
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",
@@ -108,8 +111,8 @@ def run(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     responses = prompt.select(

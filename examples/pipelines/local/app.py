@@ -20,24 +20,18 @@ parts of documents to be omitted from the query.
 Depending on the length of documents and the model you use this may not be necessary or
 you can use some more refined method of shortening your prompts.
 
-Usage:
-In the root of this repository run:
-`poetry run ./run_examples.py local`
-or, if all dependencies are managed manually rather than using poetry
-`python examples/pipelines/local/app.py`
-
-You can also run this example directly in the environment with llm_app instaslled.
-
-To call the REST API:
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import os
 
+import dotenv
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import SentenceTransformerEmbedder
 from pathway.xpacks.llm.llms import HFPipelineChat, prompt_chat_single_qa
+
+dotenv.load_dotenv()
 
 
 class DocumentInputSchema(pw.Schema):
@@ -52,10 +46,10 @@ class QueryInputSchema(pw.Schema):
 def run(
     *,
     data_dir: str = os.environ.get(
-        "PATHWAY_DATA_DIR", "./examples/data/pathway-docs-small/"
+        "PATHWAY_DATA_DIR", "../../data/pathway-docs-small/"
     ),
-    host: str = "0.0.0.0",
-    port: int = 8080,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     model_locator: str = os.environ.get("MODEL", "gpt2"),
     embedder_locator: str = os.environ.get("EMBEDDER", "intfloat/e5-large-v2"),
     max_tokens: int = 60,

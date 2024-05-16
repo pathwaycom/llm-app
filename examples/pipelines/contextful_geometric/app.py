@@ -13,25 +13,17 @@ then relevant documentation pages are found using a Nearest Neighbor index compu
 for documents in the corpus. A prompt is built from the relevant documentations pages
 and sent to the OpenAI chat service for processing.
 
-To optimise use of tokens per query, this pipeline asks a question with a small number
+To optimize use of tokens per query, this pipeline asks a question with a small number
 of documents embedded in the prompt. If OpenAI chat fails to answer based on these documents,
 the number of documents is increased by `factor` given as an argument, and continues to
 do so until either question is answered or a limit of iterations is reached.
 
-Usage:
-In the root of this repository run:
-`poetry run ./run_examples.py contextful-geometric`
-or, if all dependencies are managed manually rather than using poetry
-`python examples/pipelines/contextful_geometric/app.py`
-
-You can also run this example directly in the environment with llm_app installed.
-
-To call the REST API:
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import os
 
+import dotenv
 import pathway as pw
 from pathway.stdlib.indexing import default_vector_document_index
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
@@ -39,6 +31,8 @@ from pathway.xpacks.llm.llms import OpenAIChat
 from pathway.xpacks.llm.question_answering import (
     answer_with_geometric_rag_strategy_from_index,
 )
+
+dotenv.load_dotenv()
 
 
 class DocumentInputSchema(pw.Schema):
@@ -54,8 +48,8 @@ def run(
     *,
     data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/pathway-docs/"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
-    host: str = "0.0.0.0",
-    port: int = 8080,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     embedder_locator: str = "text-embedding-ada-002",
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",
@@ -69,8 +63,8 @@ def run(
     embedder = OpenAIEmbedder(
         api_key=api_key,
         model=embedder_locator,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     documents = pw.io.jsonlines.read(
@@ -100,8 +94,8 @@ def run(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     responses = query.select(

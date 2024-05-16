@@ -211,6 +211,17 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.23)"]
 
 [[package]]
+name = "appdirs"
+version = "1.4.4"
+description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
+optional = false
+python-versions = "*"
+files = [
+    {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
+    {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
+]
+
+[[package]]
 name = "asttokens"
 version = "2.4.1"
 description = "Annotate AST trees with source code positions"
@@ -227,6 +238,20 @@ six = ">=1.12.0"
 [package.extras]
 astroid = ["astroid (>=1,<2)", "astroid (>=2,<4)"]
 test = ["astroid (>=1,<2)", "astroid (>=2,<4)", "pytest"]
+
+[[package]]
+name = "async-lru"
+version = "2.0.4"
+description = "Simple LRU cache for asyncio"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "async-lru-2.0.4.tar.gz", hash = "sha256:b8a59a5df60805ff63220b2a0c5b5393da5521b113cd5465a44eb037d81a5627"},
+    {file = "async_lru-2.0.4-py3-none-any.whl", hash = "sha256:ff02944ce3c288c5be660c42dbcca0742b32c3b279d6dceda655190240b99224"},
+]
+
+[package.dependencies]
+typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "async-timeout"
@@ -1207,6 +1232,25 @@ files = [
 ]
 
 [[package]]
+name = "fs"
+version = "2.4.16"
+description = "Python's filesystem abstraction layer"
+optional = false
+python-versions = "*"
+files = [
+    {file = "fs-2.4.16-py2.py3-none-any.whl", hash = "sha256:660064febbccda264ae0b6bace80a8d1be9e089e0a5eb2427b7d517f9a91545c"},
+    {file = "fs-2.4.16.tar.gz", hash = "sha256:ae97c7d51213f4b70b6a958292530289090de3a7e15841e108fbe144f069d313"},
+]
+
+[package.dependencies]
+appdirs = ">=1.4.3,<1.5.0"
+setuptools = "*"
+six = ">=1.10,<2.0"
+
+[package.extras]
+scandir = ["scandir (>=1.5,<2.0)"]
+
+[[package]]
 name = "fsspec"
 version = "2024.2.0"
 description = "File-system specification"
@@ -1321,12 +1365,12 @@ files = [
 google-auth = ">=2.14.1,<3.0.dev0"
 googleapis-common-protos = ">=1.56.2,<2.0.dev0"
 grpcio = [
-    {version = ">=1.49.1,<2.0dev", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
     {version = ">=1.33.2,<2.0dev", optional = true, markers = "python_version < \"3.11\" and extra == \"grpc\""},
+    {version = ">=1.49.1,<2.0dev", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
 ]
 grpcio-status = [
-    {version = ">=1.49.1,<2.0.dev0", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
     {version = ">=1.33.2,<2.0.dev0", optional = true, markers = "python_version < \"3.11\" and extra == \"grpc\""},
+    {version = ">=1.49.1,<2.0.dev0", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
 ]
 protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0.dev0"
 requests = ">=2.18.0,<3.0.0.dev0"
@@ -2900,7 +2944,7 @@ files = [
 name = "networkx"
 version = "3.2.1"
 description = "Python package for creating and manipulating graphs and networks"
-optional = true
+optional = false
 python-versions = ">=3.9"
 files = [
     {file = "networkx-3.2.1-py3-none-any.whl", hash = "sha256:f18c69adc97877c42332c170849c96cefa91881c99a7cb3e95b7c659ebdc1ec2"},
@@ -3332,10 +3376,10 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
-    {version = ">=1.23.5", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
     {version = ">=1.21.4", markers = "python_version >= \"3.10\" and platform_system == \"Darwin\" and python_version < \"3.11\""},
     {version = ">=1.21.2", markers = "platform_system != \"Darwin\" and python_version >= \"3.10\" and python_version < \"3.11\""},
+    {version = ">=1.23.5", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 
 [[package]]
@@ -3510,9 +3554,9 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.26.0,<2", markers = "python_version >= \"3.12\""},
-    {version = ">=1.23.2,<2", markers = "python_version == \"3.11\""},
     {version = ">=1.22.4,<2", markers = "python_version < \"3.11\""},
+    {version = ">=1.23.2,<2", markers = "python_version == \"3.11\""},
+    {version = ">=1.26.0,<2", markers = "python_version >= \"3.12\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -3629,37 +3673,40 @@ files = [
 
 [[package]]
 name = "pathway"
-version = "0.8.2"
+version = "0.8.6"
 description = "Pathway is a data processing framework which takes care of streaming data updates for you."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "pathway-0.8.2-cp310-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:dc81beecfb396d7a1a40aa1d230617c38c41d0b6572a900ed0349078bc7f2632"},
-    {file = "pathway-0.8.2-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ad84e08722a8590893ae80f36248c14e800d332d477516802a71d155da1b2f68"},
-    {file = "pathway-0.8.2-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:d32bf13b34ee4c14eee18e6e62f55136446d07ceef62be5343f62477dcfb7800"},
+    {file = "pathway-0.8.6-cp310-abi3-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:f816846fdf7c10dd4455ff97d3b24a3e706e3d40b2ed2a65d2b7a507138fbb34"},
+    {file = "pathway-0.8.6-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:666a3ad6552fd9826bb2e139479f9faf5cdad6cbb7a715fd3012489bfe9bb8cd"},
+    {file = "pathway-0.8.6-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:c007bec4f0008e0a7839b44915c76885f37c5d59dc93a8fadcad090c8c12ffac"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.8.4"
-aiohttp_cors = ">=0.7.0"
+aiohttp-cors = ">=0.7.0"
 airbyte-serverless = "0.23"
+async-lru = ">=2.0.4"
 beartype = ">=0.14.0,<0.16.0"
 boto3 = ">=1.26.76"
 click = ">=8.1"
 diskcache = ">=5.2.1"
 exceptiongroup = {version = ">=1.1.3", markers = "python_version < \"3.11\""}
+fs = ">=2.4.16"
 geopy = ">=2.4.0"
 google-api-python-client = ">=2.108.0"
 h3 = ">=3.7.6"
 jmespath = ">=1.0.1"
-jupyter_bokeh = ">=3.0.7"
+jupyter-bokeh = ">=3.0.7"
+networkx = ">=3.2.1"
 numba = {version = ">=0.56", markers = "python_version < \"3.12\""}
 numpy = ">=1.21"
-Office365-REST-Python-Client = ">=2.5.3"
+office365-rest-python-client = ">=2.5.3"
 opentelemetry-api = ">=1.22.0"
 opentelemetry-exporter-otlp-proto-grpc = ">=1.22.0"
 opentelemetry-sdk = ">=1.22.0"
-pandas = ">=1.3"
+pandas = ">=2.0"
 panel = ">=1.3.1"
 pyarrow = ">=10.0.0"
 python-sat = ">=0.1.8.dev0"
@@ -3668,10 +3715,10 @@ rich = ">=12.6.0"
 scikit-learn = ">=1.0"
 shapely = ">=2.0.1"
 sqlglot = "10.6.1"
-typing_extensions = ">=4.8.0"
+typing-extensions = ">=4.8.0"
 
 [package.extras]
-tests = ["litellm (>=1.0)", "llama_index (>=0.9,<0.10)", "networkx", "openai (>=1.6)", "openapi_spec_validator", "pytest (>=8.0.0,<9.0.0)", "pytest-rerunfailures (>=13.0,<14.0)", "pytest-xdist (>=3.3.1,<4.0.0)", "python-louvain", "sentence_transformers", "tiktoken (>=0.5)", "transformers"]
+tests = ["cohere (>=5.1.0,<5.2.0)", "kafka-python (>=2.0.2)", "langchain (==0.1.11)", "langchain-core (==0.1.30)", "litellm (>=1.0)", "llama-index-core (>=0.10.0,<0.11.0)", "llama-index-readers-pathway (>=0.1.0,<0.2.0)", "llama-index-retrievers-pathway (>=0.1.0,<0.2.0)", "openai (>=1.6)", "openapi-spec-validator", "pytest (>=8.0.0,<9.0.0)", "pytest-rerunfailures (>=13.0,<14.0)", "pytest-xdist (>=3.3.1,<4.0.0)", "python-louvain", "python-magic", "sentence-transformers (==2.4.0)", "tiktoken (>=0.5)", "transformers (==4.38.1)", "unstructured[all-docs] (==0.10.28)"]
 
 [[package]]
 name = "pdf2image"
@@ -5427,6 +5474,22 @@ tqdm = "*"
 transformers = ">=4.32.0,<5.0.0"
 
 [[package]]
+name = "setuptools"
+version = "69.5.1"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "setuptools-69.5.1-py3-none-any.whl", hash = "sha256:c636ac361bc47580504644275c9ad802c50415c7522212252c033bd15f301f32"},
+    {file = "setuptools-69.5.1.tar.gz", hash = "sha256:6c1fccdac05a97e598fb0ae3bbed5904ccb317337a51139dcd51453611bbb987"},
+]
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv]", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.9)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "mypy (==1.9)", "packaging (>=23.2)", "pip (>=19.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.2.1)", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.2)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
 name = "shapely"
 version = "2.0.3"
 description = "Manipulation and analysis of geometric objects"
@@ -6035,13 +6098,13 @@ test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,
 
 [[package]]
 name = "transformers"
-version = "4.38.2"
+version = "4.39.3"
 description = "State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow"
 optional = true
 python-versions = ">=3.8.0"
 files = [
-    {file = "transformers-4.38.2-py3-none-any.whl", hash = "sha256:c4029cb9f01b3dd335e52f364c52d2b37c65b4c78e02e6a08b1919c5c928573e"},
-    {file = "transformers-4.38.2.tar.gz", hash = "sha256:c5fc7ad682b8a50a48b2a4c05d4ea2de5567adb1bdd00053619dbe5960857dd5"},
+    {file = "transformers-4.39.3-py3-none-any.whl", hash = "sha256:7838034a12cca3168247f9d2d1dba6724c9de3ae0f73a108258c6b8fc5912601"},
+    {file = "transformers-4.39.3.tar.gz", hash = "sha256:2586e5ff4150f122716fc40f5530e92871befc051848fbe82600969c535b762d"},
 ]
 
 [package.dependencies]
@@ -6709,11 +6772,11 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.link
 testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
 
 [extras]
-local = ["sentence-transformers", "torch"]
+local = ["sentence-transformers", "torch", "transformers"]
 unstructured = ["tiktoken", "unstructured"]
 unstructured-to-sql = ["psycopg", "tiktoken", "unstructured"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "378709c02a2991dc35c34f59f5d0f8b41f70cd7226b23a82fe4f493b7e3a549a"
+content-hash = "960c4eb3dfd9f27897c7e7ac9d44642f58c6d82a4ed5e8d1ff2545ef89ac6c7b"

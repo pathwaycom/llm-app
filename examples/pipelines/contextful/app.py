@@ -10,27 +10,21 @@ The program then starts a REST API endpoint serving queries about programming in
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed
-for documents in the corpus. A prompt is built from the relevant documentations pages
+for documents in the corpus. A prompt is built from the relevant documentation pages
 and sent to the OpenAI chat service for processing.
 
-Usage:
-In the root of this repository run:
-`poetry run ./run_examples.py contextful`
-or, if all dependencies are managed manually rather than using poetry
-`python examples/pipelines/contextful/app.py`
-
-You can also run this example directly in the environment with llm_app installed.
-
-To call the REST API:
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import os
 
+import dotenv
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
+
+dotenv.load_dotenv()
 
 
 class DocumentInputSchema(pw.Schema):
@@ -44,10 +38,10 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/pathway-docs/"),
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "../../data/pathway-docs/"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
-    host: str = "0.0.0.0",
-    port: int = 8080,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     embedder_locator: str = "text-embedding-ada-002",
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",
@@ -58,8 +52,8 @@ def run(
     embedder = OpenAIEmbedder(
         api_key=api_key,
         model=embedder_locator,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     documents = pw.io.jsonlines.read(
@@ -104,8 +98,8 @@ def run(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     responses = prompt.select(

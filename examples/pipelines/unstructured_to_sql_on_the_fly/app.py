@@ -103,12 +103,15 @@ import json
 import logging
 import os
 
+import dotenv
 import pathway as pw
 import psycopg
 import tiktoken
 from pathway.stdlib.utils.col import unpack_col
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 from pathway.xpacks.llm.parsers import ParseUnstructured
+
+dotenv.load_dotenv()
 
 
 class FinancialStatementSchema(pw.Schema):
@@ -199,7 +202,8 @@ def build_prompt_query(postresql_table: str, query: str) -> str:
     WHERE year = 2022 AND eps > 1.0 GROUP BY company_symbol;'
 
 
-    Make sure the query adheres to the specified format,
+    Make sure the query adheres to the specified format, and that it includes GROUP BY clause
+    if you aggregate results
     and do not include any other SQL commands or clauses besides the SELECT statement.
     Thank you!"""
     return prompt
@@ -225,7 +229,7 @@ def structure_on_the_fly(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        retry_strategy=pw.asynchronous.ExponentialBackoffRetryStrategy(),
         cache_strategy=pw.asynchronous.DefaultCache(),
     )
 
@@ -268,7 +272,7 @@ def unstructured_query(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
+        retry_strategy=pw.asynchronous.ExponentialBackoffRetryStrategy(),
         cache_strategy=pw.asynchronous.DefaultCache(),
     )
 
@@ -307,12 +311,12 @@ def strip_metadata(docs: list[tuple[str, dict]]) -> list[str]:
 
 def run(
     *,
-    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./examples/data/q_earnings/"),
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./data/quarterly_earnings"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
-    host: str = "0.0.0.0",
-    port: int = 8080,
-    model_locator: str = "gpt-3.5-turbo-16k",  # "gpt-4",  # gpt-3.5-turbo-16k
-    max_tokens: int = 60,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
+    model_locator: str = "gpt-3.5-turbo",  # "gpt-4",  # gpt-3.5-turbo-16k
+    max_tokens: int = 120,
     temperature: float = 0.0,
     postresql_host: str = os.environ.get("POSTGRESQL_HOST", "localhost"),
     postresql_port: str = os.environ.get("POSTGRESQL_PORT", "5432"),
@@ -345,7 +349,7 @@ def run(
         unstructured_documents, api_key, model_locator, max_tokens, temperature
     )
     pw.io.postgres.write(structured_table, postgreSQL_settings, postresql_table)
-    pw.io.csv.write(structured_table, "./examples/data/quarterly_earnings.csv")
+    pw.io.csv.write(structured_table, "./data/quarterly_earnings.csv")
 
     #
     # # Pipeline 2 - query answering using PostgreSql

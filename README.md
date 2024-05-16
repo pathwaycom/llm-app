@@ -39,7 +39,9 @@ Analysis of live documents streams.
 
 ![Effortlessly extract and organize unstructured data from PDFs, docs, and more into SQL tables - in real-time](examples/pipelines/unstructured_to_sql_on_the_fly/unstructured_to_sql_demo.gif)
 
-(See: [`unstructured-to-sql`](#examples) app example.)
+
+(Check out: [`gpt_4o_multimodal_rag`](examples/pipelines/gpt_4o_multimodal_rag/README.md) to see the whole pipeline in the works. You may also check out: [`unstructured-to-sql`](examples/pipelines/unstructured_to_sql_on_the_fly/app.py) for a minimal example which works with non-multimodal models as well.)
+
 
 ### Automated real-time knowledge mining and alerting. 
 
@@ -58,7 +60,7 @@ The default [`contextful`](examples/pipelines/contextful/app.py) app example lau
 
 This application template can also be combined with streams of fresh data, such as news feeds or status reports, either through REST or a technology like Kafka. It can also be combined with extra static data sources and user-specific contexts, to provide more relevant answers and reduce LLM hallucination.
 
-Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/showcases/llm-app-pathway/).
+Read more about the implementation details and how to extend this application in [our blog article](https://pathway.com/developers/user-guide/llm-xpack/llm-app-pathway/).
 
 ### Instructional videos
 
@@ -101,12 +103,6 @@ with increasing number of documents given as a context in the question, until Ch
 
 ## Get Started
 
-To run the `demo-document-indexing` vector indexing pipeline and UI please follow instructions under [examples/pipelines/demo-document-indexing/README.md](examples/pipelines/demo-document-indexing/README.md).
-
-To run the `demo-question-answering` question answering pipeline please follow instructions under [examples/pipelines/demo-question-answering/README.md](examples/pipelines/demo-question-answering/README.md).
-
-For all other demos follow the steps below.
-
 ### Prerequisites
 
 
@@ -120,7 +116,7 @@ Now, follow the steps to install and [get started with one of the provided examp
 
 Alternatively, you can also take a look at the [application showcases](#showcases).
 
-### Step 1: Clone the repository
+### Clone the repository
 
 This is done with the `git clone` command followed by the URL of the repository:
 
@@ -128,108 +124,9 @@ This is done with the `git clone` command followed by the URL of the repository:
 git clone https://github.com/pathwaycom/llm-app.git
 ```
 
-Next, navigate to the repository:
+### Run the chosen example
 
-```bash
-cd llm-app
-```
-
-### Step 2: Set environment variables
-
-Create an .env file in the root directory and add the following environment variables, adjusting their values according to your specific requirements and setup.
-
-| Environment Variable        | Description                                                                                                                                                                                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| APP_VARIANT                 | Determines which pipeline to run in your application. Available modes are [`contextful`, `contextful-s3`, `contextless`, `local`, `unstructured-to-sql`, `alert`, `drive-alert`]. By default, the mode is set to `contextful`.                   |
-| PATHWAY_REST_CONNECTOR_HOST | Specifies the host IP for the REST connector in Pathway. For the dockerized version, set it to `0.0.0.0` Natively, you can use `127.0.0.1`                                                                                                       |
-| PATHWAY_REST_CONNECTOR_PORT | Specifies the port number on which the REST connector service of the Pathway should listen. Here, it is set to 8080.                                                                                                                             |
-| OPENAI_API_KEY              | The API token for accessing OpenAI services. If you are not running the local version, please remember to replace it with your API token, which you can generate from your account on [openai.com](https:/platform.openai.com/account/api-keys). |
-| PATHWAY_PERSISTENT_STORAGE  | Specifies the directory where the cache is stored. You could use /tmpcache.                                                                                                                                                                      |
-
-For example:
-
-```bash
-APP_VARIANT=contextful
-PATHWAY_REST_CONNECTOR_HOST=0.0.0.0
-PATHWAY_REST_CONNECTOR_PORT=8080
-OPENAI_API_KEY=<Your Token>
-PATHWAY_PERSISTENT_STORAGE=/tmp/cache
-```
-
-### Step 3: Build and run the app
-
-You can install and run your chosen LLM App example in two different ways.
-
-#### Using Docker
-
-Docker is a tool designed to make it easier to create, deploy, and run applications by using containers. Here is how to use Docker to build and run the LLM App:
-
-```bash
-docker compose run --build --rm -p 8080:8080 llm-app-examples
-```
-
-If you have set a different port in `PATHWAY_REST_CONNECTOR_PORT`, replace the second `8080` with this port in the command above.
-
-When the process is complete, the App will be up and running inside a Docker container and accessible at `0.0.0.0:8080`. From there, you can proceed to the "Usage" section of the documentation for information on how to interact with the application.
-
-#### Native Approach
-
-* **Install poetry:**
-
-    ```bash
-    pip install poetry
-    ```
-
-* **Install llm_app and dependencies:**
-
-    ```bash
-    poetry install --with examples --extras local
-    ```
-
-    You can omit `--extras local` part if you're not going to run local example.
-
-* **Run the examples:** You can start the example with the command:
-
-    ```bash
-    poetry run ./run_examples.py contextful
-    ```
-
-### Step 4: Start to use it
-
-1. **Send REST queries** (in a separate terminal window): These are examples of how to interact with the application once it's running. `curl` is a command-line tool used to send data using various network protocols. Here, it's being used to send HTTP requests to the application.
-
-    ```bash
-    curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/
-
-    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/
-    ```
-
-    If you are on windows CMD, then the query would rather look like this
-
-    ```cmd
-    curl --data "{\"user\": \"user\", \"query\": \"How to use LLMs in Pathway?\"}" http://localhost:8080/
-    ```
-
-2. **Test reactivity by adding a new file:** This shows how to test the application's ability to react to changes in data by adding a new file and sending a query.
-
-    ```bash
-    cp ./data/documents_extra.jsonl ./data/pathway-docs/
-    ```
-
-    Or if using docker compose:
-
-    ```bash
-    docker compose exec llm-app-examples mv /app/examples/data/documents_extra.jsonl /app/examples/data/pathway-docs/
-    ```
-
-    Let's query again:
-
-    ```bash
-    curl --data '{"user": "user", "query": "How to use LLMs in Pathway?"}' http://localhost:8080/
-    ```
-
-### Step 5: Launch the User Interface:
-Go to the `examples/ui/` directory (or `examples/pipelines/unstructured/ui` if you are running the unstructured version.) and execute `streamlit run server.py`. Then, access the URL displayed in the terminal to engage with the LLM App using a chat interface. Please note: The provided Streamlit-based interface template is intended for internal rapid prototyping only. In production use, you would normally create your own component instead, taking into account security and authentication, multi-tenancy of data teams, integration with existing UI components, etc.
+Each [example](examples/pipelines/) contains a README.md with instructions on how to run it.
 
 ### Bonus: Build your own Pathway-powered LLM App
 
@@ -251,7 +148,7 @@ Please check out our [Q&A](https://github.com/pathwaycom/llm-app/discussions/cat
 
 ### Raise an issue
 
-To provide feedback or report a bug, please [raise an issue on our issue tracker](https://github.com/pathwaycom/llm-app/issues).
+To provide feedback or report a bug, please [raise an issue on our issue tracker](https://github.com/pathwaycom/pathway/issues).
 
 ## Contributing
 

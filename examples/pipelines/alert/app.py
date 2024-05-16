@@ -4,15 +4,12 @@ Microservice for a context-aware alerting ChatGPT assistant.
 This demo is very similar to `contextful` example with an additional real time alerting capability.
 In the demo, alerts are sent to Slack (you need `slack_alert_channel_id` and `slack_alert_token`),
 you can either put these env variables in .env file under llm-app directory,
-or create env variables in the terminal (ie. export in bash)
-If you don't have Slack, you can leave them empty and app will print the notifications to
-standard output instead.
+or create env variables in the terminal (ie. export in bash).
 
 Upon starting, a REST API endpoint is opened by the app to serve queries about files inside
 the input folder `data_dir`.
 
 We can create notifications by sending a query to API and stating we want to be notified of the changes.
-Alternatively, the provided Streamlit chat app can be used.
 One example would be `Tell me and alert about the start date of the campaign for Magic Cola`
 
 What happens next?
@@ -26,36 +23,19 @@ Once you run, Pathway looks for any changes in data sources and efficiently dete
 to the relevant documents. When a change is detected, the LLM is asked to answer the query
 again, and if the new answer is sufficiently different, an alert is created.
 
-Usage:
-In the root of this repository run:
-`poetry run ./run_examples.py alerts`
-or, if all dependencies are managed manually rather than using poetry
-You can either
-`python examples/pipelines/alerts/app.py`
-or
-`python ./run_examples.py alert`
-
-You can also run this example directly in the environment with llm_app installed.
-
-To create alerts:
-You can call the REST API:
-curl --data '{
-  "user": "user",
-  "query": "When does the magic cola campaign start? Alert me if the start date changes."
-}' http://localhost:8080/ | jq
-
-Or start streamlit UI:
-First go to examples/ui directory with `cd llm-app/examples/ui/`
-run `streamlit run server.py`
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import asyncio
 import os
 
+import dotenv
 import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
+
+dotenv.load_dotenv()
 
 
 class DocumentInputSchema(pw.Schema):
@@ -154,12 +134,10 @@ def decision_to_bool(decision: str) -> bool:
 
 def run(
     *,
-    data_dir: str = os.environ.get(
-        "PATHWAY_DATA_DIR", "./examples/data/magic-cola/live/"
-    ),
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "../../data/magic-cola/live/"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
-    host: str = "0.0.0.0",
-    port: int = 8080,
+    host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
+    port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     embedder_locator: str = "text-embedding-ada-002",
     embedding_dimension: int = 1536,
     model_locator: str = "gpt-3.5-turbo",
@@ -173,8 +151,8 @@ def run(
     embedder = OpenAIEmbedder(
         api_key=api_key,
         model=embedder_locator,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     documents = pw.io.jsonlines.read(
@@ -205,8 +183,8 @@ def run(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.FixedDelayRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.FixedDelayRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     query += query.select(
