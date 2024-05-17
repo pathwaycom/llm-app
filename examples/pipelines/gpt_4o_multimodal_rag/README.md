@@ -1,10 +1,10 @@
 ## Multimodal RAG with Pathway
 
-This showcase illustrates how to get started with multimodal RAG with the help of `GPT-4o` and Pathway.
+Get started with multimodal RAG using `GPT-4o` and Pathway. This showcase demonstrates a document processing pipeline that utilizes LLMs in the parsing stage. Pathway extracts information from unstructured financial documents, updating results as documents change or new ones arrive. 
 
-This showcase demonstrates a data pipeline that calls into LLMs for document processing. In the showcase, you will see how Pathway can extract information from unstructured documents and keep the results up to date when documents change and new documents arrive. The extraction is tuned towards financial documents. OpenAI's `GPT-4o` model is used to improve accuracy of extraction of information from the tables.
+We specifically use `GPT-4o` to improve the table data extraction accuracy and demonstrate how this approach outperforms the industry-standard RAG toolkits.
 
-We specifically chose the finance domain since the files are heavily reliant on using tables in different forms. We also compare in few examples how regular RAG setups fail to answer questions based on the tables.
+We focused on the finance domain because financial documents often rely heavily on tables in various forms. This showcase highlights the limitations of traditional RAG setups, which struggle to answer questions based on table data. By contrast, our multimodal RAG approach excels in extracting accurate information from tables.
 
 We use the `GPT-4o` in two parts:
 - Extracting and understanding the tables inside the PDF
@@ -16,7 +16,7 @@ We use the `GPT-4o` in two parts:
 
 We will use `BaseRAGQuestionAnswerer` provided under `pathway.xpacks` to get started on our RAG application with very minimal overhead. This module brings together the foundational building bricks for the RAG application. 
 
-It includes ingesting the data from the sources, LLM, document parsers and splitters, database (index) and also serving the app on an endpoint. 
+It includes ingesting the data from the sources, calling the LLM, parsing and chunking the documents, creating and querying the database (index) and also serving the app on an endpoint. 
 
 For more advanced RAG options, make sure to check out [rerankers](https://pathway.com/developers/api-docs/pathway-xpacks-llm/rerankers) and the [adaptive rag example](../adaptive-rag/).
 
@@ -38,21 +38,23 @@ It is also possible to easily create new components by extending the [`pw.UDF`](
 
 ## Running the app
 
-> Note: Recommended way of running Pathway on Windows is Docker, refer to [Running with the Docker section](#with-docker).
+> Note: Recommended way of running the Pathway on Windows is Docker, refer to [Running with the Docker section](#with-docker).
 
 First, make sure to install the requirements by running:
 ```bash
 pip install -r requirements.txt
 ```
-Then, create an `.env` file in this directory and put your API key with `OPENAI_API_KEY=sk-...`, or add the `api_key` argument to `OpenAIChat` and `OpenAIEmbedder`. 
+Then, create a `.env` file in this directory and put your API key with `OPENAI_API_KEY=sk-...`, or add the `api_key` argument to `OpenAIChat` and `OpenAIEmbedder`. 
 
 Then, simply run with `python app.py` in this directory.
 
 ### With Docker
 
+First, make sure to have your OpenAI API key in the environment, you can create a `.env` file as mentioned above, or specify the `api_key` argument in the `OpenAIChat` and `OpenAIEmbedder`. 
+
 In order to let the pipeline get updated with each change in local files, you need to mount the `data` folder inside the docker. The following commands show how to do that.
 
-Following commands will:
+The following commands will:
 - mount the `data` folder inside the Docker
 - build the image
 - run the app and expose the port `8000`.
@@ -72,7 +74,7 @@ docker run -v `pwd`/data:/app/data -p 8000:8000 rag
 
 ## Using the app
 
-After running the app, you will see the logs about the files being processed, after the logs stop streaming, app is ready to receive requests.
+After running the app, you will see the logs about the files being processed, after the logs stop streaming, the app is ready to receive requests.
 
 First, let's check the files that are currently indexed:
 ```bash
@@ -94,7 +96,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
 This response was correct thanks to the initial LLM parsing step. 
 When we check the context that is sent to the LLM, we see that Pathway included the table in the context where as other RAG applications failed to include the table.
 
-Following GIF shows a snippet from our experiments:
+The following GIF shows a snippet from our experiments:
 
 ![Regular RAG vs Pathway Multimodal comparison](gpt4o_with_pathway_comparison.gif)
 
