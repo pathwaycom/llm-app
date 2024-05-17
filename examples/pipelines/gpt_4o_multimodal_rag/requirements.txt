@@ -1,4 +1,4 @@
-pathway[xpack-llm]
+pathway[xpack-llm]>=0.11.0
 openparse==0.5.6
 python-dotenv==1.0.1
 unstructured[all-docs]==0.10.28

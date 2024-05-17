@@ -9,7 +9,7 @@ os.environ["TESSDATA_PREFIX"] = (
 import pathway as pw
 from dotenv import load_dotenv
 from pathway.udfs import DiskCache, ExponentialBackoffRetryStrategy
-from pathway.xpacks.llm import embedders, llms  # , parsers, splitters
+from pathway.xpacks.llm import embedders, llms, prompts  # , parsers, splitters
 from pathway.xpacks.llm.question_answering import BaseRAGQuestionAnswerer
 from pathway.xpacks.llm.vector_store import VectorStoreServer
 from src.ext_parsers import OpenParse
@@ -21,33 +21,6 @@ logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
-
-class RAGApp(BaseRAGQuestionAnswerer):
-    @pw.table_transformer
-    def pw_ai_query(self, pw_ai_queries: pw.Table) -> pw.Table:
-        """Main function for RAG applications that answer questions
-        based on available information."""
-
-        pw_ai_results = pw_ai_queries + self.indexer.retrieve_query(
-            pw_ai_queries.select(
-                metadata_filter=pw.this.filters,
-                filepath_globpattern=pw.cast(str | None, None),
-                query=pw.this.prompt,
-                k=6,
-            )
-        ).select(
-            docs=pw.this.result,
-        )
-
-        pw_ai_results += pw_ai_results.select(
-            rag_prompt=self.long_prompt_template(pw.this.prompt, pw.this.docs),
-        )
-
-        pw_ai_results += pw_ai_results.select(
-            result=self.llm(llms.prompt_chat_single_qa(pw.this.rag_prompt))
-        )
-        return pw_ai_results
 
 
 if __name__ == "__main__":
@@ -83,9 +56,11 @@ if __name__ == "__main__":
         parser=parser,
     )
 
-    app = RAGApp(
+    app = BaseRAGQuestionAnswerer(
         llm=chat,
         indexer=doc_store,
+        search_topk=6,
+        short_prompt_template=prompts.prompt_qa,
     )
 
     app.build_server(host=app_host, port=app_port)

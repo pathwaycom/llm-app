@@ -39,7 +39,6 @@ This example spawns a lightweight webserver that accepts queries on six possible
 ### LLM and RAG capabilities
 - `/v1/pw_ai_answer` to ask questions about your documents, or directly talk with your LLM;
 - `/v1/pw_ai_summary` to summarize a list of texts;
-- `/v1/pw_ai_aggregate_responses` to make a summary of a question for different documents and answers;
 
 See the [using the app section](###Using-the-app) to learn how to use the provided endpoints.
 
@@ -274,8 +273,7 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "query": "string",
-  "metadata_filter": "string",
-  "k": 0
+  "k": 2
 }'
 ```
 
@@ -335,28 +333,6 @@ curl -X 'POST' \
 ```
 
 Specifying the GPT model with `"model": "gpt-4"` is also possible.
-
-#### Aggregating different responses
-
-Aggregating is useful when you have a number of responses for different texts or files for a given question.
-It organizes responses and creates an executive outlook.
-
-An example curl query is as follows:
-
-```bash
-curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/pw_ai_aggregate_responses' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "question": "Is there any action required from the marketing team?",
-  "answers": [
-    "File a.pdf - We need approval for social media campaign from marketing dept.",
-    "File b.pdf - There are no action points.",
-    "Budget approval is needed from head of marketing."
-  ]
-}'
-```
 
 This endpoint also supports setting different models in the query by default.
 

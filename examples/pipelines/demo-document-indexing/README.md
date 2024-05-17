@@ -128,7 +128,7 @@ Alternatively, you can launch just the indexing pipeline as a single Docker cont
 
 ```bash
 docker build -t vector_indexer .
-docker run -v `pwd`/files-for-indexing:/app/files-for-indexing vector_indexer
+docker run -v `pwd`/files-for-indexing:/app/files-for-indexing -p 8000:8000 vector_indexer
 ```
 
 The volume overlay is important - without it, docker will not see changes to files under the `files-for-indexing` folder.
