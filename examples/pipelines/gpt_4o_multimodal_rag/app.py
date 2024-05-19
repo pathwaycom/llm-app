@@ -24,7 +24,7 @@ logging.basicConfig(
 
 
 if __name__ == "__main__":
-    path = "./data/20230203_alphabet_10K.pdf"
+    path = "./data/"
 
     folder = pw.io.fs.read(
         path=path,
