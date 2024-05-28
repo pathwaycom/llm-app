@@ -1,6 +1,6 @@
-# Unstructured Pipeline
+# Contextful Parsing Pipeline
 
-This example implements a RAG pipeline, similarly to [contextful pipeline](). It uses, however, [Unstructured](https://unstructured.io/) library for parsing documents, which are then split into smaller chunks. 
+This example implements a RAG pipeline, similarly to [contextful pipeline](). It uses, however, [Unstructured](https://unstructured.io/) library for parsing documents, e.g. PDFs, which are then split into smaller chunks. 
 
 ## How to run the project
 
