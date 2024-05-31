@@ -38,7 +38,7 @@ To query the pipeline, you can call the REST API:
 ```bash
 curl --data '{
   "user": "user",
-  "query": "When does the magic cola campaign start? Alert me if the start date changes."
+  "query": "What are the trends of coal imports?"
 }' http://localhost:8080/ | jq
 ```
 
