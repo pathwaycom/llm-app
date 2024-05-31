@@ -52,51 +52,7 @@ Response:
 'SELECT company_symbol, net_income_md, quarter, net_income_md FROM table;'
 
 
-🔵 Project architecture:
-```
-.
-├── postgresql/
-│   ├── docker-compose.yml
-│   └── init-db.sql
-├── ui/
-│   └── server.sql
-├── __init__.py
-└── app.py
-```
-
-🔵 PostgreSQL:
-A PostgreSQL docker compose project is provided in
-`examples/pipelines/unstructured_to_sql_on_the_fly/postgres/`. To run it, run:
-`docker compose up -d` inside the directory.
-
-
-🔵 Usage:
-1) To install the dependencies, run in the root of this repository:
-`poetry install --with examples --extras local --extras unstructured_to_sql`
-2) In the root of this repository run:
-`poetry run ./run_examples.py unstructuredtosql`
-or, if all dependencies are managed manually rather than using poetry
-`python examples/pipelines/unstructured_to_sql_on_the_fly/app.py`
-
-You can also run this example directly in the environment with llm_app installed.
-
-To call the REST API:
-curl --data '{
-  "user": "user",
-  "query": "What is the maximum quarterly revenue achieved by Apple?"
-}' http://localhost:8080/ | jq
-
-To call the Streamlit interface:
-`streamlit run examples/pipelines/unstructured_to_sql_on_the_fly/ui/server.py`
-
-🔵 Notes and TODOs:
-- The project contains two distinct and non overlapping parts:
-    1) Extracting the data from PDFs in real time and storing the data in a postgreSQL table.
-    2) Transforming the query into a SQL query and then executing it.
-    Those could be done in two different Python files.
-- TODO: data extraction needs data cleaning as it may be prone to errors. Anomaly detection
-    could be a nice next step to detect and possibly correct outliers.
-
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import json

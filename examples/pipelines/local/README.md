@@ -8,7 +8,7 @@ This pipeline is similar to the [contextful pipeline](),  but relies on local co
 Set your env variables in the .env file placed in this directory or in the root of the repo.
 
 ```bash
-PATHWAY_DATA_DIR= # If unset, defaults to ../../data/pathway-docs-small/
+PATHWAY_DATA_DIR= # If unset, defaults to ./data/
 PATHWAY_PERSISTENT_STORAGE= # Set this variable if you want to use caching
 ```
 
@@ -40,3 +40,9 @@ curl --data '{
   "query": "How to connect to Kafka in Pathway?"
 }' http://localhost:8080/ | jq
 ```
+
+or use the Streamlit UI. Run:
+```bash
+streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
+```
+and then you can access the UI at `0.0.0.0:8501`.

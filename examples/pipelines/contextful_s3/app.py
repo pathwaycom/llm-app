@@ -13,16 +13,7 @@ then relevant documentation pages are found using a Nearest Neighbor index compu
 for documents in the corpus. A prompt is built from the relevant documentations pages
 and sent to the OpenAI chat service for processing.
 
-Usage:
-In the root of this repository run:
-`poetry run ./run_examples.py contextful-s3`
-or, if all dependencies are managed manually rather than using poetry
-`python examples/pipelines/contextful_s3/app.py`
-
-You can also run this example directly in the environment with llm_app installed.
-
-To call the REST API:
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import os

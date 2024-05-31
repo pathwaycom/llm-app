@@ -38,7 +38,7 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "../../data/pathway-docs/"),
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./data/"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
     port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),

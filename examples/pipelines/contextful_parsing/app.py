@@ -13,16 +13,7 @@ then relevant documentation pages are found using a Nearest Neighbor index compu
 for documents in the corpus. A prompt is built from the relevant documentations pages
 and sent to the OpenAI GPT-4 chat service for processing.
 
-Usage:
-In the root of this repository run:
-`poetry run ./run_examples.py unstructured`
-or, if all dependencies are managed manually rather than using poetry
-`python examples/pipelines/unstructured/app.py`
-
-You can also run this example directly in the environment with llm_app installed.
-
-In another terminal, navigate to `examples/pipelines/unstructured/ui` and run
-`streamlit run server.py`. You can interact with the app at `localhost:8501`
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import os
@@ -45,7 +36,7 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "../../data/finance/"),
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./data/"),
     api_key: str = os.environ.get("OPENAI_API_KEY", ""),
     host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
     port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),

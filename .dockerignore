@@ -1,7 +1,0 @@
-**/.git
-**/node_modules
-**/.mypy_cache
-**/dist
-
-pw-env/
-.github/

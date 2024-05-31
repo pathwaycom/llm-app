@@ -45,9 +45,7 @@ class QueryInputSchema(pw.Schema):
 
 def run(
     *,
-    data_dir: str = os.environ.get(
-        "PATHWAY_DATA_DIR", "../../data/pathway-docs-small/"
-    ),
+    data_dir: str = os.environ.get("PATHWAY_DATA_DIR", "./data/"),
     host: str = os.environ.get("PATHWAY_REST_CONNECTOR_HOST", "0.0.0.0"),
     port: int = int(os.environ.get("PATHWAY_REST_CONNECTOR_PORT", "8080")),
     model_locator: str = os.environ.get("MODEL", "gpt2"),

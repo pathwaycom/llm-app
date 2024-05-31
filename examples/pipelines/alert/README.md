@@ -33,7 +33,7 @@ Set your env variables in the .env file placed in this directory or in the root 
 OPENAI_API_KEY=sk-...
 SLACK_ALERT_CHANNEL_ID=  # If unset, alerts will be printed to the terminal
 SLACK_ALERT_TOKEN=
-PATHWAY_DATA_DIR= # If unset, defaults to ../../data/magic-cola/live/
+PATHWAY_DATA_DIR= # If unset, defaults to ./data/live/
 PATHWAY_PERSISTENT_STORAGE= # Set this variable if you want to use caching
 ```
 
@@ -65,3 +65,9 @@ curl --data '{
   "query": "When does the magic cola campaign start? Alert me if the start date changes."
 }' http://localhost:8080/ | jq
 ```
+
+or use the Streamlit UI. Run:
+```bash
+streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
+```
+and then you can access the UI at `0.0.0.0:8501`.

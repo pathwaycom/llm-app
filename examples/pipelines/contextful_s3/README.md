@@ -43,3 +43,9 @@ curl --data '{
   "query": "How to connect to Kafka in Pathway?"
 }' http://localhost:8080/ | jq
 ```
+
+or use the Streamlit UI. Run:
+```bash
+streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
+```
+and then you can access the UI at `0.0.0.0:8501`.

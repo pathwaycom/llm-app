@@ -114,11 +114,8 @@ curl --data '{
 }' http://localhost:8080/ | jq
 ```
 
-Or start streamlit UI:
-
-First go to `ui` directory with `cd ui/`
-and run:
-
+or use the Streamlit UI. Run:
 ```bash
-streamlit run server.py
+streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
 ```
+and then you can access the UI at `0.0.0.0:8501`.

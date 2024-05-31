@@ -3,14 +3,7 @@ REST Microservice implementing a simple, contextless Chatbot.
 
 The program responds to each query by directly forwarding it to the OpenAI API.
 
-Usage:
-In this directory run:
-`poetry run app.py`
-or, if all dependencies are managed manually rather than using poetry
-`python app.py`
-
-To call the REST API:
-curl --data '{"user": "user", "query": "How to connect to Kafka in Pathway?"}' http://localhost:8080/ | jq
+Please check the README.md in this directory for how-to-run instructions.
 """
 
 import os
