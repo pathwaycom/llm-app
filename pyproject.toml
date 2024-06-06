@@ -63,7 +63,7 @@ optional = true
 [tool.poetry.group.linters.dependencies]
 black = "^24.2.0"
 isort = "^5.13.2"
-mypy = "~1.9.0"
+mypy = "~1.10.0"
 flake8 = "~7.0.0"
 pytest = "^8.0.2"
 types-requests = "^2.31.0"
