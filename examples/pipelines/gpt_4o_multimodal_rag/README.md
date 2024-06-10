@@ -1,4 +1,13 @@
-## Multimodal RAG with Pathway: Process your Financial Reports and Tables with GPT-4o
+<p align="left">
+  <a href="https://pathway.com/developers/user-guide/deployment/gcp-deploy" style="display: inline-flex; align-items: center;">
+    <img src="https://www.gstatic.com/pantheon/images/welcome/supercloud.svg" alt="GCP Logo" height="1.2em"> <span style="margin-left: 5px;">Deploy with GCP</span>
+  </a> | 
+  <a href="https://pathway.com/developers/user-guide/deployment/render-deploy" style="display: inline-flex; align-items: center;">
+    <img src="../../../assets/render.png" alt="Render Logo" height="1.2em"> <span style="margin-left: 5px;">Deploy with Render</span>
+  </a>
+</p>
+
+# Multimodal RAG with Pathway: Process your Financial Reports and Tables with GPT-4o
 
 Get started with multimodal RAG using `GPT-4o` and Pathway. This showcase demonstrates how you can launch a document processing pipeline that utilizes `GPT-4o` in the parsing stage. Pathway extracts information from unstructured financial documents in your folders, updating results as documents change or new ones arrive. 
 

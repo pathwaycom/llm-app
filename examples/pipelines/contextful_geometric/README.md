@@ -1,4 +1,13 @@
-# Contextful Pipeline
+<p align="left">
+  <a href="https://pathway.com/developers/user-guide/deployment/gcp-deploy" style="display: inline-flex; align-items: center;">
+    <img src="https://www.gstatic.com/pantheon/images/welcome/supercloud.svg" alt="GCP Logo" height="1.2em"> <span style="margin-left: 5px;">Deploy with GCP</span>
+  </a> | 
+  <a href="https://pathway.com/developers/user-guide/deployment/render-deploy" style="display: inline-flex; align-items: center;">
+    <img src="../../../assets/render.png" alt="Render Logo" height="1.2em"> <span style="margin-left: 5px;">Deploy with Render</span>
+  </a>
+</p>
+
+# Contextful Geometric Pipeline
 
 This example implements a pipeline that answers questions based on documents in a given folder. To get the answer it sends increasingly more documents to the LLM chat until it can find an answer. You can read more about the reasoning behind this approach [here](https://pathway.com/developers/showcases/adaptive-rag).
 
