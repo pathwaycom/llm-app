@@ -26,6 +26,11 @@ from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
 from pathway.xpacks.llm.parsers import ParseUnstructured
 from pathway.xpacks.llm.splitters import TokenCountSplitter
 
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it below.
+# To use Pathway Community, comment out the line below.
+pw.set_license_key("demo-license-key-with-telemetry")
+
 dotenv.load_dotenv()
 
 

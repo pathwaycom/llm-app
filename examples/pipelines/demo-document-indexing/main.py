@@ -2,11 +2,17 @@ import argparse
 import os
 import sys
 
+import pathway as pw
 import pathway.io.fs as io_fs
 import pathway.io.gdrive as io_gdrive
 import yaml
 from dotenv import load_dotenv
 from pathway.xpacks.llm import embedders, parsers, splitters, vector_store
+
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it below.
+# To use Pathway Community, comment out the line below.
+pw.set_license_key("demo-license-key-with-telemetry")
 
 
 def data_sources(source_configs):

@@ -31,6 +31,11 @@ from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import SentenceTransformerEmbedder
 from pathway.xpacks.llm.llms import HFPipelineChat, prompt_chat_single_qa
 
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it below.
+# To use Pathway Community, comment out the line below.
+pw.set_license_key("demo-license-key-with-telemetry")
+
 dotenv.load_dotenv()
 
 
@@ -64,7 +69,7 @@ def run(
         autocommit_duration_ms=50,
     )
 
-    enriched_documents = documents + documents.select(vector=embedder(text=pw.this.doc))
+    enriched_documents = documents + documents.select(vector=embedder(pw.this.doc))
 
     index = KNNIndex(
         enriched_documents.vector, enriched_documents, n_dimensions=embedding_dimension
@@ -79,7 +84,7 @@ def run(
     )
 
     query += query.select(
-        vector=embedder(text=pw.this.query),
+        vector=embedder(pw.this.query),
     )
 
     query_context = query + index.get_nearest_items(

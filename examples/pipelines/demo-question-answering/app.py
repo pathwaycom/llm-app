@@ -10,6 +10,11 @@ from pathway.xpacks.llm import embedders, llms, parsers, splitters
 from pathway.xpacks.llm.question_answering import BaseRAGQuestionAnswerer
 from pathway.xpacks.llm.vector_store import VectorStoreServer
 
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it below.
+# To use Pathway Community, comment out the line below.
+pw.set_license_key("demo-license-key-with-telemetry")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(name)s %(levelname)s %(message)s",

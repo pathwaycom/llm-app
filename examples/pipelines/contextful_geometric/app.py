@@ -32,6 +32,11 @@ from pathway.xpacks.llm.question_answering import (
     answer_with_geometric_rag_strategy_from_index,
 )
 
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it below.
+# To use Pathway Community, comment out the line below.
+pw.set_license_key("demo-license-key-with-telemetry")
+
 dotenv.load_dotenv()
 
 
