@@ -10,7 +10,7 @@
 
 ## End to end Adaptive RAG with Pathway
 
-This is the accompanying code for deploying the `adaptive RAG` technique with Pathway.
+This is the accompanying code for deploying the `adaptive RAG` technique with Pathway. To understand the technique and learn how it can save tokens without sacrificing accuracy, read [our showcase](https://pathway.com/developers/showcases/adaptive-rag).
 
 To learn more about building & deploying RAG applications with Pathway, including containerization, refer to [demo question answering](../demo-question-answering/README.md).
 
@@ -52,10 +52,30 @@ It is also possible to easily create new components by extending the [`pw.UDF`](
 To see the setup used in our work, check [the showcase](https://pathway.com/developers/showcases/private-rag-ollama-mistral).
 
 ## Running the app
-If you are using the OpenAI modules, create a `.env` file in this directory and put your API key with `OPENAI_API_KEY=sk-...`, or add the `api_key` argument to `OpenAIChat` and `OpenAIEmbedder`. 
+To run the app you need to set your OpenAI API key, by setting the environmental variable `OPENAI_API_KEY` or creating an `.env` file in this directory with line `OPENAI_API_KEY=sk-...`. If you modify the code to use another LLM provider, you may need to set a relevant API key.
 
-Then, simply run with `python app.py` in this directory.
-If you are interested in the Docker option, refer to [demo question answering Docker guide](../demo-question-answering/README.md#With-Docker).
+### With Docker
+In order to let the pipeline get updated with each change in local files, you need to mount the folder onto the docker. The following commands show how to do that.
+
+```bash
+# Build the image in this folder
+docker build -t adaptiverag .
+
+# Run the image, mount the `data` folder into image 
+# -e is used to pass value of OPENAI_API_KEY environmental variable
+docker run -v ./data:/app/data -e OPENAI_API_KEY -p 8000:8000 adaptiverag
+```
+
+### Locally
+To run locally you need to install the Pathway app with LLM dependencies using:
+```bash
+pip install pathway[all]
+```
+
+Then change your directory in the terminal to this folder and run the app:
+```bash
+python app.py
+```
 
 ## Using the app
 
