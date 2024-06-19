@@ -49,6 +49,4 @@ if prompt := st.chat_input("How can I help you today?"):
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
     else:
-        st.error(
-            f"Failed to send data to Discounts API. Status code: {response.status_code}"
-        )
+        st.error(f"Failed to send data. Status code: {response.status_code}")

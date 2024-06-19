@@ -7,7 +7,7 @@
   </a>
 </p>
 
-# Realtime Document Indexing with Pathway
+# Realtime Document Indexing: Vector Store with always-up-to-date knowledge
 
 This is a basic service for a real-time document indexing pipeline powered by [Pathway](https://github.com/pathwaycom/pathway).
 

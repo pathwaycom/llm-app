@@ -18,13 +18,6 @@ data_path = "../../../../examples/data/finance/"
 # Streamlit UI elements
 st.title("LLM App")
 
-uploaded_files = st.file_uploader("Upload a text file", accept_multiple_files=True)
-if uploaded_files:
-    for file in uploaded_files:
-        print(file.name)
-        with open(os.path.join(data_path, file.name), "wb") as f:
-            f.write(file.read())
-
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -55,6 +48,4 @@ if prompt := st.chat_input("How can I help you today?"):
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
     else:
-        st.error(
-            f"Failed to send data to Discounts API. Status code: {response.status_code}"
-        )
+        st.error(f"Failed to send data. Status code: {response.status_code}")

@@ -7,39 +7,57 @@
   </a>
 </p>
 
-# Local Pipeline
+# RAG pipeline run locally with up-to-date knowledge: get answers based on documents stored locally
 
 This pipeline is similar to the [contextful pipeline](),  but relies on local computations, rather than querying external API. To do that it uses [HuggingFace](https://huggingface.co/) for the chat model and [Sentence Transformers](https://www.sbert.net/) for the embedding model.
 
 ## How to run the project
 
 ### Setup environment:
-Set your env variables in the .env file placed in this directory or in the root of the repo.
+Set your env variables in the .env file placed in this directory.
 
 ```bash
-PATHWAY_DATA_DIR= # If unset, defaults to ./data/
+PATHWAY_DATA_DIR= # If unset, defaults to ./data/. If running with Docker, when you change this variable you may need to change the volume mount.
 PATHWAY_PERSISTENT_STORAGE= # Set this variable if you want to use caching
 ```
 
-### Run the project
+### Run with Docker
 
-Make sure you have installed poetry dependencies with `--extras local`. 
+To run jointly the Alert pipeline and a simple UI execute:
 
 ```bash
-poetry install --with examples --extras local
+docker compose up --build
 ```
 
-Run:
+Then, the UI will run at http://0.0.0.0:8501 by default. You can access it by following this URL in your web browser.
 
+The `docker-compose.yml` file declares a [volume bind mount](https://docs.docker.com/reference/cli/docker/container/run/#volume) that makes changes to files under `data/` made on your host computer visible inside the docker container. The files in `data/live` are indexed by the pipeline - you can paste new files there and they will impact the computations.
+
+### Run manually
+
+Alternatively, you can run each service separately.
+
+Make sure you have installed poetry dependencies. 
+```bash
+poetry install --with examples
+```
+
+Then run:
 ```bash
 poetry run python app.py
 ```
 
-If all dependencies are managed manually rather than using poetry, you can also use:
-
+If all dependencies are managed manually rather than using poetry, you can alternatively use:
 ```bash
 python app.py
 ```
+
+To run the Streamlit UI, run:
+```bash
+streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
+```
+
+### Querying the pipeline
 
 To query the pipeline, you can call the REST API:
 
@@ -50,8 +68,4 @@ curl --data '{
 }' http://localhost:8080/ | jq
 ```
 
-or use the Streamlit UI. Run:
-```bash
-streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
-```
-and then you can access the UI at `0.0.0.0:8501`.
+or access the Streamlit UI at `0.0.0.0:8501`.

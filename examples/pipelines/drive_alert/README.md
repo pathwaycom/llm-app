@@ -1,4 +1,4 @@
-# Drive Alert pipeline
+# Pathway + LLM + Slack notification: RAG App with real-time alerting when answers change in documents
 
 Microservice for a context-aware alerting ChatGPT assistant.
 
@@ -73,39 +73,56 @@ For this demo, Slack notifications are optional and notifications will be printe
 Your Slack application  will need at least `chat:write.public` scope enabled.
 
 ### Setup environment:
-Set your env variables in the .env file placed in this directory or in the root of the repo.
+Set your env variables in the .env file placed in this directory.
 
 ```bash
 OPENAI_API_KEY=sk-...
 SLACK_ALERT_CHANNEL_ID=  # If unset, alerts will be printed to the terminal
 SLACK_ALERT_TOKEN=
 FILE_OR_DIRECTORY_ID=  # file or folder ID that you want to track that we have retrieved earlier
-GOOGLE_CREDS=examples/pipelines/drive_alert/secrets.json  # Default location of Google Drive authorization secrets
+GOOGLE_CREDS=./secrets.json  # Default location of Google Drive authorization secrets
 PATHWAY_PERSISTENT_STORAGE= # Set this variable if you want to use caching
 ```
 
-### Run the project
+### Run with Docker
+
+To run jointly the Alert pipeline and a simple UI execute:
+
+```bash
+docker compose up --build
+```
+
+Then, the UI will run at http://0.0.0.0:8501 by default. You can access it by following this URL in your web browser.
+
+The `docker-compose.yml` file declares a [volume bind mount](https://docs.docker.com/reference/cli/docker/container/run/#volume) that makes changes to files under `data/` made on your host computer visible inside the docker container. The files in `data/live` are indexed by the pipeline - you can paste new files there and they will impact the computations.
+
+### Run manually
+
+Alternatively, you can run each service separately.
 
 Make sure you have installed poetry dependencies with `--extras unstructured`. 
-
 ```bash
 poetry install --with examples --extras unstructured
 ```
 
-Run:
-
+Then run:
 ```bash
 poetry run python app.py
 ```
 
-If all dependencies are managed manually rather than using poetry, you can run either:
-
+If all dependencies are managed manually rather than using poetry, you can alternatively use:
 ```bash
 python app.py
 ```
 
-To create alerts:
-You can call the REST API:
+To run the Streamlit UI, run:
+```bash
+streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
+```
+
+### Querying the pipeline
+
+To create alerts, you can call the REST API:
 
 ```bash
 curl --data '{
@@ -114,8 +131,4 @@ curl --data '{
 }' http://localhost:8080/ | jq
 ```
 
-or use the Streamlit UI. Run:
-```bash
-streamlit run ui/server.py --server.port 8501 --server.address 0.0.0.0
-```
-and then you can access the UI at `0.0.0.0:8501`.
+or access the Streamlit UI at `0.0.0.0:8501`.

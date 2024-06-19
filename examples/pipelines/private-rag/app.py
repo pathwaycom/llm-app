@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pathway as pw
 from dotenv import load_dotenv
@@ -34,12 +35,13 @@ if __name__ == "__main__":
     ]  # define the inputs (local folders, google drive, sharepoint, ...)
 
     DEFAULT_MODEL = "ollama/mistral"
+    api_base = os.environ.get("LLM_API_BASE", "http://localhost:11434")
 
     chat = llms.LiteLLMChat(
         model=DEFAULT_MODEL,
         temperature=0,
         top_p=1,
-        api_base="http://localhost:11434",  # local deployment
+        api_base=api_base,  # local deployment
         format="json",  # only available in Ollama local deploy, not usable in Mistral API
     )
 

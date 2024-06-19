@@ -1,4 +1,4 @@
-# Unstructured to SQL on the fly
+# Pathway + PostgreSQL + LLM: app for querying financial reports with live document structuring pipeline
 
 The aim of this pipeline is to extract and structure the data out of unstructured data (PDFs, queries)
 on the fly.

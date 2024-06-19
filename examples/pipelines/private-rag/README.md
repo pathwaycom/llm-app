@@ -65,11 +65,32 @@ curl -X POST http://localhost:11434/api/generate -d '{
  }'
 ```
 
-## Running the app
-First, make sure your local LLM is up and running.
 
-Then, simply run with `python app.py` in this directory.
-If you are interested in the Docker option, refer to [demo question answering Docker guide](../demo-question-answering/README.md#With-Docker).
+## Running the app
+First, make sure your local LLM is up and running. By default, the pipeline tries to access the LLM at `http://localhost:11434`. You can change that by setting `LLM_API_BASE` environmental variable or creating `.env` file which sets its value.
+
+### With Docker
+In order to let the pipeline get updated with each change in local files, you need to mount the folder onto the docker. The following commands show how to do that.
+
+```bash
+# Build the image in this folder
+docker build -t privaterag .
+
+# Run the image, mount the `data` folder into image 
+# -e is used to pass value of LLM_API_BASE environmental variable
+docker run -v ./data:/app/data -e LLM_API_BASE -p 8000:8000 privaterag
+```
+
+### Locally
+To run locally you need to install the Pathway app with LLM dependencies using:
+```bash
+pip install pathway[all]
+```
+
+Then change your directory in the terminal to this folder and run the app:
+```bash
+python app.py
+```
 
 ## Using the app
 
