@@ -10,7 +10,7 @@
 
 ## End to end Adaptive RAG with Pathway
 
-This is the accompanying code for deploying the `adaptive RAG` technique with Pathway. To understand the technique and learn how it can save tokens without sacrificing accuracy, read [our showcase](https://pathway.com/developers/showcases/adaptive-rag).
+This is the accompanying code for deploying the `adaptive RAG` technique with Pathway. To understand the technique and learn how it can save tokens without sacrificing accuracy, read [our showcase](https://pathway.com/developers/templates/adaptive-rag).
 
 To learn more about building & deploying RAG applications with Pathway, including containerization, refer to [demo question answering](../demo-question-answering/README.md).
 
@@ -49,7 +49,7 @@ If you are interested in building this app in a fully private & local setup, che
 You can modify any of the used components by checking the options from: `from pathway.xpacks.llm import embedders, llms, parsers, splitters`.
 It is also possible to easily create new components by extending the [`pw.UDF`](https://pathway.com/developers/user-guide/data-transformation/user-defined-functions) class and implementing the `__wrapped__` function.
 
-To see the setup used in our work, check [the showcase](https://pathway.com/developers/showcases/private-rag-ollama-mistral).
+To see the setup used in our work, check [the showcase](https://pathway.com/developers/templates/private-rag-ollama-mistral).
 
 ## Running the app
 To run the app you need to set your OpenAI API key, by setting the environmental variable `OPENAI_API_KEY` or creating an `.env` file in this directory with line `OPENAI_API_KEY=sk-...`. If you modify the code to use another LLM provider, you may need to set a relevant API key.

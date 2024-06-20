@@ -9,7 +9,7 @@
 
 # RAG pipeline with up-to-date knowledge: get answers based on increasing number of documents
 
-This example implements a pipeline that answers questions based on documents in a given folder. To get the answer it sends increasingly more documents to the LLM chat until it can find an answer. You can read more about the reasoning behind this approach [here](https://pathway.com/developers/showcases/adaptive-rag).
+This example implements a pipeline that answers questions based on documents in a given folder. To get the answer it sends increasingly more documents to the LLM chat until it can find an answer. You can read more about the reasoning behind this approach [here](https://pathway.com/developers/templates/adaptive-rag).
 
 Each query text is first turned into a vector using OpenAI embedding service,
 then relevant documentation pages are found using a Nearest Neighbor index computed

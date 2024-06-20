@@ -51,7 +51,7 @@ Using incremental vector search, only the most relevant context is automatically
 
 ![Automated real-time knowledge mining and alerting](examples/pipelines/drive_alert/drive_alert_demo.gif)
 
-For the code, see the [`drive_alert`](#examples) app example. You can find more details in a [blog post on alerting with LLM-App](https://pathway.com/developers/showcases/llm-alert-pathway).
+For the code, see the [`drive_alert`](#examples) app example. You can find more details in a [blog post on alerting with LLM-App](https://pathway.com/developers/templates/llm-alert-pathway).
 
 
 ## How it works
@@ -99,7 +99,7 @@ Pick one that is closest to your needs.
 | [`local`](examples/pipelines/local/)                                        | This example runs the application using Huggingface Transformers, which eliminates the need for the data to leave the machine. It provides a convenient way to use state-of-the-art NLP models locally.                                                                                                                                                             |
 | [`unstructured-to-sql`](examples/pipelines/unstructured_to_sql_on_the_fly/) | This example extracts the data from unstructured files and stores it into a PostgreSQL table. It also transforms the user query into an SQL query which is then executed on the PostgreSQL table.                                                                                                                                                                   |
 | [`alert`](examples/pipelines/alert/)                                        | Ask questions, get alerted whenever response changes. Pathway is always listening for changes, whenever new relevant information is added to the stream (local files in this example), LLM decides if there is a substantial difference in response and notifies the user with a Slack message.                                                                     |
-| [`drive-alert`](examples/pipelines/drive_alert/)                            | The [`alert`](examples/pipelines/alert/) example on steroids. Whenever relevant information on Google Docs is modified or added, get real-time alerts via Slack. See the [`tutorial`](https://pathway.com/developers/showcases/llm-alert-pathway).                                                                                                            |
+| [`drive-alert`](examples/pipelines/drive_alert/)                            | The [`alert`](examples/pipelines/alert/) example on steroids. Whenever relevant information on Google Docs is modified or added, get real-time alerts via Slack. See the [`tutorial`](https://pathway.com/developers/templates/llm-alert-pathway).                                                                                                            |
 | [`contextful-geometric`](examples/pipelines/contextful_geometric/)          | The [`contextful`](examples/pipelines/contextful/) example, which optimises use of tokens in queries. It asks the same questions with increasing number of documents given as a context in the question, until ChatGPT finds an answer.                                                                                                               |
 
 
@@ -132,7 +132,7 @@ Each [example](examples/pipelines/) contains a README.md with instructions on ho
 
 ### Bonus: Build your own Pathway-powered LLM App
 
-Want to learn more about building your own app? See step-by-step guide [Building a llm-app tutorial](https://pathway.com/developers/showcases/llm-app-pathway)
+Want to learn more about building your own app? See step-by-step guide [Building a llm-app tutorial](https://pathway.com/developers/templates/llm-app-pathway)
 
 Or,
 
