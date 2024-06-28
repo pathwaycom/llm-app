@@ -10,9 +10,9 @@ import pathway as pw
 from dotenv import load_dotenv
 from pathway.udfs import DiskCache, ExponentialBackoffRetryStrategy
 from pathway.xpacks.llm import embedders, llms, prompts  # , parsers, splitters
+from pathway.xpacks.llm.parsers import OpenParse
 from pathway.xpacks.llm.question_answering import BaseRAGQuestionAnswerer
 from pathway.xpacks.llm.vector_store import VectorStoreServer
-from src.ext_parsers import OpenParse
 
 # To use advanced features with Pathway Scale, get your free license key from
 # https://pathway.com/features and paste it below.
