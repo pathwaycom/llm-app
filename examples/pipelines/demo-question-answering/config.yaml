@@ -1,5 +1,5 @@
 llm_config:
-  model: "gpt-3.5-turbo"
+  model: "gemini/gemini-pro"
 host_config:
   host: "0.0.0.0"
   port: 8000

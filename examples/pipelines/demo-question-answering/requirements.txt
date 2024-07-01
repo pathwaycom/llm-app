@@ -1,3 +1,6 @@
 pathway[all]>=0.11.0
 python-dotenv==1.0.1
 mpmath==1.3.0
+litellm>=1.35
+Google-generativeai
+Sentence-transformers
