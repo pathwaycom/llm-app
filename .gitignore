@@ -120,6 +120,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+examples/pipelines/demo-question-answering/.env
 **/.env
 .venv
 env/
