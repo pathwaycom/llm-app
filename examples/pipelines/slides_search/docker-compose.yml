@@ -1,0 +1,49 @@
+version: '3.11.9'
+
+services:
+  app:
+    container_name: pathway_app
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - my_network
+    volumes:
+      - ./data:/app/data
+      - ./storage/pw_dump_files:/app/storage/pw_dump_files
+      - ./storage/pw_dump_images:/app/storage/pw_dump_images
+
+  nginx:
+    container_name: file_server
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    env_file:
+      - .env
+    networks:
+      - my_network
+    volumes:
+      - ./storage/pw_dump_files:/app/pw_dump_files
+      - ./storage/pw_dump_images:/app/pw_dump_images
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
