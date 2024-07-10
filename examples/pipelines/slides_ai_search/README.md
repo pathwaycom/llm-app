@@ -126,10 +126,18 @@ This folder contains several components necessary for setting up and running the
 
 ## How to run the project
 
+First, clone the Pathway LLM App Repository
+
+```bash
+git clone https://github.com/pathwaycom/llm-app.git
+```
+
 Make sure you are in the right directory:
 ```bash
-cd examples/pipelines/slides_search
+cd examples/pipelines/slides_ai_search
 ```
+
+> Note: If your OpenAI API usage is throttled, you may want to change the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
 
 ### Locally
 Running the whole demo without Docker is not suggested as there are three components. 
@@ -238,3 +246,18 @@ conn.pw_ai_answer("introduction slide")
 ## Not sure how to get started? 
 
 Let's discuss how we can help you build a powerful, customized RAG application. [Reach us here to talk or request a demo!](https://pathway.com/solutions/enterprise-generative-ai?modal=requestdemo)
+
+
+## FAQ
+
+> I am getting OpenAI API throttle limit errors.
+- You can change `run_mode` in `SlideParser` to `run_mode="sequential"`. This will parse images one by one, however, this will significantly slow down the parsing stage.
+
+> UI shows that my file is being indexed, but I don't have that file in the inputs.
+- App mounts `storage` folder from the Docker to the local file system. This helps the file server serve the content. This folder is not cleaned between the runs, files from the previous runs will be staying here. You can remove the folder after closing the app to get rid of these.
+
+> Can I use other vision LMs or LLMs?
+- Yes, you can configure the `OpenAIChat` to reach local LLMs or swap it with any other LLM wrappers (such as `LiteLLMChat`) to use other models. Make sure your model of choice supports vision inputs.
+
+> Can I persist the cache between the runs?
+- Yes, you can uncomment the `- ./Cache:/app/Cache` under the `app:/volumes:` section inside the `docker-compose.yml` to allow caching between the runs. You will see that requests are not repeated in the next runs.

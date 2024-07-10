@@ -14,6 +14,7 @@ services:
       - ./data:/app/data
       - ./storage/pw_dump_files:/app/storage/pw_dump_files
       - ./storage/pw_dump_images:/app/storage/pw_dump_images
+      # - ./Cache:/app/Cache
 
   nginx:
     container_name: file_server
