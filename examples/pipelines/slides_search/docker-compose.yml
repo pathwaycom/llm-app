@@ -1,5 +1,3 @@
-version: '3.11.9'
-
 services:
   app:
     container_name: pathway_app

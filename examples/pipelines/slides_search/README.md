@@ -158,13 +158,13 @@ python app.py
 Build the Docker with:
 
 ```bash
-docker-compose build
+docker compose build
 ```
 
 And, run with:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 This will start all three components of the demo.
