@@ -97,15 +97,19 @@ if __name__ == "__main__":
 
     chat = llms.OpenAIChat(
         model="gpt-4o",
-        retry_strategy=ExponentialBackoffRetryStrategy(max_retries=6),
+        retry_strategy=ExponentialBackoffRetryStrategy(
+            max_retries=6, initial_delay=2500, backoff_factor=2.5
+        ),
         cache_strategy=DiskCache(),
         temperature=0.0,
+        capacity=3,  # reduce this in case you are hitting API throttle limits
     )
 
     parser = SlideParser(
         detail_parse_schema=pydantic_schema,
         run_mode="parallel",
         include_schema_in_text=False,
+        llm=chat,
     )
     embedder = embedders.OpenAIEmbedder(cache_strategy=DiskCache())
 

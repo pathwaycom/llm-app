@@ -7,6 +7,7 @@ This app template will help you build a multi-modal search service using `GPT-4o
 How is this different?
 
 * Build highly accurate RAG pipelines powered by indexes that are updated in real-time.
+* All of the steps, including parsing, embedding and indexing happen locally on your computer. 
 * Pathway uses vision language models to understand and index your presentations and PDFs, automatically updating as changes are made.
 * Get started with a minimalistic and production-ready approach.
 
@@ -22,6 +23,9 @@ For a quick start, you need to only change the following fields:
 
 This app template is available for free via [Pathway Scale](https://pathway.com/features). Get your [license key here](https://pathway.com/user/license) and fill in the `PATHWAY_LICENSE_KEY` here in the `.env` file.
 
+To learn more about configuring the input sources, how to overcome OpenAI limits and other information, check out the [configuration section below](#prerequisitesconfiguration).
+> **Note:** Pathway API is only used for logging basic statistics, everything happens and stays in your computer, except the OpenAI API calls. No personal or private data will be sent to Pathway servers. Handling of the data, processing, parsing and indexing are done locally.
+
 ## How it Helps
 
 **1) Improved Efficiency:**
@@ -31,7 +35,7 @@ This app template is available for free via [Pathway Scale](https://pathway.com/
 
 **2) Enhanced Organization**
 
-* **Automated Categorization:** You can organize your slide library by topic, project, or other criteria. Configure the schema file to cusomize the parsed fields.
+* **Automated Categorization:** You can organize your slide library by topic, project, or other criteria. Configure the schema file to customize the parsed fields.
 
 **3) Enhanced Reliability**
 
@@ -114,15 +118,31 @@ This folder contains several components necessary for setting up and running the
     * You can refer to the stub file `.env.example` in this repository.
     * Note: This is only needed in OpenAI LLMs and embedders. It is also possible to use other multi-modal, local LLMs and embedders.
 
+    **OpenAI API Usage**:
+    * This app relies on `gpt-4o` model for image parsing. OpenAI currently limits the usage to paid users only. It is possible to use any other model (including local models) with the modules under the `pathway.xpacks`.
+    * If you are experiencing API throttle, you can set the `capacity` parameter of the LLM instance `llms.OpenAIChat` to be lower. This parameter defines the number of parallel requests. Or, it is possible to disable parallel requests and only parse sequentially by changing the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
+
 2. **Pathway’s License Key**: 
     * This app template is available for free via [Pathway Scale](https://pathway.com/features).
     * Get your [license key here](https://pathway.com/user/license).
+    * **Note:** Pathway API is only used for logging basic statistics, everything happens and stays in your computer except the OpenAI API calls. No personal or private data will be sent to Pathway servers.
 
 3. **SCHEMA_FILE_PATH**:
     * Path to file that defines the schema to be parsed. It can be kept as default and the `parse_schema.yaml` can be configured.
+    * **Note:** If you intend the use the default UI, `category` and the `language` fields in the defined schema above are needed for the filtering options in the UI. UI will not function properly without them.
 
 4. **SEARCH_TOPK**:
     * Number of elements to be retrieved from the index by default.
+
+### **Configuring the Inputs**
+
+By default, the app takes the files under the `./data/` folder as input. Inputs can be set by adding more entries to the `sources` list under the `app.py`.
+
+It is possible to configure the app to use any kind of input, `Google Drive`, `Microsoft 365 SharePoint`, or a `local directory` to name a few.
+You can also use other kind of data sources using the [connectors](https://pathway.com/developers/user-guide/connecting-to-data/connectors) provided by Pathway.
+
+Pathway polls the changes with low latency. So, if something changes in the tracked files, the corresponding change is reflected in real-time, and search results are updated accordingly.
+To learn more about the data sources, you can check out [demo question answering](../demo-question-answering/README.md#data-sources)
 
 ## How to run the project
 
