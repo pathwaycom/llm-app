@@ -1,0 +1,7 @@
+pdf2image
+load_dotenv==0.1.0
+openai >= 1.6
+instructor == 1.2.6
+tenacity != 8.4.0
+Office365-REST-Python-Client >= 2.5.3
+unstructured >= 0.10.28,< 0.15

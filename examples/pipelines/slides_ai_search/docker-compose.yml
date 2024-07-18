@@ -33,6 +33,7 @@ services:
       - ./storage/pw_dump_images:/app/pw_dump_images
 
   ui:
+    container_name: pathway_ui
     build:
       context: .
       dockerfile: Dockerfile.ui

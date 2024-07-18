@@ -102,7 +102,7 @@ if __name__ == "__main__":
         ),
         cache_strategy=DiskCache(),
         temperature=0.0,
-        capacity=3,  # reduce this in case you are hitting API throttle limits
+        capacity=2,  # reduce this in case you are hitting API throttle limits
     )
 
     parser = SlideParser(
