@@ -53,8 +53,16 @@ def dump_img_callback(key, row, time, is_addition):
 def dump_file_callback(key, row, time, is_addition):
     # save parsed files
     file_name = row["path"].value.split("/")[-1]
-    with open(f"{FILE_DUMP_FOLDER}/{file_name}", "wb") as f:
-        f.write(row["data"])
+    file_path = f"{FILE_DUMP_FOLDER}/{file_name}"
+    if is_addition:
+        with open(file_path, "wb") as f:
+            f.write(row["data"])
+    else:
+        try:
+            os.remove(file_path)
+            logging.info(f"Removed file: {file_path}")
+        except Exception as e:
+            logging.info("Error removing %s: %s", file_name, e)
 
 
 if __name__ == "__main__":
