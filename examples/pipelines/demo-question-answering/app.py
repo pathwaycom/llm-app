@@ -1,10 +1,11 @@
 import logging
 import sys
-
+import os
 import click
 import pathway as pw
 import yaml
 from dotenv import load_dotenv
+
 from pathway.udfs import DiskCache, ExponentialBackoffRetryStrategy
 from pathway.xpacks.llm import embedders, llms, parsers, splitters
 from pathway.xpacks.llm.question_answering import BaseRAGQuestionAnswerer
@@ -22,7 +23,6 @@ logging.basicConfig(
 )
 
 load_dotenv()
-
 
 def data_sources(source_configs) -> list[pw.Table]:
     sources = []
@@ -55,27 +55,25 @@ def data_sources(source_configs) -> list[pw.Table]:
 
     return sources
 
-
 @click.command()
 @click.option("--config_file", default="config.yaml", help="Config file to be used.")
-def run(
-    config_file: str = "config.yaml",
-):
+def run(config_file: str = "config.yaml"):
     with open(config_file) as config_f:
         configuration = yaml.safe_load(config_f)
 
-    GPT_MODEL = configuration["llm_config"]["model"]
+    LLM_MODEL = configuration["llm_config"]["model"]
 
-    embedder = embedders.OpenAIEmbedder(
-        model="text-embedding-ada-002",
-        cache_strategy=DiskCache(),
+    embedding_model = "avsolatorio/GIST-small-Embedding-v0"
+
+    embedder = embedders.SentenceTransformerEmbedder(
+        embedding_model,
+        call_kwargs={"show_progress_bar": False}
     )
 
-    chat = llms.OpenAIChat(
-        model=GPT_MODEL,
+    chat = llms.LiteLLMChat(
+        model=LLM_MODEL,
         retry_strategy=ExponentialBackoffRetryStrategy(max_retries=6),
         cache_strategy=DiskCache(),
-        temperature=0.05,
     )
 
     host_config = configuration["host_config"]
@@ -93,7 +91,6 @@ def run(
     rag_app.build_server(host=host, port=port)
 
     rag_app.run_server(with_cache=True, terminate_on_error=False)
-
 
 if __name__ == "__main__":
     run()
