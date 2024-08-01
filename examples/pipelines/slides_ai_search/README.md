@@ -159,7 +159,75 @@ cd examples/pipelines/slides_ai_search
 
 > Note: If your OpenAI API usage is throttled, you may want to change the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
 
-### Locally
+### Fully locally using a local LLM and Embedder
+
+To run the app fully locally, without needing any API access, we use [vLLM](https://github.com/vllm-project/vllm) and open source embedder from the HuggingFace.
+
+#### Running the LLM
+We use Phi 3 Vision for its relatively small size and good performance. It is possible to use any other VLM.
+
+1. **Download and Install vLLM:**
+
+See the [installation page](https://docs.vllm.ai/en/latest/getting_started/installation.html).
+
+2. **Run the model:**
+
+The following command will run the Phi 3 vision model and mimic the OpenAI API.
+
+```bash
+python -m vllm.entrypoints.openai.api_server --model microsoft/Phi-3-vision-128k-instruct --trust-remote-code --dtype=half --image-input-type pixel_values --image-token-id=32044 --image-input-shape=1,3,1008,1344 --image-feature-size=1921 --max-model-len=42500 --gpu-memory-utilization 0.9  --swap-space 16 --max-num-seqs 65
+```
+
+Check if the model is available with:
+
+```bash
+curl http://localhost:8000/v1/completions \ns \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/Phi-3-vision-128k-instruct",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'
+```
+
+
+#### Set the LLM Instance in the app
+
+```python
+chat = llms.OpenAIChat(
+    model="microsoft/Phi-3-vision-128k-instruct",
+    temperature=0.0,
+    capacity=1,
+    base_url="http://localhost:8000/v1",
+    api_key="ignore the key, not needed",
+    cache_strategy=DiskCache(),
+    retry_strategy=ExponentialBackoffRetryStrategy(max_retries=3),
+)
+```
+
+This will use your local Phi 3 vision model as the LLM for parsing the slides.
+
+#### Set an open-source embedder model for embeddings
+
+Here, we can check [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) to find a good-performing embedder model. 
+From performance/computational-cost standpoint, `avsolatorio/GIST-Embedding-v0`, `avsolatorio/GIST-small-Embedding-v0`, `mixedbread-ai/mxbai-embed-large-v1`, `Alibaba-NLP/gte-large-en-v1.5` are some of the better models.
+
+Here, we go with the `avsolatorio/GIST-small-Embedding-v0`. 
+Note that, larger models may take longer to process the inputs.
+
+We replace the `embedder` in the `app.py` with the following embedding model:
+
+```python
+embedding_model = "avsolatorio/GIST-small-Embedding-v0"
+
+embedder = embedders.SentenceTransformerEmbedder(
+    embedding_model, call_kwargs={"show_progress_bar": False}
+)
+```
+
+
+### Running without Docker
 Running the whole demo without Docker is not suggested as there are three components. 
 
 1. **Download and Install LibreOffice:**
