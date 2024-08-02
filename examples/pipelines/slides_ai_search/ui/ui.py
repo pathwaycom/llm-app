@@ -27,11 +27,11 @@ logging.basicConfig(
     force=True,
 )
 
-st.set_page_config(page_title="Find the right slide")  # ,page_icon="favicon.ico"
-
-
 logger = logging.getLogger("streamlit")
 logger.setLevel(logging.INFO)
+
+st.set_page_config(page_title="Find the right slide")
+
 
 conn = RAGClient(url=f"http://{PATHWAY_HOST}:{PATHWAY_PORT}")
 
@@ -199,6 +199,12 @@ with st.sidebar:
         For other file types, convert to `PDF` or contact **Pathway**."""
     )
     # st.markdown(drive_htm, unsafe_allow_html=True)
+
+    st.info(
+        body="See the source code [here](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/slides_ai_search).",  # noqa: E501
+        icon=":material/code:",
+    )
+
     file_names = [i.split("/")[-1] for i in available_files]
     links = [get_slide_link(i) for i in file_names]
 
@@ -210,7 +216,7 @@ with st.sidebar:
     all_drive_files = get_all_drive_files()
     all_drive_files = [urllib.parse.unquote(i) for i in all_drive_files]
     all_drive_files = [i for i in all_drive_files if i.endswith(".pdf")]
-    logger.info(f"All drive files: {all_drive_files}\nIndexed files: {file_names}")
+    logger.info(f"All source files: {all_drive_files}\nIndexed files: {file_names}")
     currently_processing_files = set(all_drive_files) - set(file_names)
 
     st.markdown("\n\n", unsafe_allow_html=True)
@@ -285,11 +291,6 @@ def combine_filters(*args: str | None) -> str:
     return " && ".join([arg for arg in args if arg is not None])
 
 
-icon_thumbs_up = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M7.493 18.5c-.425 0-.82-.236-.975-.632A7.5 7.5 0 0 1 6 15.125a7.47 7.47 0 0 1 1.602-4.634c.151-.192.373-.309.6-.397c.473-.183.89-.514 1.212-.924a9 9 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.5 4.5 0 0 0 .322-1.672V2.75A.75.75 0 0 1 15 2a2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218c-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715q.068.633.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23a4.5 4.5 0 0 1-1.423-.23l-3.114-1.04a4.5 4.5 0 0 0-1.423-.23zm-5.162-7.773a12 12 0 0 0-.831 4.398a12 12 0 0 0 .52 3.507C2.28 19.482 3.105 20 3.994 20H4.9c.445 0 .72-.498.523-.898a9 9 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666c.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227"/></svg>'  # noqa: E501
-
-icon_thumbs_down = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M15.73 5.5h1.035A7.47 7.47 0 0 1 18 9.625a7.47 7.47 0 0 1-1.235 4.125h-.148c-.806 0-1.533.446-2.031 1.08a9 9 0 0 1-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.5 4.5 0 0 0-.322 1.672v.633A.75.75 0 0 1 9 22a2.25 2.25 0 0 1-2.25-2.25c0-1.152.26-2.243.723-3.218c.266-.558-.107-1.282-.725-1.282H3.622c-1.026 0-1.945-.694-2.054-1.715A12 12 0 0 1 1.5 12.25c0-2.848.992-5.464 2.649-7.521C4.537 4.247 5.136 4 5.754 4H9.77a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23m5.939 8.523c.536-1.362.831-2.845.831-4.398c0-1.22-.182-2.398-.52-3.507c-.26-.85-1.084-1.368-1.973-1.368H19.1c-.445 0-.72.498-.523.898c.591 1.2.924 2.55.924 3.977a8.96 8.96 0 0 1-1.302 4.666c-.245.403.028.959.5.959h1.053c.832 0 1.612-.453 1.918-1.227"/></svg>'  # noqa: E501
-
-
 css = """
 <style>
 .slider-container {
@@ -326,6 +327,9 @@ css = """
 </style>"""
 
 
+st.markdown(css, unsafe_allow_html=True)
+
+
 def get_ext_img_with_href(url, target_url, *args) -> str:
     width: int = 600
     margin = 20
@@ -355,10 +359,8 @@ def get_ext_img_with_href(url, target_url, *args) -> str:
     return html_code
 
 
-st.markdown(css, unsafe_allow_html=True)
-
-
 def log_rate_answer(event, idx, kwargs):
+    """Log rate events to the logger."""
     logger.info({"_type": "rate_event", "rating": event, "rank": idx, **kwargs})
 
 

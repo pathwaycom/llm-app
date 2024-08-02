@@ -121,6 +121,7 @@ This folder contains several components necessary for setting up and running the
     **OpenAI API Usage**:
     * This app relies on `gpt-4o` model for image parsing. OpenAI currently limits the usage to paid users only. It is possible to use any other model (including local models) with the modules under the `pathway.xpacks`.
     * If you are experiencing API throttle, you can set the `capacity` parameter of the LLM instance `llms.OpenAIChat` to be lower. This parameter defines the number of parallel requests. Or, it is possible to disable parallel requests and only parse sequentially by changing the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
+    * Update: The newly released `gpt-4o-mini` model has a similar image understanding performance at lower costs, it is also another good option.
 
 2. **Pathway’s License Key**: 
     * This app template is available for free via [Pathway Scale](https://pathway.com/features).
