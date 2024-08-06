@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM pathwaycom/pathway:latest
 
 WORKDIR /app
 

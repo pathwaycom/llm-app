@@ -1,4 +1,4 @@
-FROM pathwaycom/pathway:0.13.2-slim
+FROM pathwaycom/pathway:0.14.1-slim
 
 ENV DOCKER_BUILDKIT=1
 ENV PYTHONUNBUFFERED=1

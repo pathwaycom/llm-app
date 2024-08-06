@@ -203,7 +203,7 @@ This data source is the part of commercial Pathway offering. You can try it onli
 ## How to run the project
 
 ### Locally
-If you are on Windows, please refer to [running with docker](#Running-with-Docker) section below.
+If you are on Windows, please refer to [running with docker](#With-Docker) section below.
 
 To run locally, change your directory in the terminal to this folder. Then, run the app with `python`.
 
