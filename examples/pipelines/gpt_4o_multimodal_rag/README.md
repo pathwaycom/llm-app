@@ -115,8 +115,8 @@ You can omit the ```-v `pwd`/data:/app/data``` part if you are not using local f
 # Make sure you are in the right directory.
 cd examples/pipelines/gpt_4o_multimodal_rag/
 
-# Build the image in this folder
-docker build -t rag .
+# Build the image in this folder, make sure you have the latest Pathway image
+docker build --pull -t rag .
 
 # Run the image, mount the `data` folder into image and expose the port `8000`
 docker run -v `pwd`/data:/app/data -p 8000:8000 rag

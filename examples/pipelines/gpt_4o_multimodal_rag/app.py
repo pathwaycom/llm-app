@@ -2,11 +2,21 @@ import logging
 import os
 
 # flake8: noqa
-os.environ["TESSDATA_PREFIX"] = (
-    "/usr/share/tesseract/tessdata/"  # fix for tesseract ocr
-)
+for tesseract_dir in [
+    "/usr/share/tesseract/tessdata/",
+    "/usr/share/tesseract-ocr/5/tessdata",
+]:
+    if os.path.exists(tesseract_dir):
+        os.environ["TESSDATA_PREFIX"] = tesseract_dir  # fix for tesseract ocr
+        break
 
+import sys
+
+import click
 import pathway as pw
+import pathway.io.fs as io_fs
+import pathway.io.gdrive as io_gdrive
+import yaml
 from dotenv import load_dotenv
 from pathway.udfs import DiskCache, ExponentialBackoffRetryStrategy
 from pathway.xpacks.llm import embedders, llms, prompts  # , parsers, splitters
@@ -28,18 +38,54 @@ logging.basicConfig(
 )
 
 
-if __name__ == "__main__":
-    path = "./data/"
+def data_sources(source_configs) -> list[pw.Table]:
+    sources = []
+    for source_config in source_configs:
+        if source_config["kind"] == "local":
+            source = pw.io.fs.read(
+                **source_config["config"],
+                format="binary",
+                with_metadata=True,
+            )
+            sources.append(source)
+        elif source_config["kind"] == "gdrive":
+            source = pw.io.gdrive.read(
+                **source_config["config"],
+                with_metadata=True,
+            )
+            sources.append(source)
+        elif source_config["kind"] == "sharepoint":
+            try:
+                import pathway.xpacks.connectors.sharepoint as io_sp
 
-    folder = pw.io.fs.read(
-        path=path,
-        format="binary",
-        with_metadata=True,
-    )
+                source = io_sp.read(**source_config["config"], with_metadata=True)
+                sources.append(source)
+            except ImportError:
+                print(
+                    "The Pathway Sharepoint connector is part of the commercial offering, "
+                    "please contact us for a commercial license."
+                )
+                sys.exit(1)
 
-    sources = [
-        folder,
-    ]  # define the inputs (local folders & files, google drive, sharepoint, ...)
+    return sources
+
+
+@click.command()
+@click.option("--config_file", default="config.yaml", help="Config file to be used.")
+def run(
+    config_file: str = "config.yaml",
+):
+    with open(config_file) as config_f:
+        configuration = yaml.safe_load(config_f)
+
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    if openai_api_key is None:
+        print(
+            "Please set OPENAI_API_KEY either as a configuration variable, or in the .env file"
+        )
+        sys.exit(1)
+
+    sources = data_sources(configuration["sources"])
 
     chat = llms.OpenAIChat(
         model="gpt-4o",
@@ -47,9 +93,6 @@ if __name__ == "__main__":
         cache_strategy=DiskCache(),
         temperature=0.0,
     )
-
-    app_host = "0.0.0.0"
-    app_port = 8000
 
     parser = OpenParse()
     embedder = embedders.OpenAIEmbedder(cache_strategy=DiskCache())
@@ -68,6 +111,12 @@ if __name__ == "__main__":
         short_prompt_template=prompts.prompt_qa,
     )
 
-    app.build_server(host=app_host, port=app_port)
+    host_config = configuration["host_config"]
+    host, port = host_config["host"], host_config["port"]
+    app.build_server(host=host, port=port)
 
     app.run_server(with_cache=True, terminate_on_error=False)
+
+
+if __name__ == "__main__":
+    run()

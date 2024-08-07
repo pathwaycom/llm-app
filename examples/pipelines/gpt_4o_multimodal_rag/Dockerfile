@@ -3,7 +3,7 @@ FROM pathwaycom/pathway:latest
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y python3-opencv \
+    && apt-get install -y python3-opencv tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 COPY requirements.txt .
