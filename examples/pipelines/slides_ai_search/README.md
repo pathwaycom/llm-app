@@ -7,7 +7,7 @@ This app template will help you build a multi-modal search service using `GPT-4o
 How is this different?
 
 * Build highly accurate RAG pipelines powered by indexes that are updated in real-time.
-* All of the steps, including parsing, embedding and indexing happen locally on your computer. 
+* All of the steps, including parsing, embedding and indexing happen locally on your machine (local or cloud). 
 * Pathway uses vision language models to understand and index your presentations and PDFs, automatically updating as changes are made.
 * Get started with a minimalistic and production-ready approach.
 
@@ -43,11 +43,11 @@ To learn more about configuring the input sources, how to overcome OpenAI limits
 
 **4) Automated Slide Parsing:** 
 
-* Process PPTX and PDF slide decks with vision language models to extract the content.
+* Process PPTX and PDF slide decks with vision language models to extract the content. (The default setup loads PDF's).
 
 **5) Flexible Data Sources:** 
 
-* Compatible with local directories, SharePoint, Google Drive, and other Pathway connectors, ensuring a wide range of application scenarios can be supported.
+* Compatible with local directories, SharePoint, Google Drive, and other [Pathway connectors](https://pathway.com/developers/user-guide/connect/pathway-connectors), ensuring a wide range of application scenarios can be supported.
 
 By automating the extraction and retrieval of slide information, this app addresses the critical pain point of managing and utilizing extensive slide decks efficiently, enhancing productivity and information accuracy for sales teams.
 
@@ -71,14 +71,14 @@ This demo consists of three parts:
 1. **Data Sources**:
     * The application reads slide files (PPTX and PDF) from a specified directory. The directory is set to `./data/`in the `app.py` file.
     * In the default app setup, the connected folder is a local file folder. You can add more folders and file sources, such as [Google Drive](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#google-drive-connector) or [Sharepoint](https://pathway.com/developers/user-guide/connecting-to-data/connectors/#tutorials), by adding a line of code to the template.
-    * More inputs can be added by configuring the `sources` list in the `app.py`.
+    * More inputs can be added by configuring the `sources` list in the `app.yaml`.
 
 
 ### **Slide Parsing and Indexing**
 
 
 1. **Parsing**:
-    * The [`SlideParser`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/parsers#pathway.xpacks.llm.parsers.SlideParser) from Pathway is used to parse the slides. The parser is configured to parse a text description and schema that is defined in the `parse_schema.yaml`.
+    * The [`SlideParser`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/parsers#pathway.xpacks.llm.parsers.SlideParser) from Pathway is used to parse the slides. The parser is configured to parse a text description and schema that is defined in the `app.yaml`.
     * Our example schema includes fields such as `category`, `tags`, `title`, `main_color`, `language`, and `has_images`. This can be modified for specific use cases.
     * Note that, UI is configured to make use of two extracted fields `category` and `language`, these need to be kept for the UI to work. However, the app can still be used without the UI with different schemas or no parsed schema.
 2. **Embedding**:
@@ -86,7 +86,7 @@ This demo consists of three parts:
     * The embeddings are then stored in Pathway's vector store using the `SlidesVectorStoreServer`.
 3. **Metadata Handling**:
     * Images and files are dumped into local directories (`storage/pw_dump_images` and `storage/pw_dump_files`).
-    * Each slide gets a unique ID with `add_slide_id` function in the `app.py`. This helps with opening files and images from the the UI.
+    * Each slide gets a unique ID. This helps with opening files and images from the the UI.
     
 
 ### **Query Handling**
@@ -100,13 +100,14 @@ This folder contains several components necessary for setting up and running the
 
 
 1. **app.py**:
-    * The main application that sets up the slide search functionality. It configures the OpenAI chat model, slide parser, vector store, and initializes the DeckRetriever for handling queries.
-2. **parse_schema.yaml**:
-    * Defines the schema for parsing the slides and including fields such as `category`, `tags`, `title`, `main_color`, `language`, and `has_images`.
-    * These fields will be appended to the `metadata`, if you prefer to also add them to `text` field, set `include_schema_in_text` of `SlideParser` to `True`.
+    * The main application that sets up the slide search functionality. It initializes the OpenAI vision-language model, slide parser, vector store, and initializes the DeckRetriever for handling queries.
+2. **app.yaml**:
+    * Defines data sources, OpenAI vision-language model configuration, and other key settings.
+    * Defines the schema for parsing the slides and including fields such as `category`, `tags`, `title`, `main_color`, `language`, and `has_images`. These fields will be appended to the `metadata`, if you prefer to also add them to `text` field, set `include_schema_in_text` of `SlideParser` to `True`.
+    * **Note:** If you intend the use the default UI, `category` and the `language` fields in the schema are needed for the filtering options in the UI. The UI will not function properly without them.
+
 3. **.env**:
     * Config file for the environment variables, such as the OpenAI API key and Pathway key.
-
 
 ## **Prerequisites/Configuration**
 
@@ -128,16 +129,9 @@ This folder contains several components necessary for setting up and running the
     * Get your [license key here](https://pathway.com/user/license).
     * **Note:** Pathway API is only used for logging basic statistics, everything happens and stays in your computer except the OpenAI API calls. No personal or private data will be sent to Pathway servers.
 
-3. **SCHEMA_FILE_PATH**:
-    * Path to file that defines the schema to be parsed. It can be kept as default and the `parse_schema.yaml` can be configured.
-    * **Note:** If you intend the use the default UI, `category` and the `language` fields in the defined schema above are needed for the filtering options in the UI. UI will not function properly without them.
-
-4. **SEARCH_TOPK**:
-    * Number of elements to be retrieved from the index by default.
-
 ### **Configuring the Inputs**
 
-By default, the app takes the files under the `./data/` folder as input. Inputs can be set by adding more entries to the `sources` list under the `app.py`.
+By default, the app takes the files under the `./data/` folder as input. Inputs can be set by adding more entries to the `sources` list under the `app.yaml`.
 
 It is possible to configure the app to use any kind of input, `Google Drive`, `Microsoft 365 SharePoint`, or a `local directory` to name a few.
 You can also use other kind of data sources using the [connectors](https://pathway.com/developers/user-guide/connecting-to-data/connectors) provided by Pathway.
@@ -145,7 +139,7 @@ You can also use other kind of data sources using the [connectors](https://pathw
 Pathway polls the changes with low latency. So, if something changes in the tracked files, the corresponding change is reflected in real-time, and search results are updated accordingly.
 To learn more about the data sources, you can check out [demo question answering](../demo-question-answering/README.md#data-sources)
 
-## How to run the project
+## How to run the project on your machine
 
 First, clone the Pathway LLM App Repository
 
@@ -160,97 +154,7 @@ cd examples/pipelines/slides_ai_search
 
 > Note: If your OpenAI API usage is throttled, you may want to change the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
 
-### Fully locally using a local LLM and Embedder
-
-To run the app fully locally, without needing any API access, we use [vLLM](https://github.com/vllm-project/vllm) and open source embedder from the HuggingFace.
-
-#### Running the LLM
-We use Phi 3 Vision for its relatively small size and good performance. It is possible to use any other VLM.
-
-1. **Download and Install vLLM:**
-
-See the [installation page](https://docs.vllm.ai/en/latest/getting_started/installation.html).
-
-2. **Run the model:**
-
-The following command will run the Phi 3 vision model and mimic the OpenAI API.
-
-```bash
-python -m vllm.entrypoints.openai.api_server --model microsoft/Phi-3-vision-128k-instruct --trust-remote-code --dtype=half --image-input-type pixel_values --image-token-id=32044 --image-input-shape=1,3,1008,1344 --image-feature-size=1921 --max-model-len=42500 --gpu-memory-utilization 0.9  --swap-space 16 --max-num-seqs 65
-```
-
-Check if the model is available with:
-
-```bash
-curl http://localhost:8000/v1/completions \ns \
-    -H "Content-Type: application/json" \
-    -d '{
-        "model": "microsoft/Phi-3-vision-128k-instruct",
-        "prompt": "San Francisco is a",
-        "max_tokens": 7,
-        "temperature": 0
-    }'
-```
-
-
-#### Set the LLM Instance in the app
-
-```python
-chat = llms.OpenAIChat(
-    model="microsoft/Phi-3-vision-128k-instruct",
-    temperature=0.0,
-    capacity=1,
-    base_url="http://localhost:8000/v1",
-    api_key="ignore the key, not needed",
-    cache_strategy=DiskCache(),
-    retry_strategy=ExponentialBackoffRetryStrategy(max_retries=3),
-)
-```
-
-This will use your local Phi 3 vision model as the LLM for parsing the slides.
-
-#### Set an open-source embedder model for embeddings
-
-Here, we can check [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) to find a good-performing embedder model. 
-From performance/computational-cost standpoint, `avsolatorio/GIST-Embedding-v0`, `avsolatorio/GIST-small-Embedding-v0`, `mixedbread-ai/mxbai-embed-large-v1`, `Alibaba-NLP/gte-large-en-v1.5` are some of the better models.
-
-Here, we go with the `avsolatorio/GIST-small-Embedding-v0`. 
-Note that, larger models may take longer to process the inputs.
-
-We replace the `embedder` in the `app.py` with the following embedding model:
-
-```python
-embedding_model = "avsolatorio/GIST-small-Embedding-v0"
-
-embedder = embedders.SentenceTransformerEmbedder(
-    embedding_model, call_kwargs={"show_progress_bar": False}
-)
-```
-
-
-### Running without Docker
-Running the whole demo without Docker is not suggested as there are three components. 
-
-1. **Download and Install LibreOffice:**
-    * Download LibreOffice from the [LibreOffice website](https://www.libreoffice.org/download/download-libreoffice).
-    * Follow the installation instructions specific to your operating system. \
-
-2. **Verify LibreOffice Installation:**
-    * Download LibreOffice from the LibreOffice website.
-    * Open a terminal or command prompt and run the following command:
-    * You should see the LibreOffice version information, indicating LibreOffice is installed correctly.
-
-        **Purpose:** LibreOffice helps with converting PPTX files into PDFs, which is essential for the document processing workflow in the Slides AI Search App.
-
-If you are on Windows, please refer to the [running with Docker](#Running-with-docker) section below. 
-
-To run the Pathway app without the UI, 
-
-```bash
-python app.py
-```
-
-### Running with Docker 
+## Deploying and running with Docker 
 
 Build the Docker with:
 
@@ -264,7 +168,7 @@ And, run with:
 docker compose up
 ```
 
-This will start all three components of the demo.
+This will start all three components of the demo. This deployment method is recommended for production use.
 
 ## Using the app
 
@@ -331,6 +235,95 @@ conn.pw_ai_answer("introduction slide")
 ```
 > `[{'dist': 0.47761982679367065, 'metadata': ...`
 
+
+## Advanced variant: Run locally without Open AI, using a local LLM and Embedder
+
+To run the app fully locally, without needing any API access, we use [vLLM](https://github.com/vllm-project/vllm) and open source embedder from the HuggingFace.
+
+### Running the local LLM
+We use Phi 3 Vision for its relatively small size and good performance. It is possible to use any other VLM.
+
+1. **Download and Install vLLM:**
+
+See the [installation page](https://docs.vllm.ai/en/latest/getting_started/installation.html).
+
+2. **Run the model:**
+
+The following command will run the Phi 3 vision model and mimic the OpenAI API.
+
+```bash
+python -m vllm.entrypoints.openai.api_server --model microsoft/Phi-3-vision-128k-instruct --trust-remote-code --dtype=half --image-input-type pixel_values --image-token-id=32044 --image-input-shape=1,3,1008,1344 --image-feature-size=1921 --max-model-len=42500 --gpu-memory-utilization 0.9  --swap-space 16 --max-num-seqs 65
+```
+
+Check if the model is available with:
+
+```bash
+curl http://localhost:8000/v1/completions \ns \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/Phi-3-vision-128k-instruct",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'
+```
+
+### Set the LLM Instance in the app
+
+```python
+chat = llms.OpenAIChat(
+    model="microsoft/Phi-3-vision-128k-instruct",
+    temperature=0.0,
+    capacity=1,
+    base_url="http://localhost:8000/v1",
+    api_key="ignore the key, not needed",
+    cache_strategy=DiskCache(),
+    retry_strategy=ExponentialBackoffRetryStrategy(max_retries=3),
+)
+```
+
+This will use your local Phi 3 vision model as the LLM for parsing the slides.
+
+### Set an open-source embedder model for embeddings
+
+Here, we can check [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) to find a good-performing embedder model. 
+From performance/computational-cost standpoint, `avsolatorio/GIST-Embedding-v0`, `avsolatorio/GIST-small-Embedding-v0`, `mixedbread-ai/mxbai-embed-large-v1`, `Alibaba-NLP/gte-large-en-v1.5` are some of the better models.
+
+Here, we go with the `avsolatorio/GIST-small-Embedding-v0`. 
+Note that, larger models may take longer to process the inputs.
+
+We replace the `embedder` with the following embedding model in `app.py`:
+
+```python
+embedding_model = "avsolatorio/GIST-small-Embedding-v0"
+
+embedder = embedders.SentenceTransformerEmbedder(
+    embedding_model, call_kwargs={"show_progress_bar": False}
+)
+```
+Alternatively you can also specify this embedder configuration through `app.yaml`.
+
+## Advanced variant: Running without Docker
+Running the whole demo without Docker is a bit tricky as there are three components. 
+
+1. **Download and Install LibreOffice:**
+    * Download LibreOffice from the [LibreOffice website](https://www.libreoffice.org/download/download-libreoffice).
+    * Follow the installation instructions specific to your operating system. \
+
+2. **Verify LibreOffice Installation:**
+    * Download LibreOffice from the LibreOffice website.
+    * Open a terminal or command prompt and run the following command:
+    * You should see the LibreOffice version information, indicating LibreOffice is installed correctly.
+
+        **Purpose:** LibreOffice helps with converting PPTX files into PDFs, which is essential for the document processing workflow in the Slides AI Search App.
+
+If you are on Windows, please refer to the [running with Docker](#Running-with-docker) section below. 
+
+To run the Pathway app without the UI, 
+
+```bash
+python app.py
+```
 
 ## Not sure how to get started? 
 

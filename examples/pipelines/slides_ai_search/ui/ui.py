@@ -1,8 +1,10 @@
-# flake8 ignore:E501
+# Copyright © 2024 Pathway
+
 import logging
 import os
 import urllib.parse
 from itertools import cycle
+from pathlib import PurePosixPath
 
 import requests
 import streamlit as st
@@ -10,15 +12,15 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from pathway.xpacks.llm.question_answering import RAGClient
 
-load_dotenv()
+try:
+    load_dotenv()
+except Exception:
+    pass
 
-PATHWAY_HOST = os.environ.get(
-    "PATHWAY_NW_HOST", "pathway_app"
-)  # set in the network settings of docker-compose
+PATHWAY_HOST = os.environ.get("PATHWAY_HOST", "app")
 PATHWAY_PORT = os.environ.get("PATHWAY_PORT", 8000)
 
-FILE_SERVER_BASE_URL = os.environ.get("FILE_SERVER_URL", "http://file_server:8080/")
-DOCKER_FILE_SV_BASE_URL = "http://file_server:8080/documents"  # for internal requests
+st.set_page_config(page_title="Find the right slide", page_icon="favicon.ico")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,16 +32,13 @@ logging.basicConfig(
 logger = logging.getLogger("streamlit")
 logger.setLevel(logging.INFO)
 
-st.set_page_config(page_title="Find the right slide")
-
-
 conn = RAGClient(url=f"http://{PATHWAY_HOST}:{PATHWAY_PORT}")
 
+file_server_base_url = os.environ.get("FILE_SERVER_URL", "http://nginx:8080/")
 
-file_server_image_base_url = f"{FILE_SERVER_BASE_URL}images"
+file_server_image_base_url = f"{file_server_base_url}images"
 
-file_server_pdf_base_url = f"{FILE_SERVER_BASE_URL}documents"
-
+file_server_pdf_base_url = f"{file_server_base_url}documents"
 
 note = """
 <H4><b>Search your slide decks"""
@@ -81,6 +80,7 @@ div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-primary"
     unsafe_allow_html=True,
 )
 
+
 question = st.text_input(label="", placeholder="Why buy")
 
 
@@ -90,49 +90,34 @@ def get_options_list(metadata_list: list[dict], opt_key: str) -> list:
     return list(options)
 
 
-def get_image_serve_url(metadata: dict) -> str:
-    slide_name_enc, page, tot_pages = (
-        metadata["slide_id"].replace(".png", "").split("_")
-    )
+def parse_slide_id_components(slide_id: str) -> tuple[str, int, int]:
+    stem = PurePosixPath(slide_id).stem
+    (name_page, _, page_count) = stem.rpartition("_")
+    (name, _, page) = stem.rpartition("_")
+    return (name, int(page), int(page_count))
 
-    page, tot_pages = int(page), int(tot_pages)
-    name = f"{slide_name_enc}_{page}_{tot_pages}.png"
-    base_url: str = file_server_image_base_url
-    return f"{base_url}/{name}"
+
+def create_slide_url(name: str, page: int, page_count: int) -> str:
+    return f"{file_server_image_base_url}/{name}_{page}_{page_count}.png"
+
+
+def get_image_serve_url(metadata: dict) -> str:
+    name, page, page_count = parse_slide_id_components(metadata["slide_id"])
+    return create_slide_url(name, page, page_count)
 
 
 def get_adjacent_image_urls(metadata: dict) -> list[str]:
     logger.info(
         {"_type": "create_adjacent_image_urls", "slide_id": metadata["slide_id"]}
     )
-    slide_name_enc, page, tot_pages = (
-        metadata["slide_id"].replace(".png", "").split("_")
-    )
-    base_url: str = file_server_image_base_url
 
-    page, tot_pages = int(page), int(tot_pages)
+    name, page, page_count = parse_slide_id_components(metadata["slide_id"])
 
     ret_images = []
-
-    if page > 1:
-        prev_img_name = f"{base_url}/{slide_name_enc}_{page - 2}_{tot_pages}.png"
-        ret_images.append(prev_img_name)
-
-    if page > 0:
-        prev_img_name = f"{base_url}/{slide_name_enc}_{page - 1}_{tot_pages}.png"
-        ret_images.append(prev_img_name)
-
-    cur_img_name = f"{base_url}/{slide_name_enc}_{page}_{tot_pages}.png"
-    ret_images.append(cur_img_name)
-
-    if page + 1 < tot_pages:
-        next_img_name = f"{base_url}/{slide_name_enc}_{page + 1}_{tot_pages}.png"
-        ret_images.append(next_img_name)
-
-    if page + 2 < tot_pages:
-        next_img_name = f"{base_url}/{slide_name_enc}_{page + 2}_{tot_pages}.png"
-        ret_images.append(next_img_name)
-
+    for page in range(page - 2, page + 3):
+        if page < 0 or page >= page_count:
+            continue
+        ret_images.append(create_slide_url(name, page, page_count))
     return ret_images
 
 
@@ -140,7 +125,7 @@ st.session_state["available_categories"] = None
 st.session_state["available_languages"] = None
 
 logger.info("Requesting pw_list_documents...")
-document_meta_list = conn.pw_list_documents(keys=None)
+document_meta_list = conn.pw_list_documents(keys=[])
 logger.info("Received response pw_list_documents")
 
 st.session_state["document_meta_list"] = document_meta_list
@@ -166,7 +151,7 @@ def get_slide_link(file_name, page_num=None) -> str:
 
 def get_all_drive_files() -> list[str]:
     logger.info("request get_all_drive_files")
-    response = requests.get(DOCKER_FILE_SV_BASE_URL)
+    response = requests.get(file_server_pdf_base_url)
     logger.info("response get_all_drive_files")
 
     if response.status_code == 200:
@@ -180,26 +165,11 @@ def get_all_drive_files() -> list[str]:
     return file_links
 
 
-# DRIVE_ID = os.environ.get("DRIVE_ID", "foo")
-# DRIVE_URL = f"https://drive.google.com/drive/folders/{DRIVE_ID}"
-# drive_htm = f"""
-# <div style="display: flex; align-items: center; vertical-align: middle">
-#     <a href="{DRIVE_URL}" style="text-decoration:none;">
-#       <figure style="display: flex; vertical-align: middle; margin-right: 20px; align-items: center;">
-#         <img src="./app/static/Google_Drive_logo.png" width="30" alt="Google Drive Logo">
-#         <figcaption style="font-size: 18px; font-weight: bold; margin-left: 10px;">Connected Folder ⚡</figcaption>
-#       </figure>
-#     </a>
-# </div>
-# """
-
 with st.sidebar:
     st.info(
         """This demo app only allows `PDF` and `PPTX` documents.
         For other file types, convert to `PDF` or contact **Pathway**."""
     )
-    # st.markdown(drive_htm, unsafe_allow_html=True)
-
     st.info(
         body="See the source code [here](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/slides_ai_search).",  # noqa: E501
         icon=":material/code:",
@@ -215,7 +185,9 @@ with st.sidebar:
 
     all_drive_files = get_all_drive_files()
     all_drive_files = [urllib.parse.unquote(i) for i in all_drive_files]
-    all_drive_files = [i for i in all_drive_files if i.endswith(".pdf")]
+    all_drive_files = [
+        i for i in all_drive_files if i.endswith(".pdf") or i.endswith(".pptx")
+    ]
     logger.info(f"All source files: {all_drive_files}\nIndexed files: {file_names}")
     currently_processing_files = set(all_drive_files) - set(file_names)
 
@@ -279,17 +251,35 @@ with st.sidebar:
 
 def get_category_filter(category: str) -> str:
     return f"contains({str(category)}, category)"
+    if category == "No Filter":
+        return None
+    else:
+        return f"category == `{category}`"
 
 
 # TODO: merge these
 def get_language_filter(lang: str) -> str:
     return f"contains({str(lang)}, language)"
+    if lang == "No Filter":
+        return None
+    else:
+        return f"language == `{lang}`"
 
 
 def combine_filters(*args: str | None) -> str:
     """Construct single jmespath filter with `&&` from number of filters."""
     return " && ".join([arg for arg in args if arg is not None])
 
+
+@st.cache_resource()
+def get_b64img_with_href(bin_str, target_url, width: int = 350, margin=20):
+    html_code = f"""<a href="{target_url}"><img style="display: block; margin: {margin}px auto {margin}px auto" loading="lazy" src="data:image/png;base64,{bin_str}" width="{width}" /></a>"""  # noqa: E501
+    return html_code
+
+
+icon_thumbs_up = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M7.493 18.5c-.425 0-.82-.236-.975-.632A7.5 7.5 0 0 1 6 15.125a7.47 7.47 0 0 1 1.602-4.634c.151-.192.373-.309.6-.397c.473-.183.89-.514 1.212-.924a9 9 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.5 4.5 0 0 0 .322-1.672V2.75A.75.75 0 0 1 15 2a2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218c-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715q.068.633.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23a4.5 4.5 0 0 1-1.423-.23l-3.114-1.04a4.5 4.5 0 0 0-1.423-.23zm-5.162-7.773a12 12 0 0 0-.831 4.398a12 12 0 0 0 .52 3.507C2.28 19.482 3.105 20 3.994 20H4.9c.445 0 .72-.498.523-.898a9 9 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666c.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227"/></svg>'  # noqa: E501
+
+icon_thumbs_down = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M15.73 5.5h1.035A7.47 7.47 0 0 1 18 9.625a7.47 7.47 0 0 1-1.235 4.125h-.148c-.806 0-1.533.446-2.031 1.08a9 9 0 0 1-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.5 4.5 0 0 0-.322 1.672v.633A.75.75 0 0 1 9 22a2.25 2.25 0 0 1-2.25-2.25c0-1.152.26-2.243.723-3.218c.266-.558-.107-1.282-.725-1.282H3.622c-1.026 0-1.945-.694-2.054-1.715A12 12 0 0 1 1.5 12.25c0-2.848.992-5.464 2.649-7.521C4.537 4.247 5.136 4 5.754 4H9.77a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23m5.939 8.523c.536-1.362.831-2.845.831-4.398c0-1.22-.182-2.398-.52-3.507c-.26-.85-1.084-1.368-1.973-1.368H19.1c-.445 0-.72.498-.523.898c.591 1.2.924 2.55.924 3.977a8.96 8.96 0 0 1-1.302 4.666c-.245.403.028.959.5.959h1.053c.832 0 1.612-.453 1.918-1.227"/></svg>'  # noqa: E501
 
 css = """
 <style>
@@ -338,7 +328,7 @@ def get_ext_img_with_href(url, target_url, *args) -> str:
         return f"""
         <div class="slider-item">
                     <img src="{dc['url']}" width="90" />
-                </div>"""  # TODO: add href
+                </div>"""
 
     slider_images = "\n".join([get_img_html(dc) for dc in args])
 
@@ -360,7 +350,6 @@ def get_ext_img_with_href(url, target_url, *args) -> str:
 
 
 def log_rate_answer(event, idx, kwargs):
-    """Log rate events to the logger."""
     logger.info({"_type": "rate_event", "rating": event, "rank": idx, **kwargs})
 
 
@@ -458,5 +447,5 @@ if question:
     else:
         st.markdown(
             f"""No results were found for search query: `{question}`
-            and filter criteria: `{combined_query_filter}`"""
+            and filter criteria: `{combine_filters(*filter_ls)}`"""
         )

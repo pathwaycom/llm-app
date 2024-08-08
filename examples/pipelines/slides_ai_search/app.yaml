@@ -1,0 +1,73 @@
+sources:
+  - !pw.io.fs.read
+    path: data
+    format: binary
+    with_metadata: true
+
+  # - !pw.xpacks.connectors.sharepoint.read 
+  #   url: $SHAREPOINT_URL
+  #   tenant: $SHAREPOINT_TENANT
+  #   client_id: $SHAREPOINT_CLIENT_ID
+  #   cert_path: sharepointcert.pem
+  #   thumbprint: $SHAREPOINT_THUMBPRINT
+  #   root_path: $SHAREPOINT_ROOT
+  #   with_metadata: true
+  #   refresh_interval: 30
+
+  # - !pw.io.gdrive.read
+  #   object_id: $DRIVE_ID
+  #   service_user_credentials_file: gdrive_indexer.json
+  #   name_pattern:
+  #     - "*.pdf"
+  #     - "*.pptx"
+  #   object_size_limit: null
+  #   with_metadata: true
+  #   refresh_interval: 30
+
+llm: !pw.xpacks.llm.llms.OpenAIChat
+  model: "gpt-4o"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+    initial_delay: 2500
+    backoff_factor: 2.5
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0.0
+  capacity: 8 # reduce this in case you are hitting API throttle limits
+
+embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
+  cache_strategy: !pw.udfs.DiskCache
+
+details_schema:
+  category:
+    type: option
+    values:
+      - "Problem Statement"
+      - "Solution Overview"
+      - "Product/Service Demo"
+      - "Benefits and Value Proposition"
+      - "Competitive Landscape"
+      - "Case Studies and Testimonials"
+      - "Features and Specifications"
+      - "How it Works"
+      - "Return on Investment (ROI) and Cost Savings"
+      - "Call to Action (CTA) and Next Steps"
+      - "Company Overview and Credentials"
+      - "Market Opportunity and Trends"
+      - "Customer Success Stories and Use Cases"
+      - "Pricing and Packaging"
+      - "Implementation and Support"
+  tags:
+    type: list[str]
+    description: "Tags associated with the slide. For example ['price', 'shopping', 'consumer'] or ['beverage', 'cola', 'manufacturing']"
+  title:
+    type: str
+    description: "Title of the slide"
+  main_color:
+    type: str
+    description: "Most common color. For example 'black', 'blue', 'yellow'"
+  language:
+    type: str
+    description: "Language of the slide. For example 'fr', 'en'"
+  has_images:
+    type: bool
+    description: "Whether the slide contains photographs"
