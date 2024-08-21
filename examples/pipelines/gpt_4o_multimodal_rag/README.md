@@ -9,67 +9,33 @@
 
 # Multimodal RAG with Pathway: Process your Financial Reports and Tables with GPT-4o
 
-Get started with multimodal RAG using `GPT-4o` and Pathway. This showcase demonstrates how you can launch a document processing pipeline that utilizes `GPT-4o` in the parsing stage. Pathway extracts information from unstructured financial documents in your folders, updating results as documents change or new ones arrive. 
+## **Overview**
 
-Using this approach, you can make your AI application run in permanent connection with your drive, in sync with your documents which include visually formatted elements: tables, charts, etc. 
+This app template showcases how you can build a multimodal RAG application and launch a document processing pipeline that utilizes `GPT-4o` for both parsing and generation tasks. Pathway processes unstructured financial documents within specified directories, extracting and storing the information in a scalable in-memory vector index. This index is optimized for dynamic RAG, ensuring that search results are continuously updated as documents are modified or new files are added.
+
+Using this approach, you can make your AI application run in permanent connection with your drive, in sync with your documents which include visually formatted elements: tables, charts, images, etc. 
 
 We specifically use `GPT-4o` to improve the table data extraction accuracy and demonstrate how this approach outperforms the industry-standard RAG toolkits.
 
 In this showcase, we focused on the finance domain because financial documents often rely heavily on tables in various forms. This showcase highlights the limitations of traditional RAG setups, which struggle to answer questions based on table data. By contrast, our multimodal RAG approach excels in extracting accurate information from tables.
 
-## Using the service
-
-Follow the [steps below](#running-the-app) to set up the service. This will create a REST endpoint on your selected host and port, running a service that is connected to your file folder, and ready to answer your questions. There are no extra dependencies.
-
-In this demo, we run the service on localhost (`0.0.0.0:8000`). You can connect your own front end or application to this endpoint. Here, we test the service with `curl`.
-
-First, let's check the files contained in your folder are currently indexed:
-```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
-```
-
-This will return the list of files e.g. if you start with the [data folder](./data) provided in the demo, the answer will be as follows:
-> `[{"modified_at": 1715765613, "owner": "berke", "path": "data/20230203_alphabet_10K.pdf", "seen_at": 1715768762}]`
-
-In the default app setup, the connected folder is a local file folder. You can add more folders and file sources, such as [Google Drive](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#google-drive-connector) or [Sharepoint](https://pathway.com/developers/user-guide/connecting-to-data/connectors/#tutorials), by adding a line of code to the template.
-
-If you now add or remove files from your connected folder, you can repeat the request and see the index file list has been updated automatically. You can look into the logs of the service to see the progress of the indexing of new and modified files. PDF files of 100 pages should normally take under 10 seconds to sync, and the indexing parallelizes if multiple files are added at a single time.
-
-Now, let's ask a question from one of the tables inside the report. In our tests, regular RAG applications struggled with the tables and couldn't answer to this question correctly.
-
-```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
-  "prompt": "How much was Operating lease cost in 2021?" 
-}'
-```
-> `$2,699 million`
-
-This response was correct thanks to the initial LLM parsing step. 
-When we check the context that is sent to the LLM, we see that Pathway included the table in the context where as other RAG applications failed to include the table.
-
 The following GIF shows a snippet from our experiments:
 
 ![Regular RAG vs Pathway Multimodal comparison](gpt4o_with_pathway_comparison.gif)
 
-Let's try another one,
+If you want to skip the explanations, you can directly find the code [here](#Running-the-app).
 
-```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
-  "prompt": "What is the operating income for the fiscal year of 2022?" 
-}'
-```
-> `$74,842 million`
+## Table of contents
 
-Another example, let's ask a question that can be answered from the table on the 48th page of the PDF.
+This includes the technical details to the steps to create a REST Endpoint to run the dynamic RAG application via Docker and modify it for your use-cases.
 
-```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
-  "prompt": "How much was Marketable securities worth in 2021 in the consolidated balance sheets?"                                              
-}'
-```
-> `$118,704 million`
+- [Overview](#Overview)
+- [Architecture](#Architecture)
+- [Pipeline Organization](#Pipeline-Organization)
+- [Running the app](#Running-the-app)
+- [Modifying the code](#Modifying-the-code)
+- [Conclusion](#Conclusion)
 
-Looking good!
 
 ## Architecture
 
@@ -79,11 +45,33 @@ We use `GPT-4o` in two separate places in the flow of data:
 
 ![Architecture](gpt4o.gif)
 
-We will use the `BaseRAGQuestionAnswerer` class provided under `pathway.xpacks` to get started on our RAG application with minimal overhead. This module brings together the foundational building bricks for the RAG application. 
+The architecture of this multimodal RAG application involves several key components:
 
-It includes ingesting the data from the sources, calling the LLM, parsing and chunking the documents, creating and querying the database (index) and also serving the app on an endpoint. 
+- **Data Ingestion**: Ingests data from various sources like local folders, Google Drive, or SharePoint.
+- **Document Parsing and Embedding**: Utilizes `OpenParse` for parsing documents and `OpenAIEmbedder` for embedding text. This includes handling and processing images within PDFs.
+- **Vector Store**: The `VectorStoreServer` indexes parsed documents and retrieves relevant chunks for answering questions.
+- **Question Answering**: Uses the `BaseRAGQuestionAnswerer` class to call `GPT-4o` for generating responses based on the retrieved context.
+- **Server Setup**: Sets up a REST endpoint to serve the RAG application.
 
 For more advanced RAG options, make sure to check out [rerankers](https://pathway.com/developers/api-docs/pathway-xpacks-llm/rerankers) and the [adaptive rag example](../adaptive-rag/).
+
+
+## Pipeline Organization
+
+This folder contains several objects:
+- `app.py`, the main application code using Pathway and written in Python. This script sets up the document processing pipeline, including data ingestion, LLM configuration, and server initialization.
+  - **Input Sources**: The `folder` variable specifies the local folders and files to be processed. This can be extended to include other sources like Google Drive or SharePoint.
+  - **LLM Configuration**: Utilizes `GPT-4o` for chat-based question answering, configured with retry and cache strategies.
+  - **Document Parsing and Embedding**: Uses `OpenParse` for parsing documents and `OpenAIEmbedder` for embedding text.
+    - **table_args**: Configures table parsing with algorithms like "llm", "unitable", "pymupdf", or "table-transformers".
+    - **parse_images**: Handles and processes images within PDFs, enabling work with tables, charts, and images.
+  - **Vector Store**: The `VectorStoreServer` handles indexing the documents and retrieving relevant chunks for answering questions.
+  - **Server Setup**: The `BaseRAGQuestionAnswerer` class sets up the REST endpoint for serving the RAG application.
+  - **Running Options**: The pipeline includes options for caching and parallel processing to optimize performance.
+- `Dockerfile`, the Docker configuration for running the pipeline in a container. It includes instructions for installing dependencies and setting up the runtime environment.
+- `requirements.txt`, the dependencies for the pipeline. This file can be passed to `pip install -r requirements.txt` to install everything needed to launch the pipeline locally.
+- `.env`, a short environment variables configuration file where the OpenAI key must be stored. This file ensures secure handling of sensitive information.
+- `data/`, a folder with exemplary files that can be used for test runs. It includes sample financial documents to demonstrate the pipeline's capabilities.
 
 
 ## Running the app
@@ -122,6 +110,58 @@ docker build --pull -t rag .
 docker run -v `pwd`/data:/app/data -p 8000:8000 rag
 ```
 
+
+## Querying the pipeline
+
+Follow the [steps below](#running-the-app) to set up the service. This will create a REST endpoint on your selected host and port, running a service that is connected to your file folder, and ready to answer your questions. There are no extra dependencies.
+
+In this demo, we run the service on localhost (`0.0.0.0:8000`). You can connect your own front end or application to this endpoint. Here, we test the service with `curl`.
+
+First, let's check the files contained in your folder are currently indexed:
+```bash
+curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
+```
+
+This will return the list of files e.g. if you start with the [data folder](./data) provided in the demo, the answer will be as follows:
+> `[{"modified_at": 1715765613, "owner": "berke", "path": "data/20230203_alphabet_10K.pdf", "seen_at": 1715768762}]`
+
+In the default app setup, the connected folder is a local file folder. You can add more folders and file sources, such as [Google Drive](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#google-drive-connector) or [Sharepoint](https://pathway.com/developers/user-guide/connecting-to-data/connectors/#tutorials), by adding a line of code to the template.
+
+If you now add or remove files from your connected folder, you can repeat the request and see the index file list has been updated automatically. You can look into the logs of the service to see the progress of the indexing of new and modified files. PDF files of 100 pages should normally take under 10 seconds to sync, and the indexing parallelizes if multiple files are added at a single time.
+
+Now, let's ask a question from one of the tables inside the report. In our tests, regular RAG applications struggled with the tables and couldn't answer to this question correctly.
+
+```bash
+curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+  "prompt": "How much was Operating lease cost in 2021?" 
+}'
+```
+> `$2,699 million`
+
+This response was correct thanks to the initial LLM parsing step. 
+When we check the context that is sent to the LLM, we see that Pathway included the table in the context where as other RAG applications failed to include the table.
+
+
+Let's try another one,
+
+```bash
+curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+  "prompt": "What is the operating income for the fiscal year of 2022?" 
+}'
+```
+> `$74,842 million`
+
+Another example, let's ask a question that can be answered from the table on the 48th page of the PDF.
+
+```bash
+curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+  "prompt": "How much was Marketable securities worth in 2021 in the consolidated balance sheets?"                                              
+}'
+```
+> `$118,704 million`
+
+Looking good!
+
 ## Modifying the code
 
 In the main function of `app.py`, we define:
@@ -156,3 +196,16 @@ RAG applications are most effective when tailored to your specific use case. Her
 Ready to Get Started? 
 
 Let's discuss how we can help you build a powerful, customized RAG application. [Reach us here to talk or request a demo!](https://pathway.com/solutions/enterprise-generative-ai?modal=requestdemo)
+
+
+## Quick Links:
+
+- [Pathway Developer Documentation](https://pathway.com/developers/user-guide/introduction/welcome)
+- [Pathway App Templates](https://pathway.com/developers/templates)
+- [Discord Community of Pathway](https://discord.gg/pathway)
+- [Pathway Issue Tracker](https://github.com/pathwaycom/pathway/issues)
+- [End-to-end dynamic RAG pipeline with Pathway](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/demo-question-answering)
+- [Using Pathway as a vector store with Langchain](https://python.langchain.com/v0.2/docs/integrations/vectorstores/pathway/) 
+- [Using Pathway as a retriever with LlamaIndex](https://docs.llamaindex.ai/en/stable/examples/retrievers/pathway_retriever/) 
+
+Make sure to drop a "Star" to our repositories if you found this resource helpful!
