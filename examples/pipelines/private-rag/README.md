@@ -39,7 +39,7 @@ This includes the technical details to the steps to create a REST Endpoint to ru
 
 ## Architecture
 
-![Architecture](private_rag.png)
+![Architecture](https://i.imgur.com/9TJEoUd.png)
 
 The architecture consists of two connected technology bricks, which will run as services on your machine:
 - Pathway brings support for real-time data synchronization pipelines out of the box, and the possibility of secure private document handling with enterprise connectors for synchronizing Sharepoint and Google Drive incrementally. The Pathway service you'll run performs live document indexing pipeline, and will use Pathway’s built-in vector store.
