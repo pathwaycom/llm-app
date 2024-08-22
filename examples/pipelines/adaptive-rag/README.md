@@ -21,9 +21,9 @@ BaseRAGQuestionAnswerer is the base class to build RAG applications with Pathway
 It is meant to get you started with your RAG application right away. 
 
 Here, we extend the `BaseRAGQuestionAnswerer` to implement the adaptive retrieval and reply to requests in the endpoint `/v1/pw_ai_answer`. 
-Since we are interested in changing the behavior and logic of the RAG, we only modify `pw_ai_query` function that handles all this logic, and then replies to the post request.
+Since we are interested in changing the behavior and logic of the RAG, we only modify `answer` function that handles all this logic, and then replies to the post request.
 
-`pw_ai_query` function takes the `pw_ai_queries` table as the input, this table contains the prompt, and other arguments coming from the post request, see the `BaseRAGQuestionAnswerer` class and defined schemas to learn more about getting inputs with post requests.
+`answer` function takes the `pw_ai_queries` table as the input, this table contains the prompt, and other arguments coming from the post request, see the `BaseRAGQuestionAnswerer` class and defined schemas to learn more about getting inputs with post requests.
 We use the data in this table to call our adaptive retrieval logic.
 
 To do that, we use `answer_with_geometric_rag_strategy_from_index` implementation provided under the `pathway.xpacks.llm.question_answering`. 
