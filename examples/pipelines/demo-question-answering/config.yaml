@@ -1,39 +1,46 @@
-llm_config:
+llm: !pw.xpacks.llm.llms.OpenAIChat
   model: "gpt-3.5-turbo"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0.05
+  capacity: 8
+
+embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
+  model: "text-embedding-ada-002"
+  cache_strategy: !pw.udfs.DiskCache
+
 host_config:
   host: "0.0.0.0"
-  port: 8000
-cache_options:
-  with_cache: True
-  cache_folder: "./Cache"
+  port: 16003
+
+splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
+  max_tokens: 400
+
+parser: !pw.xpacks.llm.parsers.ParseUnstructured
+
 sources:
-  - local_files:
-    kind: local
-    config:
-      # Please refer to
-      # https://pathway.com/developers/api-docs/pathway-io/fs#pathway.io.fs.read
-      # for options definition
-      path: "data/"
-  # - google_drive_folder:
-  #   kind: gdrive
-  #   config:
-  #     # Please refer to
-  #     # https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.gdrive.read
-  #     # for options definition
-  #     # Please follow https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive
-  #     # for instructions on getting credentials
-  #     object_id: "1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs" # folder used in the managed demo
-  #     service_user_credentials_file: SERVICE_CREDENTIALS
-  #     refresh_interval: 5
-  # - sharepoint_folder:
-  #   kind: sharepoint
-  #   config:
-  #     # The sharepoint is part of our commercial offering, please contact us to use it
-  #     # Please contact here: `contact@pathway.com`
-  #     root_path: ROOT_PATH
-  #     url: SHAREPOINT_URL
-  #     tenant: SHAREPOINT_TENANT
-  #     client_id: SHAREPOINT_CLIENT_ID
-  #     cert_path: SHAREPOINT.pem
-  #     thumbprint: SHAREPOINT_THUMBPRINT
-  #     refresh_interval: 5
+  - !pw.io.fs.read
+    path: data
+    format: binary
+    with_metadata: true
+
+  # - !pw.xpacks.connectors.sharepoint.read 
+  #   url: $SHAREPOINT_URL
+  #   tenant: $SHAREPOINT_TENANT
+  #   client_id: $SHAREPOINT_CLIENT_ID
+  #   cert_path: sharepointcert.pem
+  #   thumbprint: $SHAREPOINT_THUMBPRINT
+  #   root_path: $SHAREPOINT_ROOT
+  #   with_metadata: true
+  #   refresh_interval: 30
+
+  # - !pw.io.gdrive.read
+  #   object_id: $DRIVE_ID
+  #   service_user_credentials_file: gdrive_indexer.json
+  #   name_pattern:
+  #     - "*.pdf"
+  #     - "*.pptx"
+  #   object_size_limit: null
+  #   with_metadata: true
+  #   refresh_interval: 30
