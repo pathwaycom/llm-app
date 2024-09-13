@@ -162,17 +162,16 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
 
 Looking good!
 
-## Modifying the code
+## Modifying the pipeline
 
-In the main function of `app.py`, we define:
-- input folders
+This template is easily configurable in the `app.yaml` file. In there you can define:
+- input sources
 - LLM
 - embedder
 - index
 - host and port to run the app
-- run options (caching, cache folder)
 
-You can modify any of the components by checking the options from the imported modules: `from pathway.xpacks.llm import embedders, llms, parsers, splitters`.
+You can modify any of the components by checking the options from the [Pathway LLM xpack](https://pathway.com/developers/api-docs/pathway-xpacks-llm).
 
 It is also possible to easily create new components by extending the [`pw.UDF`](https://pathway.com/developers/user-guide/data-transformation/user-defined-functions) class and implementing the `__wrapped__` function.
 

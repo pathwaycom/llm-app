@@ -2,11 +2,9 @@ import logging
 
 import pathway as pw
 from dotenv import load_dotenv
-from pathway.xpacks import llm
-from pathway.xpacks.llm.question_answering import BaseRAGQuestionAnswerer
-from pathway.xpacks.llm.vector_store import VectorStoreServer
+from pathway.xpacks.llm.question_answering import SummaryQuestionAnswerer
+from pathway.xpacks.llm.servers import QASummaryRestServer
 from pydantic import BaseModel, ConfigDict, InstanceOf
-from typing_extensions import TypedDict
 
 # To use advanced features with Pathway Scale, get your free license key from
 # https://pathway.com/features and paste it below.
@@ -21,41 +19,26 @@ logging.basicConfig(
 
 load_dotenv()
 
-host_config = TypedDict("host_config", {"host": str, "port": int})
-
 
 class App(BaseModel):
-    llm: InstanceOf[pw.UDF]
-    embedder: InstanceOf[llm.embedders.BaseEmbedder]
-    splitter: InstanceOf[pw.UDF]
-    parser: InstanceOf[pw.UDF]
+    question_answerer: InstanceOf[SummaryQuestionAnswerer]
+    host: str = "0.0.0.0"
+    port: int = 8000
 
-    sources: list[InstanceOf[pw.Table]]
+    with_cache: bool = True
+    terminate_on_error: bool = False
 
-    host_config: host_config
-
-    def run(self, config_file: str = "config.yaml") -> None:
-        # Unpack host and port from config
-        host, port = self.host_config["host"], self.host_config["port"]
-
-        doc_store = VectorStoreServer(
-            *self.sources,
-            embedder=self.embedder,
-            splitter=self.splitter,
-            parser=self.parser,
+    def run(self) -> None:
+        server = QASummaryRestServer(self.host, self.port, self.question_answerer)
+        server.run(
+            with_cache=self.with_cache, terminate_on_error=self.terminate_on_error
         )
-
-        rag_app = BaseRAGQuestionAnswerer(llm=self.llm, indexer=doc_store)
-
-        rag_app.build_server(host=host, port=port)
-
-        rag_app.run_server(with_cache=True, terminate_on_error=False)
 
     model_config = ConfigDict(extra="forbid")
 
 
 if __name__ == "__main__":
-    with open("config.yaml") as f:
+    with open("app.yaml") as f:
         config = pw.load_yaml(f)
     app = App(**config)
     app.run()

@@ -1,19 +1,9 @@
 import logging
-import os
-
-# flake8: noqa
-for tesseract_dir in [
-    "/usr/share/tesseract/tessdata/",
-    "/usr/share/tesseract-ocr/5/tessdata",
-]:
-    if os.path.exists(tesseract_dir):
-        os.environ["TESSDATA_PREFIX"] = tesseract_dir  # fix for tesseract ocr
-        break
 
 import pathway as pw
 from dotenv import load_dotenv
-from pathway.xpacks.llm.question_answering import SummaryQuestionAnswerer
-from pathway.xpacks.llm.servers import QASummaryRestServer
+from pathway.xpacks.llm.document_store import DocumentStore
+from pathway.xpacks.llm.servers import DocumentStoreServer
 from pydantic import BaseModel, ConfigDict, InstanceOf
 
 # To use advanced features with Pathway Scale, get your free license key from
@@ -31,7 +21,7 @@ load_dotenv()
 
 
 class App(BaseModel):
-    question_answerer: InstanceOf[SummaryQuestionAnswerer]
+    document_store: InstanceOf[DocumentStore]
     host: str = "0.0.0.0"
     port: int = 8000
 
@@ -39,7 +29,7 @@ class App(BaseModel):
     terminate_on_error: bool = False
 
     def run(self) -> None:
-        server = QASummaryRestServer(self.host, self.port, self.question_answerer)
+        server = DocumentStoreServer(self.host, self.port, self.document_store)
         server.run(
             with_cache=self.with_cache, terminate_on_error=self.terminate_on_error
         )

@@ -1,0 +1,68 @@
+$sources:
+  - !pw.io.fs.read
+    path: data
+    format: binary
+    with_metadata: true
+
+  # - !pw.xpacks.connectors.sharepoint.read 
+  #   url: $SHAREPOINT_URL
+  #   tenant: $SHAREPOINT_TENANT
+  #   client_id: $SHAREPOINT_CLIENT_ID
+  #   cert_path: sharepointcert.pem
+  #   thumbprint: $SHAREPOINT_THUMBPRINT
+  #   root_path: $SHAREPOINT_ROOT
+  #   with_metadata: true
+  #   refresh_interval: 30
+
+  # - !pw.io.gdrive.read
+  #   object_id: $DRIVE_ID
+  #   service_user_credentials_file: gdrive_indexer.json
+  #   name_pattern:
+  #     - "*.pdf"
+  #     - "*.pptx"
+  #   object_size_limit: null
+  #   with_metadata: true
+  #   refresh_interval: 30
+
+$llm: !pw.xpacks.llm.llms.OpenAIChat
+  model: "gpt-3.5-turbo"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0.05
+  capacity: 8
+
+$embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
+  model: "text-embedding-ada-002"
+  cache_strategy: !pw.udfs.DiskCache
+
+$splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
+  max_tokens: 400
+
+$parser: !pw.xpacks.llm.parsers.ParseUnstructured
+
+$retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
+  reserved_space: 1000
+  embedder: $embedder
+  metric: !pw.internals.yaml_loader.import_object
+    path: pw.stdlib.indexing.BruteForceKnnMetricKind.COS
+  dimensions: 1536
+  
+
+$document_store: !pw.xpacks.llm.document_store.DocumentStore
+  docs: $sources
+  parser: $parser
+  splitter: $splitter
+  retriever_factory: $retriever_factory
+
+question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer
+  llm: $llm
+  indexer: $document_store
+
+
+# Change host and port by uncommenting these files
+# host: "0.0.0.0"
+# port: 8000
+
+# with_cache: true
+# terminate_on_error: false

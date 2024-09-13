@@ -281,7 +281,7 @@ curl -X 'POST' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
-  "query": "string",
+  "query": "What is the start date of the contract?",
   "k": 2
 }'
 ```
