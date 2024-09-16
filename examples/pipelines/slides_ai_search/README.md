@@ -86,7 +86,7 @@ This demo consists of three parts:
     * The embeddings are then stored in Pathway's vector store using the `SlidesVectorStoreServer`.
 3. **Metadata Handling**:
     * Images and files are dumped into local directories (`storage/pw_dump_images` and `storage/pw_dump_files`).
-    * Each slide gets a unique ID. This helps with opening files and images from the the UI.
+    * Each slide gets a unique ID. This helps with opening files and images from the UI.
     
 
 ### **Query Handling**
