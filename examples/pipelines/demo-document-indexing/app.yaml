@@ -47,8 +47,7 @@ $parser: !pw.xpacks.llm.parsers.ParseUnstructured
 $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   reserved_space: 1000
   embedder: $embedder
-  metric: !pw.internals.yaml_loader.import_object
-    path: pw.stdlib.indexing.BruteForceKnnMetricKind.COS
+  metric: !pw.stdlib.indexing.BruteForceKnnMetricKind.COS
   dimensions: 1536
   
 
