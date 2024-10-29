@@ -39,40 +39,72 @@ Finally, the embeddings are indexed with the capabilities of Pathway's machine-l
 
 This folder contains several objects:
 - `main.py`, the pipeline code using Pathway and written in Python;
-- `sources_configuration.yaml`, the file containing configuration stubs for the data sources. It needs to be customized if you want to use the Google Drive data source or to change the filesystem directories that will be indexed;
+- `app.yaml`, the file containing configuration of the pipeline, like embedding model, sources, or the server address;
 - `requirements.txt`, the textfile denoting the pip dependencies for running this pipeline. It can be passed to `pip install -r ...` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
 - `docker-compose.yml`, the docker-compose configuration for running the pipeline along with the chat UI;
 - `.env`, a short environment variables configuration file where the OpenAI key must be stored;
 - `files-for-indexing/`, a folder with exemplary files that can be used for the test runs.
 
-## OpenAPI Key Configuration
+## Customizing the pipeline
 
-This example relies on the usage of OpenAI API, which is crucial to perform the embedding part.
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/user-guide/llm-xpack/yaml-templates).
 
-**You need to have a working OpenAI key stored in the environment variable OPENAI_API_KEY**.
+In the `app.yaml` file we define:
+- input connectors
+- embedder
+- index
+and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
+Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
 
-Please configure your key in a `.env` file by providing it as follows: `OPENAI_API_KEY=sk-*******`. You can refer to the stub file `.env` in this repository, where you will need to paste your key instead of `sk-*******`.
+Here some examples of what can be modified.
 
-## Sources configuration
+### Embedding Model
 
-You can configure data sources used for indexing by editing the configuration file. Here we provide the template config `sources_configuration.yaml` for these purposes. It contains stubs for the three possible input types - please refer to the examples.
+By default this template uses locally run model `mixedbread-ai/mxbai-embed-large-v1`. If you wish, you can replace this with any other model, by changing
+`$embedder` in `app.yaml`. For example, to use OpenAI embedder, set:
+```yaml
+$embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
+  model: "text-embedding-ada-002"
+  cache_strategy: !pw.udfs.DiskCache
+```
 
-Each section of the config requires the specification of a data source type along with its parameters, such as the filesystem path, credentials, etc. The available kinds are `local`, `gdrive`, and `sharepoint`. The sections below describe the essential parameters that need to be specified for each of those sources.
+If you choose to use a provider, that requires API key, remember to set appropriate environmental values (you can also set them in `.env` file).
 
-### Local Data Source
+### Webserver
 
-The local data source is configured by setting the `kind` parameter to `local`.
+You can configure the host and the port of the webserver.
+Here is the default configuration:
+```yaml
+host: "0.0.0.0"
+port: 8000
+```
 
-The section `config` must contain the string parameter `path` denoting the path to a folder with files to be indexed.
+### Cache
 
-For the full list of the available configuration options, please refer to the filesystem connector [documentation](https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.fs.read).
+You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+Default values:
+```yaml
+with_cache: True
+cache_backend: !pw.persistence.Backend.filesystem
+  path: ".Cache"
+```
 
-### Google Drive Data Source
+### Data sources
 
-The Google Drive data source is enabled by setting the `kind` parameter to `gdrive`.
+You can configure the data sources by changing `$sources` in `app.yaml`.
+You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
+The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
-The section `config` must contain two main parameters:
+By default, the app uses a local data source to read documents from the `data` folder.
+
+#### Local Data Source
+
+The local data source is configured by using map with tag `!pw.io.fs.read`. Then set `path` to denote the path to a folder with files to be indexed.
+
+#### Google Drive Data Source
+
+The Google Drive data source is enabled by using map with tag `!pw.io.gdrive.read`. The map must contain two main parameters:
 - `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. Consequently, the last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`, hence this is the `object_id` you would need to specify.
 - `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive).
 
@@ -80,28 +112,11 @@ Besides, to speed up the indexing process you may want to specify the `refresh_i
 
 For the full list of the available parameters, please refer to the Google Drive connector [documentation](https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.gdrive.read).
 
-#### Using Provided Demo Folder
+#### SharePoint Data Source
 
-We provide a publicly available folder in Google Drive for demo purposes; you can access it [here](https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs).
+This data source requires Scale or Enterprise [license key](https://pathway.com/pricing) - you can obtain free Scale key on [Pathway website](https://pathway.com/get-license).
 
-A default configuration for the Google Drive source in `sources_configuration.yaml` is available and connects to the folder: uncomment the corresponding part and replace `SERVICE_CREDENTIALS` with the path to the credentials file.
-
-Once connected, you can upload files to the folder, which will be indexed by Pathway.
-Note that this folder is publicly available, and you cannot remove anything: **please be careful not to upload files containing any sensitive information**.
-
-#### Using a Custom Folder
-
-If you want to test the indexing pipeline with the data you wouldn't like to share with others, it's possible: with your service account, you won't have to share the folders you've created in your private Google Drive.
-
-Therefore, all you would need to do is the following:
-- Create a service account and download the credentials that will be used;
-- For running the demo, create your folder in Google Drive and don't share it.
-
-### SharePoint Data Source
-
-This data source is the part of commercial Pathway offering. You can try it online in one of the following demos:
-- The real-time document indexing pipeline with similarity search, available on the [Hosted Pipelines](https://pathway.com/solutions/ai-pipelines) webpage;
-- The chatbot answering questions about the uploaded files, available on [Streamlit](https://chat-realtime-sharepoint-gdrive.demo.pathway.com/).
+To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint/#pathway.xpacks.connectors.sharepoint.read).
 
 ## Running the Example
 

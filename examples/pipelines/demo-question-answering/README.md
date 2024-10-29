@@ -31,7 +31,7 @@ Note: This app relies on [Pathway Vector store](https://pathway.com/developers/a
 # Table of content
 - [Summary of available endpoints](#Summary-of-available-endpoints)
 - [How it works](#How-it-works)
-- [Configuring the app](#Configuration)
+- [Customizing the pipeline](#Customizing-the-pipeline)
 - [How to run the project](#How-to-run-the-project)
 - [Using the app](#Query-the-documents)
 
@@ -63,7 +63,7 @@ Finally, the embeddings are indexed with the capabilities of Pathway's machine-l
 
 This folder contains several objects:
 - `app.py`, the application code using Pathway and written in Python;
-- `config.yaml`, the file containing configuration stubs for the data sources, the OpenAI LLM model, and the web server. It needs to be customized if you want to change the LLM model, use the Google Drive data source or change the filesystem directories that will be indexed;
+- `app.yaml`, the file containing configuration of the pipeline, like LLM models, sources or server address;
 - `requirements.txt`, the dependencies for the pipeline. It can be passed to `pip install -r ...` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
 - `.env`, a short environment variables configuration file where the OpenAI key must be stored;
@@ -88,53 +88,66 @@ Don't hesitate to take a look at our [documentation](https://pathway.com/develop
 
 ## OpenAI API Key Configuration
 
-This example relies on the usage of OpenAI API, which is crucial to perform the embedding part.
+Default LLM provider in this template is OpenAI, so, unless you change the configuration, you need to provide OpenAI API key. Please configure your key in a `.env` file by providing it as follows: `OPENAI_API_KEY=sk-*******`. You can refer to the stub file `.env` in this repository, where you will need to paste your key instead of `sk-*******`.
 
-**You need to have a working OpenAI key stored in the environment variable OPENAI_API_KEY**.
+## Customizing the pipeline
 
-Please configure your key in a `.env` file by providing it as follows: `OPENAI_API_KEY=sk-*******`. You can refer to the stub file `.env` in this repository, where you will need to paste your key instead of `sk-*******`.
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/user-guide/llm-xpack/yaml-templates).
 
-You can also set the key in the `app.py` while initializing the embedder and chat instances as follows;
+In the `app.yaml` file we define:
+- input connectors
+- LLM
+- embedder
+- index
+and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
+Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
+ 
+You can also check our other templates - [demo-question-answering](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/demo-question-answering), 
+[Multimodal RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/gpt_4o_multimodal_rag) or 
+[Private RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/private-rag). As all of these only differ 
+in the YAML configuration file, you can also use them as an inspiration for your custom pipeline.
 
-```python
-chat = llms.OpenAIChat(api_key='sk-...', ...)
+Here some examples of what can be modified.
 
-embedder = embedders.OpenAIEmbedder(api_key='sk-...', ...)
-```
-
-If you want to use another model, you should put the associated key here.
-
-## Configuration
-
-By modifying the `conf.yaml` file, you can configure the following options:
-- the Open AI LLM model
-- the webserver
-- the cache options
-- the data sources
-
-### Model
+### LLM Model
 
 You can choose any of the GPT-3.5 Turbo, GPT-4, or GPT-4 Turbo models proposed by Open AI.
 You can find the whole list on their [models page](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo).
 
-You simply need to change the model to the one you want to use:
+You simply need to change the `model` to the one you want to use:
 ```yaml
-llm_config:
-  model: "gpt-4-0613"
+$llm: !pw.xpacks.llm.llms.OpenAIChat
+  model: "gpt-3.5-turbo"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0.05
+  capacity: 8
 ```
 
 The default model is `gpt-3.5-turbo`
 
-Note that if you want to use different models, such as the ones provided by HuggingFace, you will need to change the `run` function in `app.py`. You can use [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview) to access the model of your choice. Don't forget to update your key.
+You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
+e.g. here is configuration for locally run Mistral model.
+
+```yaml
+$llm: !pw.xpacks.llm.llms.LiteLLMChat
+  model: "ollama/mistral"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0
+  top_p: 1
+  api_base: "http://localhost:11434"
+```
 
 ### Webserver
 
 You can configure the host and the port of the webserver.
 Here is the default configuration:
 ```yaml
-host_config:
-  host: "0.0.0.0"
-  port: 8000
+host: "0.0.0.0"
+port: 8000
 ```
 
 ### Cache
@@ -142,34 +155,26 @@ host_config:
 You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
 Default values:
 ```yaml
-cache_options:
-  with_cache: True
-  cache_folder: "./Cache"
+with_cache: True
+cache_backend: !pw.persistence.Backend.filesystem
+  path: ".Cache"
 ```
 
 ### Data sources
 
-You can configure the data sources in the `config.source` part of the `conf.yaml`.
-You can add as many data sources as you want, but the demo supports only three kinds: `local`, `gdrive`, and `sharepoint`. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe the essential parameters that need to be specified for each of those sources.
+You can configure the data sources by changing `$sources` in `app.yaml`.
+You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
+The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
 By default, the app uses a local data source to read documents from the `data` folder.
 
-You can use other kind of data sources using the different [connectors](https://pathway.com/developers/user-guide/connecting-to-data/connectors) provided by Pathway.
-To do so, you need to add them in `data_sources` in `app.py`
-
-
 #### Local Data Source
 
-The local data source is configured by setting the `kind` parameter to `local`.
-
-The section `config` must contain the string parameter `path` denoting the path to a folder with files to be indexed.
+The local data source is configured by using map with tag `!pw.io.fs.read`. Then set `path` to denote the path to a folder with files to be indexed.
 
 #### Google Drive Data Source
 
-The Google Drive data source is enabled by setting the `kind` parameter to `gdrive`.
-
-The section `config` must contain two main parameters:
+The Google Drive data source is enabled by using map with tag `!pw.io.gdrive.read`. The map must contain two main parameters:
 - `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. Consequently, the last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`, hence this is the `object_id` you would need to specify.
 - `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive).
 
@@ -177,28 +182,11 @@ Besides, to speed up the indexing process you may want to specify the `refresh_i
 
 For the full list of the available parameters, please refer to the Google Drive connector [documentation](https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.gdrive.read).
 
-#### Using the Provided Demo Folder
-
-We provide a publicly available folder in Google Drive for demo purposes; you can access it [here](https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs).
-
-A default configuration for the Google Drive source in `config.yaml` is available and connects to the folder: uncomment the corresponding part and replace `SERVICE_CREDENTIALS` with the path to the credentials file.
-
-Once connected, you can upload files to the folder, which will be indexed by Pathway.
-Note that this folder is publicly available, and you cannot remove anything: **please be careful not to upload files containing any sensitive information**.
-
-#### Using a Custom Folder
-
-If you want to test the indexing pipeline with the data you wouldn't like to share with others, it's possible: with your service account, you won't have to share the folders you've created in your private Google Drive.
-
-Therefore, all you would need to do is the following:
-- Create a service account and download the credentials that will be used;
-- For running the demo, create your folder in Google Drive and don't share it.
-
 #### SharePoint Data Source
 
-This data source is the part of commercial Pathway offering. You can try it online in one of the following demos:
-- The real-time document indexing pipeline with similarity search, available on the [Hosted Pipelines](https://pathway.com/solutions/ai-pipelines) webpage;
-- The chatbot answering questions about the uploaded files, available on [Streamlit](https://chat-realtime-sharepoint-gdrive.demo.pathway.com/).
+This data source requires Scale or Enterprise [license key](https://pathway.com/pricing) - you can obtain free Scale key on [Pathway website](https://pathway.com/get-license).
+
+To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint/#pathway.xpacks.connectors.sharepoint.read).
 
 ## How to run the project
 

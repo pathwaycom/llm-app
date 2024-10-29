@@ -70,7 +70,7 @@ This demo consists of three parts:
 
 1. **Data Sources**:
     * The application reads slide files (PPTX and PDF) from a specified directory. The directory is set to `./data/`in the `app.py` file.
-    * In the default app setup, the connected folder is a local file folder. You can add more folders and file sources, such as [Google Drive](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#google-drive-connector) or [Sharepoint](https://pathway.com/developers/user-guide/connecting-to-data/connectors/#tutorials), by adding a line of code to the template.
+    * In the default app setup, the connected folder is a local file folder. You can add more folders and file sources, such as [Google Drive](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#google-drive-connector) or [Sharepoint](https://pathway.com/developers/user-guide/connecting-to-data/connectors/#tutorials), by changing configuration in `app.yaml`.
     * More inputs can be added by configuring the `sources` list in the `app.yaml`.
 
 
@@ -268,18 +268,18 @@ curl http://localhost:8000/v1/completions \ns \
     }'
 ```
 
-### Set the LLM Instance in the app
+### Set the LLM Instance in the configuration file
 
-```python
-chat = llms.OpenAIChat(
-    model="microsoft/Phi-3-vision-128k-instruct",
-    temperature=0.0,
-    capacity=1,
-    base_url="http://localhost:8000/v1",
-    api_key="ignore the key, not needed",
-    cache_strategy=DiskCache(),
-    retry_strategy=ExponentialBackoffRetryStrategy(max_retries=3),
-)
+```yaml
+llm: !pw.xpack.llm.llms.OpenAIChat
+  model: "microsoft/Phi-3-vision-128k-instruct"
+  temperature: 0.0
+  capacity: 1
+  base_url: "http://localhost:8000/v1"
+  api_key: "ignore the key, not needed"
+  cache_strategy: !DiskCache
+  retry_strategy: !ExponentialBackoffRetryStrategy
+    max_retries: 3
 ```
 
 This will use your local Phi 3 vision model as the LLM for parsing the slides.
@@ -292,16 +292,16 @@ From performance/computational-cost standpoint, `avsolatorio/GIST-Embedding-v0`,
 Here, we go with the `avsolatorio/GIST-small-Embedding-v0`. 
 Note that, larger models may take longer to process the inputs.
 
-We replace the `embedder` with the following embedding model in `app.py`:
+We replace the `embedder` with the following embedding model in `app.yaml`:
 
-```python
-embedding_model = "avsolatorio/GIST-small-Embedding-v0"
+```yaml
+$embedding_model: "avsolatorio/GIST-small-Embedding-v0"
 
-embedder = embedders.SentenceTransformerEmbedder(
-    embedding_model, call_kwargs={"show_progress_bar": False}
-)
+embedder: !pw.xpack.llms.embedders.SentenceTransformerEmbedder
+  model: $embedding_model
+  call_kwargs: 
+    show_progress_bar: false
 ```
-Alternatively you can also specify this embedder configuration through `app.yaml`.
 
 ## Advanced variant: Running without Docker
 Running the whole demo without Docker is a bit tricky as there are three components. 

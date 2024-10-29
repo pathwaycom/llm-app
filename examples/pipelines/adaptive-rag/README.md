@@ -32,27 +32,106 @@ We also set `strict_prompt=True`. This adjusts the prompt with additional instru
 
 We encourage you to check the implementation of `answer_with_geometric_rag_strategy_from_index`.
 
-## Modifying the code
+## Customizing the pipeline
 
-Under the main function, we define:
-- input folders
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/user-guide/llm-xpack/yaml-templates).
+
+In the `app.yaml` file we define:
+- input connectors
 - LLM
 - embedder
 - index
-- host and port to run the app
-- run options (caching, cache folder)
+and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
+Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
+ 
+You can also check our other templates - [demo-question-answering](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/demo-question-answering), 
+[Multimodal RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/gpt_4o_multimodal_rag) or 
+[Private RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/private-rag). As all of these only differ 
+in the YAML configuration file, you can also use them as an inspiration for your custom pipeline.
 
-By default, we used OpenAI `gpt-3.5-turbo`. However, as done in the showcase, it is possible to use any LLM, including locally deployed LLMs.
+Here some examples of what can be modified.
 
-If you are interested in building this app in a fully private & local setup, check out the [private RAG example](../private-rag/README.md) that uses `Mistral 7B` as the LLM with a local embedding model.
+### LLM Model
 
-You can modify any of the used components by checking the options from: `from pathway.xpacks.llm import embedders, llms, parsers, splitters`.
-It is also possible to easily create new components by extending the [`pw.UDF`](https://pathway.com/developers/user-guide/data-transformation/user-defined-functions) class and implementing the `__wrapped__` function.
+You can choose any of the GPT-3.5 Turbo, GPT-4, or GPT-4 Turbo models proposed by Open AI.
+You can find the whole list on their [models page](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo).
 
-To see the setup used in our work, check [the showcase](https://pathway.com/developers/templates/private-rag-ollama-mistral).
+You simply need to change the `model` to the one you want to use:
+```yaml
+$llm: !pw.xpacks.llm.llms.OpenAIChat
+  model: "gpt-3.5-turbo"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0.05
+  capacity: 8
+```
+
+The default model is `gpt-3.5-turbo`
+
+You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
+e.g. here is configuration for locally run Mistral model.
+
+```yaml
+$llm: !pw.xpacks.llm.llms.LiteLLMChat
+  model: "ollama/mistral"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0
+  top_p: 1
+  api_base: "http://localhost:11434"
+```
+
+### Webserver
+
+You can configure the host and the port of the webserver.
+Here is the default configuration:
+```yaml
+host: "0.0.0.0"
+port: 8000
+```
+
+### Cache
+
+You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+Default values:
+```yaml
+with_cache: True
+cache_backend: !pw.persistence.Backend.filesystem
+  path: ".Cache"
+```
+
+### Data sources
+
+You can configure the data sources by changing `$sources` in `app.yaml`.
+You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
+The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+
+By default, the app uses a local data source to read documents from the `data` folder.
+
+#### Local Data Source
+
+The local data source is configured by using map with tag `!pw.io.fs.read`. Then set `path` to denote the path to a folder with files to be indexed.
+
+#### Google Drive Data Source
+
+The Google Drive data source is enabled by using map with tag `!pw.io.gdrive.read`. The map must contain two main parameters:
+- `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. Consequently, the last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`, hence this is the `object_id` you would need to specify.
+- `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive).
+
+Besides, to speed up the indexing process you may want to specify the `refresh_interval` parameter, denoted by an integer number of seconds. It corresponds to the frequency between two sequential folder scans. If unset, it defaults to 30 seconds.
+
+For the full list of the available parameters, please refer to the Google Drive connector [documentation](https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.gdrive.read).
+
+#### SharePoint Data Source
+
+This data source requires Scale or Enterprise [license key](https://pathway.com/pricing) - you can obtain free Scale key on [Pathway website](https://pathway.com/get-license).
+
+To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint/#pathway.xpacks.connectors.sharepoint.read).
 
 ## Running the app
-To run the app you need to set your OpenAI API key, by setting the environmental variable `OPENAI_API_KEY` or creating an `.env` file in this directory with line `OPENAI_API_KEY=sk-...`. If you modify the code to use another LLM provider, you may need to set a relevant API key.
+To run the app, depending on the configuration, you may need to set up environmntal variables with LLM provider keys. By default, this template  uses OpenAI API, so to run it you need to set `OPENAI_API_KEY` environmental key or create an `.env` file in this directory with your key: `OPENAI_API_KEY=sk-...`. If you modify the code to use another LLM provider, you may need to set a relevant API key.
 
 ### With Docker
 In order to let the pipeline get updated with each change in local files, you need to mount the folder onto the docker. The following commands show how to do that.

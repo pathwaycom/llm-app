@@ -63,9 +63,14 @@ question_answerer: !pw.xpacks.llm.question_answering.AdaptiveRAGQuestionAnswerer
   strict_prompt: true
 
 
-# Change host and port by uncommenting these files
+# Change host and port by uncommenting these lines
 # host: "0.0.0.0"
 # port: 8000
 
+# Cache configuration
 # with_cache: true
+# cache_backend: !pw.persistence.Backend.filesystem
+#  path: ".Cache"
+
+# Set `terminate_on_error` to true if you want the program to terminate whenever any error is encountered
 # terminate_on_error: false

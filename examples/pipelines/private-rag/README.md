@@ -45,20 +45,91 @@ The architecture consists of two connected technology bricks, which will run as 
 - Pathway brings support for real-time data synchronization pipelines out of the box, and the possibility of secure private document handling with enterprise connectors for synchronizing Sharepoint and Google Drive incrementally. The Pathway service you'll run performs live document indexing pipeline, and will use Pathway’s built-in vector store.
 - The language model you use will be a Mistral 7B, which you will locally deploy as an Ollama service. This model was chosen for its performance and compact size.
 
+## Customizing the pipeline
+
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/user-guide/llm-xpack/yaml-templates).
+
+In the `app.yaml` file we define:
+- input connectors
+- LLM
+- embedder
+- index
+and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
+Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
+ 
+You can also check our other templates - [demo-question-answering](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/demo-question-answering), 
+[Multimodal RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/gpt_4o_multimodal_rag) or 
+[Private RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/private-rag). As all of these only differ 
+in the YAML configuration file, you can also use them as an inspiration for your custom pipeline.
+
+Here some examples of what can be modified.
+
+### LLM Model
+
+This template is prepared to run by default locally. However, the pipeline is LLM model agnostic, so you can change them to use other locally deployed model, or even
+use LLM model available through API calls. For discussion on models used in this template check [the dedicated Section](#deploying-and-using-a-local-LLM).
+
+### Webserver
+
+You can configure the host and the port of the webserver.
+Here is the default configuration:
+```yaml
+host: "0.0.0.0"
+port: 8000
+```
+
+### Cache
+
+You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+Default values:
+```yaml
+with_cache: True
+cache_backend: !pw.persistence.Backend.filesystem
+  path: ".Cache"
+```
+
+### Data sources
+
+You can configure the data sources by changing `$sources` in `app.yaml`.
+You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
+The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+
+By default, the app uses a local data source to read documents from the `data` folder.
+
+#### Local Data Source
+
+The local data source is configured by using map with tag `!pw.io.fs.read`. Then set `path` to denote the path to a folder with files to be indexed.
+
+#### Google Drive Data Source
+
+The Google Drive data source is enabled by using map with tag `!pw.io.gdrive.read`. The map must contain two main parameters:
+- `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. Consequently, the last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`, hence this is the `object_id` you would need to specify.
+- `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive).
+
+Besides, to speed up the indexing process you may want to specify the `refresh_interval` parameter, denoted by an integer number of seconds. It corresponds to the frequency between two sequential folder scans. If unset, it defaults to 30 seconds.
+
+For the full list of the available parameters, please refer to the Google Drive connector [documentation](https://pathway.com/developers/api-docs/pathway-io/gdrive#pathway.io.gdrive.read).
+
+#### SharePoint Data Source
+
+This data source requires Scale or Enterprise [license key](https://pathway.com/pricing) - you can obtain free Scale key on [Pathway website](https://pathway.com/get-license).
+
+To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint/#pathway.xpacks.connectors.sharepoint.read).
+
 
 ## Deploying and using a local LLM
-
 
 ### Embedding Model Selection
 
 You will use `pathway.xpacks.llm.embedders` module to load open-source embedding models from the HuggingFace model library. For this showcase, pick the `avsolatorio/GIST-small-Embedding-v0` model which has a dimension of 384 as it is compact and performed well in our tests. 
 
-```python 
-embedding_model = "avsolatorio/GIST-small-Embedding-v0"
+```yaml 
+$embedding_model: "avsolatorio/GIST-small-Embedding-v0"
 
-embedder = embedders.SentenceTransformerEmbedder(
-    embedding_model, call_kwargs={"show_progress_bar": False}
-) 
+$embedder: !pw.xpacks.llm.embedders.SentenceTransformerEmbedder
+  model: $embedding_model
+  call_kwargs: 
+    show_progress_bar: False
 ```
 
 If you would like to use a higher-dimensional model, here are some possible alternatives you could use instead:
@@ -92,19 +163,23 @@ curl -X POST http://localhost:11434/api/generate -d '{
 
 Now you will initialize the LLM instance that will call the local model.
 
-```python
-model = LiteLLMChat(
-    model="ollama/mistral",
-    temperature=0,
-    top_p=1,
-    api_base="http://localhost:11434",  # local deployment
-    format="json",  # only available in Ollama local deploy, do not use in Mistral API
-)
+```yaml
+$llm_model: "ollama/mistral"
+
+$llm: !pw.xpacks.llm.llms.LiteLLMChat
+  model: $llm_model
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0
+  top_p: 1
+  format: "json"  # only available in Ollama local deploy, not usable in Mistral API
+  api_base: "http://localhost:11434"
 ```
 
 ## Running the app
 
-First, make sure your local LLM is up and running. By default, the pipeline tries to access the LLM at `http://localhost:11434`. You can change that by setting `LLM_API_BASE` environmental variable or creating `.env` file which sets its value.
+First, make sure your local LLM is up and running. By default, the pipeline tries to access the LLM at `http://localhost:11434`. You can change that by setting `api_base` value in the app.yaml file.
 
 ### With Docker
 In order to let the pipeline get updated with each change in local files, you need to mount the folder onto the docker. The following commands show how to do that.
@@ -139,22 +214,6 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
 }'
 ```
 > `December 21, 2015 [6]`
-
-
-## Modifying the code
-
-Under the main function, we define:
-- input folders
-- LLM
-- embedder
-- index
-- host and port to run the app
-- run options (caching, cache folder)
-
-By default, we used locally deployed `Mistral 7B`. App is LLM agnostic and, it is possible to use any LLM.
-You can modify any of the components by checking the options from the imported modules: `from pathway.xpacks.llm import embedders, llms, parsers, splitters`.
-
-It is also possible to easily create new components by extending the [`pw.UDF`](https://pathway.com/developers/user-guide/data-transformation/user-defined-functions) class and implementing the `__wrapped__` function.
 
 
 ## Conclusion:

@@ -27,6 +27,12 @@ class App(BaseModel):
 
     details_schema: FilePath | dict[str, Any] | None = None
 
+    with_cache: bool = True
+    cache_backend: InstanceOf[pw.persistence.Backend] = (
+        pw.persistence.Backend.filesystem("./Cache")
+    )
+    terminate_on_error: bool = False
+
     def run(self) -> None:
         if self.details_schema is not None:
             detail_schema = get_model(self.details_schema)
@@ -56,7 +62,11 @@ class App(BaseModel):
 
         app.build_server(host=self.host, port=self.port)
 
-        app.run_server(with_cache=True, terminate_on_error=False)
+        app.run_server(
+            with_cache=self.with_cache,
+            cache_backend=self.cache_backend,
+            terminate_on_error=self.terminate_on_error,
+        )
 
     model_config = ConfigDict(extra="forbid")
 

@@ -36,8 +36,22 @@ $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   model: "text-embedding-ada-002"
   cache_strategy: !pw.udfs.DiskCache
 
+$parsing_llm: !pw.xpacks.llm.llms.OpenAIChat
+  model: "gpt-4o"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+
 $parser: !pw.xpacks.llm.parsers.OpenParse
   cache_strategy: !pw.udfs.DiskCache
+  table_args:
+    parsing_algorithm: "llm"
+    llm: $parsing_llm
+    prompt: pw.xpacks.llm.prompts.DEFAULT_MD_TABLE_PARSE_PROMPT
+  image_args:
+    parsing_algorithm: "llm"
+    llm: $parsing_llm
+    prompt: pw.xpacks.llm.prompts.DEFAULT_IMAGE_PARSE_PROMPT
 
 $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   reserved_space: 1000
@@ -60,5 +74,11 @@ question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer
 # host: "0.0.0.0"
 # port: 8000
 
+
+# Cache configuration
 # with_cache: true
+# cache_backend: !pw.persistence.Backend.filesystem
+#  path: ".Cache"
+
+# Set `terminate_on_error` to true if you want the program to terminate whenever any error is encountered
 # terminate_on_error: false

@@ -32,8 +32,8 @@ This includes the technical details to the steps to create a REST Endpoint to ru
 - [Overview](#Overview)
 - [Architecture](#Architecture)
 - [Pipeline Organization](#Pipeline-Organization)
+- [Customizing the pipeline](#Customizing-the-pipeline)
 - [Running the app](#Running-the-app)
-- [Modifying the code](#Modifying-the-code)
 - [Conclusion](#Conclusion)
 
 
@@ -59,19 +59,93 @@ For more advanced RAG options, make sure to check out [rerankers](https://pathwa
 ## Pipeline Organization
 
 This folder contains several objects:
-- `app.py`, the main application code using Pathway and written in Python. This script sets up the document processing pipeline, including data ingestion, LLM configuration, and server initialization.
-  - **Input Sources**: The `folder` variable specifies the local folders and files to be processed. This can be extended to include other sources like Google Drive or SharePoint.
-  - **LLM Configuration**: Utilizes `GPT-4o` for chat-based question answering, configured with retry and cache strategies.
-  - **Document Parsing and Embedding**: Uses `OpenParse` for parsing documents and `OpenAIEmbedder` for embedding text.
-    - **table_args**: Configures table parsing with algorithms like "llm", "unitable", "pymupdf", or "table-transformers".
-    - **parse_images**: Handles and processes images within PDFs, enabling work with tables, charts, and images.
-  - **Vector Store**: The `VectorStoreServer` handles indexing the documents and retrieving relevant chunks for answering questions.
-  - **Server Setup**: The `BaseRAGQuestionAnswerer` class sets up the REST endpoint for serving the RAG application.
-  - **Running Options**: The pipeline includes options for caching and parallel processing to optimize performance.
+- `app.py`, the main application code using Pathway and written in Python. It reads configuration from `app.yaml`, and runs a server answering queries to the defined pipeline.
+- `app.yaml`, YAML configuration file, that defines components of the pipeline.
 - `Dockerfile`, the Docker configuration for running the pipeline in a container. It includes instructions for installing dependencies and setting up the runtime environment.
 - `requirements.txt`, the dependencies for the pipeline. This file can be passed to `pip install -r requirements.txt` to install everything needed to launch the pipeline locally.
 - `.env`, a short environment variables configuration file where the OpenAI key must be stored. This file ensures secure handling of sensitive information.
 - `data/`, a folder with exemplary files that can be used for test runs. It includes sample financial documents to demonstrate the pipeline's capabilities.
+
+## Customizing the pipeline
+
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/user-guide/llm-xpack/yaml-templates).
+
+In the `app.yaml` file we define:
+- input connectors
+- LLM
+- embedder
+- index
+and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
+Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
+ 
+You can also check our other templates - [demo-question-answering](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/demo-question-answering), 
+[Multimodal RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/gpt_4o_multimodal_rag) or 
+[Private RAG](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/private-rag). As all of these only differ 
+in the YAML configuration file, you can also use them as an inspiration for your custom pipeline.
+
+Here some examples of what can be modified.
+
+### LLM Model
+
+This template by default uses two llm models - GPT-3.5 Turbo for answering queries and GPT-4o for parsing tables and images.
+
+You can replace GPT-3.5 Turbo with other Open AI models, like GPT-4, or GPT-4 Turbo.
+You can find the whole list on their [models page](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo).
+
+You simply need to change the `model` to the one you want to use:
+```yaml
+$llm: !pw.xpacks.llm.llms.OpenAIChat
+  model: "gpt-3.5-turbo"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0.05
+  capacity: 8
+```
+
+You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
+e.g. here is configuration for locally run Mistral model.
+
+```yaml
+$llm: !pw.xpacks.llm.llms.LiteLLMChat
+  model: "ollama/mistral"
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+    max_retries: 6
+  cache_strategy: !pw.udfs.DiskCache
+  temperature: 0
+  top_p: 1
+  api_base: "http://localhost:11434"
+```
+
+You can also change LLM used for parsing in the same way, by changing `!parsing_llm` in `app.yaml`, just keep in mind to use a multimodal model.
+
+### Webserver
+
+You can configure the host and the port of the webserver.
+Here is the default configuration:
+```yaml
+host: "0.0.0.0"
+port: 8000
+```
+
+### Cache
+
+You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+Default values:
+```yaml
+with_cache: True
+cache_backend: !pw.persistence.Backend.filesystem
+  path: ".Cache"
+```
+
+### Data sources
+
+You can configure the data sources by changing `$sources` in `app.yaml`.
+You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
+The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+
+By default, the app uses a local data source to read documents from the `data` folder.
+
 
 
 ## Running the app
@@ -103,8 +177,8 @@ You can omit the ```-v `pwd`/data:/app/data``` part if you are not using local f
 # Make sure you are in the right directory.
 cd examples/pipelines/gpt_4o_multimodal_rag/
 
-# Build the image in this folder, make sure you have the latest Pathway image
-docker build --pull -t rag .
+# Build the image in this folder
+docker build -t rag .
 
 # Run the image, mount the `data` folder into image and expose the port `8000`
 docker run -v `pwd`/data:/app/data -p 8000:8000 rag
@@ -161,20 +235,6 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
 > `$118,704 million`
 
 Looking good!
-
-## Modifying the pipeline
-
-This template is easily configurable in the `app.yaml` file. In there you can define:
-- input sources
-- LLM
-- embedder
-- index
-- host and port to run the app
-
-You can modify any of the components by checking the options from the [Pathway LLM xpack](https://pathway.com/developers/api-docs/pathway-xpacks-llm).
-
-It is also possible to easily create new components by extending the [`pw.UDF`](https://pathway.com/developers/user-guide/data-transformation/user-defined-functions) class and implementing the `__wrapped__` function.
-
 
 ## Conclusion
 
