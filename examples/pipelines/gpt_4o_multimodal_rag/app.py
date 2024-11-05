@@ -36,16 +36,12 @@ class App(BaseModel):
     port: int = 8000
 
     with_cache: bool = True
-    cache_backend: InstanceOf[pw.persistence.Backend] = (
-        pw.persistence.Backend.filesystem("./Cache")
-    )
     terminate_on_error: bool = False
 
     def run(self) -> None:
         server = QASummaryRestServer(self.host, self.port, self.question_answerer)
         server.run(
             with_cache=self.with_cache,
-            cache_backend=self.cache_backend,
             terminate_on_error=self.terminate_on_error,
         )
 

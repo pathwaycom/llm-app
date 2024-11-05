@@ -76,8 +76,6 @@ question_answerer: !pw.xpacks.llm.question_answering.AdaptiveRAGQuestionAnswerer
 
 # Cache configuration
 # with_cache: true
-# cache_backend: !pw.persistence.Backend.filesystem
-#  path: ".Cache"
 
 # Set `terminate_on_error` to true if you want the program to terminate whenever any error is encountered
 # terminate_on_error: false

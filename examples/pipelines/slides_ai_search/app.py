@@ -13,6 +13,11 @@ from pathway.xpacks import llm
 from pathway_slides_ai_search import CustomDeckRetriever, add_slide_id, get_model
 from pydantic import BaseModel, ConfigDict, FilePath, InstanceOf
 
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it below.
+# To use Pathway Community, comment out the line below.
+pw.set_license_key("demo-license-key-with-telemetry")
+
 
 class App(BaseModel):
     host: str = "0.0.0.0"
@@ -28,9 +33,6 @@ class App(BaseModel):
     details_schema: FilePath | dict[str, Any] | None = None
 
     with_cache: bool = True
-    cache_backend: InstanceOf[pw.persistence.Backend] = (
-        pw.persistence.Backend.filesystem("./Cache")
-    )
     terminate_on_error: bool = False
 
     def run(self) -> None:
@@ -64,7 +66,6 @@ class App(BaseModel):
 
         app.run_server(
             with_cache=self.with_cache,
-            cache_backend=self.cache_backend,
             terminate_on_error=self.terminate_on_error,
         )
 
