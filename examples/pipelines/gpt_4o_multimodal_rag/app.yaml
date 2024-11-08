@@ -59,7 +59,6 @@ $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   metric: !pw.engine.BruteForceKnnMetricKind.COS
   dimensions: 1536
   
-
 $document_store: !pw.xpacks.llm.document_store.DocumentStore
   docs: $sources
   parser: $parser
@@ -69,14 +68,13 @@ question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer
   llm: $llm
   indexer: $document_store
 
-
-# Change host and port by uncommenting these files
+# Change host and port by uncommenting these lines
 # host: "0.0.0.0"
 # port: 8000
-
 
 # Cache configuration
 # with_cache: true
 
-# Set `terminate_on_error` to true if you want the program to terminate whenever any error is encountered
-# terminate_on_error: false
+# If `terminate_on_error` is true then the program will terminate whenever any error is encountered.
+# Defaults to false, uncomment the following line if you want to set it to true
+# terminate_on_error: true
