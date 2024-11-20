@@ -28,7 +28,7 @@ This demo allows you to:
 
 Note: This app relies on [Pathway Vector store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/vectorstore) to learn more, you can check out [this blog post](https://pathway.com/developers/user-guide/llm-xpack/vectorstore_pipeline/).
 
-# Table of content
+## Table of contents
 - [Summary of available endpoints](#Summary-of-available-endpoints)
 - [How it works](#How-it-works)
 - [Customizing the pipeline](#Customizing-the-pipeline)
@@ -175,7 +175,7 @@ The local data source is configured by using map with tag `!pw.io.fs.read`. Then
 #### Google Drive Data Source
 
 The Google Drive data source is enabled by using map with tag `!pw.io.gdrive.read`. The map must contain two main parameters:
-- `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. Consequently, the last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`, hence this is the `object_id` you would need to specify.
+- `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. The last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs` and this is the `object_id` you would need to specify.
 - `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive).
 
 Besides, to speed up the indexing process you may want to specify the `refresh_interval` parameter, denoted by an integer number of seconds. It corresponds to the frequency between two sequential folder scans. If unset, it defaults to 30 seconds.
@@ -230,7 +230,7 @@ To test it, let's query the stats:
 curl -X 'POST'   'http://localhost:8000/v1/statistics'   -H 'accept: */*'   -H 'Content-Type: application/json'
 ```
 
-For more information on available endpoints by default, see [API docs](https://pathway.com/solutions/ai-pipelines).
+For more information on available endpoints by default, see [above](#Summary-of-available-endpoints).
 
 We provide some example `curl` queries to start with.
 
@@ -276,7 +276,7 @@ curl -X 'POST' \
 
 #### Asking questions to LLM (With and without RAG)
 
-- Note: The local version of this app does not require `openai_api_key` parameter in the payload of the query. Embedder and LLM will use the API key in the `.env` file. However, Pathway hosted public demo available on the website [website](https://pathway.com/solutions/ai-pipelines/) requires a valid `openai_api_key` to execute the query.
+- Note: The local version of this app does not require `openai_api_key` parameter in the payload of the query. Embedder and LLM will use the API key in the `.env` file. However, Pathway hosted public demo available on the [website](https://pathway.com/solutions/ai-pipelines/) requires a valid `openai_api_key` to execute the query.
 
 - Note: All of the RAG endpoints use the `model` provided in the config by default, however, you can specify another model with the `model` parameter in the payload to use a different one for generating the response.
 
