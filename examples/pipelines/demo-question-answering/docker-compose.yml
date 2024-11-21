@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "${PATHWAY_PORT:-8000}:${PATHWAY_PORT:-8000}"
+    networks:
+      - network
+    volumes:
+      - ./data:/app/data
+      - ./Cache:/app/Cache
+
+  ui:
+    build:
+      context: ui
+    networks:
+      - network
+    environment:
+      PATHWAY_HOST: "app"
+      PATHWAY_PORT: "${PATHWAY_PORT:-8000}"
+      UI_PORT: 8501
+    ports:
+      - "8501:8501"
+
+networks:
+  network:
+    driver: bridge

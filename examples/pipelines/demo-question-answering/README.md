@@ -68,6 +68,7 @@ This folder contains several objects:
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
 - `.env`, a short environment variables configuration file where the OpenAI key must be stored;
 - `data/`, a folder with exemplary files that can be used for the test runs.
+- `ui/`, a simple ui written in Streamlit for asking questions.
 
 ## Pathway tooling
 - Prompts and helpers
@@ -206,19 +207,19 @@ Please note that the local run requires the dependencies to be installed. It can
 
 ### With Docker
 
-In order to let the pipeline get updated with each change in local files, you need to mount the folder onto the docker. The following commands show how to do that.
+Build the Docker with:
 
-You can omit the ```-v `pwd`/data:/app/data``` part if you are not using local files as a source. 
 ```bash
-# Make sure you are in the right directory.
-cd examples/pipelines/demo-question-answering
-
-# Build the image in this folder
-docker build -t qa .
-
-# Run the image, mount the `data` folder into image and expose the port `8000`
-docker run -v `pwd`/data:/app/data -p 8000:8000 qa
+docker compose build
 ```
+
+And, run with:
+
+```bash
+docker compose up
+```
+
+This will start the pipeline and the ui for asking questions.
 
 ### Query the documents
 You will see the logs for parsing & embedding documents in the Docker image logs. 
@@ -265,12 +266,12 @@ Search API gives you the ability to search in available inputs and get up-to-dat
 
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/retrieve' \
+  'http://0.0.0.0:8006/v1/retrieve' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
-  "query": "What is the start date of the contract?",
-  "k": 2
+  "query": "Which articles of General Data Protection Regulation are relevant for clinical trials?",
+  "k": 6
 }'
 ```
 
@@ -341,3 +342,6 @@ To execute similar curl queries as above, you can visit [ai-pipelines page](http
 First, you can try adding your files and seeing changes in the index. To test index updates, simply add more files to the `data` folder.
 
 If you are using Google Drive or other sources, simply upload your files there.
+
+### Using the UI
+This pipeline includes a simple ui written in Streamlit. After you run the pipeline with `docker compose up`, you can access the UI at `http://localhost:8501`. This UI uses the `/v1/pw_ai_answer` endpoint to answer your questions.
