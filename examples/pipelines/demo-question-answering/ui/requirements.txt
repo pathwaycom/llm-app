@@ -1,4 +1,4 @@
-streamlit==1.35.0
+streamlit==1.37.0
 load_dotenv==0.1.0
 nest_asyncio==1.6.0
 aiohttp==3.9.5
