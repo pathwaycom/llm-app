@@ -3,6 +3,8 @@
 # Copyright © 2024 Pathway
 
 # Copied and adapted from examples/pipelines/slides_ai_search/app.py
+# To use advanced features with Pathway Scale, get your free license key from
+# https://pathway.com/features and paste it in the `.env` file (check `.env.example`).
 
 from pathlib import Path
 from typing import Any
@@ -12,11 +14,6 @@ from dotenv import load_dotenv
 from pathway.xpacks import llm
 from pathway_slides_ai_search import CustomDeckRetriever, add_slide_id, get_model
 from pydantic import BaseModel, ConfigDict, FilePath, InstanceOf
-
-# To use advanced features with Pathway Scale, get your free license key from
-# https://pathway.com/features and paste it below.
-# To use Pathway Community, comment out the line below.
-pw.set_license_key("demo-license-key-with-telemetry")
 
 
 class App(BaseModel):
