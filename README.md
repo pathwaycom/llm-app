@@ -54,7 +54,7 @@ Automated real-time knowledge mining and alerting:
 
 ![Automated real-time knowledge mining and alerting](examples/pipelines/drive_alert/drive_alert_demo.gif)
 
-(Check out the [`Alerting when answers change on Google Drive`](#examples) app example.)
+(Check out the [`Alerting when answers change on Google Drive`](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/drive_alert) app example.)
 
 
 ###  Do-it-Yourself Videos
