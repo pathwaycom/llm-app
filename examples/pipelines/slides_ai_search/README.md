@@ -1,3 +1,14 @@
+<p align="center">
+    <img src="../../../assets/gcp-logo.svg" alt="GCP Logo" height="30">
+    <a href="https://pathway.com/developers/user-guide/deployment/gcp-deploy">Deploy with GCP</a> |
+    <img src="../../../assets/aws-fargate-logo.svg" alt="AWS Logo" height="30">
+    <a href="https://pathway.com/developers/user-guide/deployment/aws-fargate-deploy">Deploy with AWS</a> |
+    <img src="../../../assets/azure-logo.svg" alt="Azure Logo" height="30">
+    <a href="/developers/user-guide/deployment/azure-aci-deploy">Deploy with Azure</a> |
+    <img src="../../../assets/render.png" alt="Render Logo" height="30">
+    <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
+</p>
+
 # **Slides AI Search App**
 
 ## **Overview**

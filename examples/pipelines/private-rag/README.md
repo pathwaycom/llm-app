@@ -1,10 +1,12 @@
-<p align="left">
-  <a href="https://pathway.com/developers/user-guide/deployment/gcp-deploy" style="display: inline-flex; align-items: center;">
-    <img src="https://www.gstatic.com/pantheon/images/welcome/supercloud.svg" alt="GCP Logo" height="1.2em"> <span style="margin-left: 5px;">Deploy with GCP</span>
-  </a> | 
-  <a href="https://pathway.com/developers/user-guide/deployment/render-deploy" style="display: inline-flex; align-items: center;">
-    <img src="../../../assets/render.png" alt="Render Logo" height="1.2em"> <span style="margin-left: 5px;">Deploy with Render</span>
-  </a>
+<p align="center">
+    <img src="../../../assets/gcp-logo.svg" alt="GCP Logo" height="30">
+    <a href="https://pathway.com/developers/user-guide/deployment/gcp-deploy">Deploy with GCP</a> |
+    <img src="../../../assets/aws-fargate-logo.svg" alt="AWS Logo" height="30">
+    <a href="https://pathway.com/developers/user-guide/deployment/aws-fargate-deploy">Deploy with AWS</a> |
+    <img src="../../../assets/azure-logo.svg" alt="Azure Logo" height="30">
+    <a href="/developers/user-guide/deployment/azure-aci-deploy">Deploy with Azure</a> |
+    <img src="../../../assets/render.png" alt="Render Logo" height="30">
+    <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
 </p>
 
 # Fully private RAG with Pathway
