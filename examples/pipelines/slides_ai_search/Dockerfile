@@ -1,4 +1,4 @@
-ARG PATHWAY_SRC_IMAGE=pathwaycom/pathway:latest
+ARG PATHWAY_SRC_IMAGE=pathwaycom/pathway:0.15.3
 
 FROM ${PATHWAY_SRC_IMAGE}
 

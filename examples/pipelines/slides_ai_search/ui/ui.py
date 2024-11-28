@@ -31,11 +31,12 @@ logger.setLevel(logging.INFO)
 
 conn = RAGClient(url=f"http://{PATHWAY_HOST}:{PATHWAY_PORT}")
 
-file_server_base_url = os.environ.get("FILE_SERVER_URL", "http://nginx:8080/")
+file_server_base_url = os.environ.get("FILE_SERVER_URL", "http://localhost:8080/")
 
 file_server_image_base_url = f"{file_server_base_url}images"
 
 file_server_pdf_base_url = f"{file_server_base_url}documents"
+internal_file_server_pdf_base_url = "http://nginx:8080/"
 
 note = """
 <H4><b>Search your slide decks"""
@@ -148,7 +149,7 @@ def get_slide_link(file_name, page_num=None) -> str:
 
 def get_all_index_files() -> list[str]:
     logger.info("request get_all_index_files")
-    response = requests.get(file_server_pdf_base_url + "/")
+    response = requests.get(internal_file_server_pdf_base_url + "/")
     logger.info("response get_all_index_files")
 
     if response.status_code == 200:
