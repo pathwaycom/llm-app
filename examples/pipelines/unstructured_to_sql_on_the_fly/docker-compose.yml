@@ -32,11 +32,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      OPENAI_API_KEY:
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
       PATHWAY_REST_CONNECTOR_HOST:
       PATHWAY_REST_CONNECTOR_PORT:
       PATHWAY_PERSISTENT_STORAGE:
-      POSTGRESQL_HOST: "172.17.0.1"
+      POSTGRESQL_HOST: "postgres"
     volumes:
       - "./data:/app/data"
   streamlit_ui:
