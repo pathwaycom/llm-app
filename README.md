@@ -1,6 +1,6 @@
 <div align="center">
 
-# LLM App
+# Pathway AI Pipelines
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 ![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white)
@@ -8,7 +8,7 @@
 [![follow on X](  https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **LLM (Large Language Model) App Templates** allow you to quickly put in production AI applications which offer **high-accuracy RAG and AI enterprise search at scale** using the most **up-to-date knowledge** available in your data sources. You can test them on your own machine and deploy on-cloud (GCP, AWS, Azure, Render,...) or on-premises.
+Pathway's **AI Pipelines** allow you to quickly put in production AI applications that offer **high-accuracy RAG and AI enterprise search at scale** using the most **up-to-date knowledge** available in your data sources. It provides you ready-to-deploy **LLM (Large Language Model) App Templates**. You can test them on your own machine and deploy on-cloud (GCP, AWS, Azure, Render,...) or on-premises.
 
 The apps connect and sync (all new data additions, deletions, updates) with data sources on your **file system, Google Drive, Sharepoint, S3, Kafka, PostgreSQL, real-time data APIs**. They come with no infrastructure dependencies that would need a separate setup. They include **built-in data indexing** enabling vector search, hybrid search, and full-text search - all done in-memory, with cache.
 
@@ -28,11 +28,11 @@ The application templates provided in this repo scale up to **millions of pages 
 | [`Slides AI Search App`](examples/pipelines/slides_ai_search/)                                        | An indexing pipeline for retrieving slides. It performs multi-modal of PowerPoint and PDF and maintains live index of your slides."|
 
 
-## How do these LLM Apps work?
+## How do these AI Pipelines work?
 
 The apps can be run as **Docker containers**, and expose an **HTTP API** to connect the frontend. To allow quick testing and demos, some app templates also include an optional Streamlit UI which connects to this API. 
 
-The apps rely on the [Pathway framework](https://github.com/pathwaycom/pathway) for data source synchronization and for serving API requests (Pathway is a standalone Python library with a Rust engine built into it). They bring you a **simple and unified application logic** for back-end, embedding, retrieval, LLM tech stack. There is no need to integrate and maintain separate modules for your Gen AI app: ~Vector Database (e.g. Pinecone/Weaviate/Qdrant) + Cache (e.g. Redis) + API Framework (e.g. Fast API)~. Pathway's default choice of **built-in vector index** is based on the lightning-fast [usearch](https://github.com/unum-cloud/usearch) library, and **hybrid full-text indexes** make use of [Tantivy](https://github.com/quickwit-oss/tantivy) library. Everything works out of the box.
+The apps rely on the [Pathway Live Data framework](https://github.com/pathwaycom/pathway) for data source synchronization and for serving API requests (Pathway is a standalone Python library with a Rust engine built into it). They bring you a **simple and unified application logic** for back-end, embedding, retrieval, LLM tech stack. There is no need to integrate and maintain separate modules for your Gen AI app: ~Vector Database (e.g. Pinecone/Weaviate/Qdrant) + Cache (e.g. Redis) + API Framework (e.g. Fast API)~. Pathway's default choice of **built-in vector index** is based on the lightning-fast [usearch](https://github.com/unum-cloud/usearch) library, and **hybrid full-text indexes** make use of [Tantivy](https://github.com/quickwit-oss/tantivy) library. Everything works out of the box.
 
 ## Getting started
 
@@ -43,11 +43,11 @@ You can also find [more ready-to-run code templates](https://pathway.com/develop
 
 ## Some visual highlights
 
-Effortlessly extract and organize table and charts data from PDFs, docs, and more with multimodal RAG - in real-time:
+Effortlessly extract and organize table and chart data from PDFs, docs, and more with multimodal RAG - in real-time:
 
-![Effortlessly extract and organize table and charts data from PDFs, docs, and more with multimodal RAG - in real-time](https://github.com/pathwaycom/llm-app/blob/main/examples/pipelines/gpt_4o_multimodal_rag/gpt4o_with_pathway_comparison.gif)
+![Effortlessly extract and organize table and chart data from PDFs, docs, and more with multimodal RAG - in real-time](https://github.com/pathwaycom/llm-app/blob/main/examples/pipelines/gpt_4o_multimodal_rag/gpt4o_with_pathway_comparison.gif)
 
-(Check out [`Multimodal RAG pipeline with GPT4o`](examples/pipelines/gpt_4o_multimodal_rag/) to see the whole pipeline in the works. You may also check out the [`Unstructured-to-SQL pipeline`](examples/pipelines/unstructured_to_sql_on_the_fly/) for a minimal example which works with non-multimodal models as well.)
+(Check out [`Multimodal RAG pipeline with GPT4o`](examples/pipelines/gpt_4o_multimodal_rag/) to see the whole pipeline in the works. You may also check out the [`Unstructured-to-SQL pipeline`](examples/pipelines/unstructured_to_sql_on_the_fly/) for a minimal example that works with non-multimodal models as well.)
 
 
 Automated real-time knowledge mining and alerting:
