@@ -30,12 +30,12 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
     max_retries: 6
     initial_delay: 2500
     backoff_factor: 2.5
-  cache_strategy: !pw.udfs.DiskCache
+  cache_strategy: !pw.udfs.DefaultCache
   temperature: 0.0
   capacity: 8 # reduce this in case you are hitting API throttle limits
 
 embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
-  cache_strategy: !pw.udfs.DiskCache
+  cache_strategy: !pw.udfs.DefaultCache
 
 details_schema:
   category:

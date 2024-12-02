@@ -30,7 +30,7 @@ $llm: !pw.xpacks.llm.llms.LiteLLMChat
   model: $llm_model
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DiskCache
+  cache_strategy: !pw.udfs.DefaultCache
   temperature: 0
   top_p: 1
   format: "json"  # only available in Ollama local deploy, not usable in Mistral API
@@ -47,6 +47,7 @@ $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
   max_tokens: 400
 
 $parser: !pw.xpacks.llm.parsers.ParseUnstructured
+  cache_strategy: !pw.udfs.DefaultCache
 
 $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   reserved_space: 1000

@@ -33,6 +33,7 @@ class App(BaseModel):
         server.run(
             with_cache=self.with_cache,
             terminate_on_error=self.terminate_on_error,
+            cache_backend=pw.persistence.Backend.filesystem("Cache"),
         )
 
     model_config = ConfigDict(extra="forbid")
