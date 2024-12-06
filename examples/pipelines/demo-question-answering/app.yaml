@@ -17,7 +17,7 @@ $sources:
   # - !pw.io.gdrive.read
   #   object_id: $DRIVE_ID
   #   service_user_credentials_file: gdrive_indexer.json
-  #   name_pattern:
+  #   file_name_pattern:
   #     - "*.pdf"
   #     - "*.pptx"
   #   object_size_limit: null
