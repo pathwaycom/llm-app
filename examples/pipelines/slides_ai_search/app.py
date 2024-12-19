@@ -12,7 +12,7 @@ from typing import Any
 import pathway as pw
 from dotenv import load_dotenv
 from pathway.xpacks import llm
-from pathway_slides_ai_search import CustomDeckRetriever, add_slide_id, get_model
+from pathway_slides_ai_search import DeckRetrieverWithFileSave, add_slide_id, get_model
 from pydantic import BaseModel, ConfigDict, FilePath, InstanceOf
 
 
@@ -53,8 +53,7 @@ class App(BaseModel):
             doc_post_processors=[add_slide_id],
         )
 
-        app = CustomDeckRetriever(
-            llm=self.llm,
+        app = DeckRetrieverWithFileSave(
             indexer=doc_store,
             search_topk=self.search_topk,
         )

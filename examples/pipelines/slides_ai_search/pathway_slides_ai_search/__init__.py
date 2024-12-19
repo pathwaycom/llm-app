@@ -88,7 +88,7 @@ def add_slide_id(text: str, metadata: dict) -> tuple[str, dict]:
     return (text, metadata)
 
 
-class CustomDeckRetriever(DeckRetriever):
+class DeckRetrieverWithFileSave(DeckRetriever):
     def dump_img_callback(self, key, row, time, is_addition):
         # save images parsed by the Pathway
         metadata = row["data"]
