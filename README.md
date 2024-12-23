@@ -70,7 +70,7 @@ To provide feedback or report a bug, please [raise an issue on our issue tracker
 
 ## Contributing
 
-Anyone who wishes to contribute to this project, whether documentation, features, bug fixes, code cleanup, testing, or code reviews, is very much encouraged to do so. If this is your first contribution to a Github project, here is a [Get Started Guide](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). 
+Anyone who wishes to contribute to this project, whether documentation, features, bug fixes, code cleanup, testing, or code reviews, is very much encouraged to do so. If this is your first contribution to a GitHub project, here is a [Get Started Guide](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). 
 
 If you'd like to make a contribution that needs some more work, just raise your hand on the [Pathway Discord server](https://discord.com/invite/pathway) (#get-help) and let us know what you are planning!
 
