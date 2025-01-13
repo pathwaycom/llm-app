@@ -282,7 +282,7 @@ curl http://localhost:8000/v1/completions \ns \
 ### Set the LLM Instance in the configuration file
 
 ```yaml
-llm: !pw.xpack.llm.llms.OpenAIChat
+llm: !pw.xpacks.llm.llms.OpenAIChat
   model: "microsoft/Phi-3-vision-128k-instruct"
   temperature: 0.0
   capacity: 1
@@ -308,7 +308,7 @@ We replace the `embedder` with the following embedding model in `app.yaml`:
 ```yaml
 $embedding_model: "avsolatorio/GIST-small-Embedding-v0"
 
-embedder: !pw.xpack.llms.embedders.SentenceTransformerEmbedder
+embedder: !pw.xpacks.llms.embedders.SentenceTransformerEmbedder
   model: $embedding_model
   call_kwargs: 
     show_progress_bar: false
