@@ -51,7 +51,7 @@ The architecture of this multimodal RAG application involves several key compone
 
 - **Data Ingestion**: Ingests data from various sources like local folders, Google Drive, or SharePoint.
 - **Document Parsing and Embedding**: Utilizes `OpenParse` for parsing documents and `OpenAIEmbedder` for embedding text. This includes handling and processing images within PDFs.
-- **Vector Store**: The `VectorStoreServer` indexes parsed documents and retrieves relevant chunks for answering questions.
+- **Document Store**: The `DocumentStoreServer` indexes parsed documents and retrieves relevant chunks for answering questions.
 - **Question Answering**: Uses the `BaseRAGQuestionAnswerer` class to call `GPT-4o` for generating responses based on the retrieved context.
 - **Server Setup**: Sets up a REST endpoint to serve the RAG application.
 
@@ -266,7 +266,6 @@ Let's discuss how we can help you build a powerful, customized RAG application. 
 - [Discord Community of Pathway](https://discord.gg/pathway)
 - [Pathway Issue Tracker](https://github.com/pathwaycom/pathway/issues)
 - [End-to-end dynamic RAG pipeline with Pathway](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/demo-question-answering)
-- [Using Pathway as a vector store with Langchain](https://python.langchain.com/v0.2/docs/integrations/vectorstores/pathway/) 
 - [Using Pathway as a retriever with LlamaIndex](https://docs.llamaindex.ai/en/stable/examples/retrievers/pathway_retriever/) 
 
 Make sure to drop a "Star" to our repositories if you found this resource helpful!

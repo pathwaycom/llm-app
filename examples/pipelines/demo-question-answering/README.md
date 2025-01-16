@@ -28,7 +28,7 @@ This demo allows you to:
 - Get an executive outlook for a question on different files to easily access available knowledge in your documents;
 
 
-Note: This app relies on [Pathway Vector store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/vectorstore) to learn more, you can check out [this blog post](https://pathway.com/developers/user-guide/llm-xpack/vectorstore_pipeline/).
+Note: This app relies on [Document Store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store) to learn more, you can check out [this blog post](https://pathway.com/developers/user-guide/llm-xpack/docs-indexing/).
 
 ## Table of contents
 - [Summary of available endpoints](#Summary-of-available-endpoints)
