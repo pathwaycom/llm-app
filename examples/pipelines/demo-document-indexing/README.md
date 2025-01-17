@@ -50,7 +50,7 @@ This folder contains several objects:
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/user-guide/llm-xpack/yaml-templates).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/ai-pipelines/configure-yaml).
 
 In the `app.yaml` file we define:
 - input connectors

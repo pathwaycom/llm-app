@@ -338,7 +338,7 @@ python app.py
 
 ## Not sure how to get started? 
 
-Let's discuss how we can help you build a powerful, customized RAG application. [Reach us here to talk or request a demo!](https://pathway.com/solutions/enterprise-generative-ai?modal=requestdemo)
+Let's discuss how we can help you build a powerful, customized RAG application. [Reach us here to talk or request a demo!](https://pathway.com/solutions/slides-ai-search?modal=requestdemo)
 
 
 ## FAQ

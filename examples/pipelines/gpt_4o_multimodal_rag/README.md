@@ -256,7 +256,7 @@ RAG applications are most effective when tailored to your specific use case. Her
 
 Ready to Get Started? 
 
-Let's discuss how we can help you build a powerful, customized RAG application. [Reach us here to talk or request a demo!](https://pathway.com/solutions/enterprise-generative-ai?modal=requestdemo)
+Let's discuss how we can help you build a powerful, customized RAG application. [Reach us here to talk or request a demo!](https://pathway.com/solutions/slides-ai-search?modal=requestdemo)
 
 
 ## Quick Links:
