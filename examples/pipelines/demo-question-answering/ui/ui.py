@@ -156,15 +156,9 @@ if question:
         }
     )
 
-    api_url = f"http://{PATHWAY_HOST}:{PATHWAY_PORT}/v1/pw_ai_answer"
-    payload = {
-        "prompt": question,
-        "response_type": "long",
-    }
     with st.spinner("Retrieving response..."):
-        response = send_post_request(api_url, payload)
-
-    # response = conn.pw_ai_answer(question)
+        api_response = conn.pw_ai_answer(question)
+        response = api_response["response"]
 
     logger.info(
         {

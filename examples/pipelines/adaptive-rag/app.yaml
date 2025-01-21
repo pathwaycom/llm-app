@@ -25,7 +25,7 @@ $sources:
   #   refresh_interval: 30
 
 $llm: !pw.xpacks.llm.llms.OpenAIChat
-  model: "gpt-3.5-turbo"
+  model: "gpt-4o-mini"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
   cache_strategy: !pw.udfs.DefaultCache

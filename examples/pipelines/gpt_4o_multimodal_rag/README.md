@@ -212,7 +212,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
   "prompt": "How much was Operating lease cost in 2021?" 
 }'
 ```
-> `$2,699 million`
+> `{"response": "$2,699 million"}`
 
 This response was correct thanks to the initial LLM parsing step. 
 When we check the context that is sent to the LLM, we see that Pathway included the table in the context where as other RAG applications failed to include the table.
@@ -225,7 +225,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
   "prompt": "What is the operating income for the fiscal year of 2022?" 
 }'
 ```
-> `$74,842 million`
+> `{"response": "$74,842 million"}`
 
 Another example, let's ask a question that can be answered from the table on the 48th page of the PDF.
 
@@ -234,7 +234,16 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
   "prompt": "How much was Marketable securities worth in 2021 in the consolidated balance sheets?"                                              
 }'
 ```
-> `$118,704 million`
+> `{"response": "$118,704 million"}`
+
+
+Now, let's also fetch the context documents,
+```bash
+curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+  "prompt": "How much was Operating lease cost in 2021?", "return_context_docs": true
+}'
+```
+> `{"response": "$2,699 million", "context_docs": [{"text": "..."}, ...]`
 
 Looking good!
 

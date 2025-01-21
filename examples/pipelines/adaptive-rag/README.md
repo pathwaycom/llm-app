@@ -167,5 +167,4 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
   "prompt": "What is the start date of the contract?" 
 }'
 ```
-> `December 21, 2015 [6]`
-
+> `{"response": "December 21, 2015 [6]"}`

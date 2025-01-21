@@ -295,7 +295,19 @@ curl -X 'POST' \
 }'
 ```
 
-Question answering with the knowledge from files that have the word `Ide` in their paths.
+Question answering with the knowledge from a specific file, based on the path.
+```bash
+curl -X 'POST' \
+  'http://0.0.0.0:8000/v1/pw_ai_answer' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "prompt": "What is the start date of the contract?",
+  "filters": "globmatch(`IdeanomicsInc_20160330_10-K_EX-10.26_9512211_EX-10.26_Content License Agreement.pdf`, path)"
+}'
+```
+
+Alternatively, with the knowledge from files that have the word `Ide` in their paths.
 ```bash
 curl -X 'POST' \
   'http://0.0.0.0:8000/v1/pw_ai_answer' \
@@ -304,6 +316,18 @@ curl -X 'POST' \
   -d '{
   "prompt": "What is the start date of the contract?",
   "filters": "contains(path, `Ide`)"
+}'
+```
+
+You can also retrieve the context documents that were used to answer the question,
+```bash
+curl -X 'POST' \
+  'http://0.0.0.0:8000/v1/pw_ai_answer' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "prompt": "What is the start date of the contract?",
+  "return_context_docs": true
 }'
 ```
 
