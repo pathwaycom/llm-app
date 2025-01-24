@@ -2,6 +2,8 @@
 
 # Pathway AI Pipelines
 
+<a href="https://trendshift.io/repositories/4400" target="_blank"><img src="https://trendshift.io/api/badge/repositories/4400" alt="pathwaycom%2Fllm-app | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 ![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white)
 [![chat on Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/pathway)
