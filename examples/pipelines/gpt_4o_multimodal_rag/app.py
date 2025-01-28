@@ -1,14 +1,4 @@
 import logging
-import os
-
-# flake8: noqa
-for tesseract_dir in [
-    "/usr/share/tesseract/tessdata/",
-    "/usr/share/tesseract-ocr/5/tessdata",
-]:
-    if os.path.exists(tesseract_dir):
-        os.environ["TESSDATA_PREFIX"] = tesseract_dir  # fix for tesseract ocr
-        break
 
 import pathway as pw
 from dotenv import load_dotenv

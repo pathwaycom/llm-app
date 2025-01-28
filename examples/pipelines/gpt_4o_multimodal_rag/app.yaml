@@ -42,16 +42,11 @@ $parsing_llm: !pw.xpacks.llm.llms.OpenAIChat
     max_retries: 6
   cache_strategy: !pw.udfs.DefaultCache
 
-$parser: !pw.xpacks.llm.parsers.OpenParse
-  cache_strategy: !pw.udfs.DefaultCache
-  table_args:
-    parsing_algorithm: "llm"
-    llm: $parsing_llm
-    prompt: pw.xpacks.llm.prompts.DEFAULT_MD_TABLE_PARSE_PROMPT
-  image_args:
-    parsing_algorithm: "llm"
-    llm: $parsing_llm
-    prompt: pw.xpacks.llm.prompts.DEFAULT_IMAGE_PARSE_PROMPT
+$parser: !pw.xpacks.llm.parsers.DoclingParser
+  multimodal_llm: parsing_llm
+
+$splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
+  max_tokens: 400
 
 $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   reserved_space: 1000
@@ -62,6 +57,7 @@ $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
 $document_store: !pw.xpacks.llm.document_store.DocumentStore
   docs: $sources
   parser: $parser
+  splitter: $splitter
   retriever_factory: $retriever_factory
 
 question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer

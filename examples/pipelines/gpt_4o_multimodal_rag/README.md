@@ -50,7 +50,7 @@ We use `GPT-4o` in two separate places in the flow of data:
 The architecture of this multimodal RAG application involves several key components:
 
 - **Data Ingestion**: Ingests data from various sources like local folders, Google Drive, or SharePoint.
-- **Document Parsing and Embedding**: Utilizes `OpenParse` for parsing documents and `OpenAIEmbedder` for embedding text. This includes handling and processing images within PDFs.
+- **Document Parsing and Embedding**: Utilizes `DoclingParser` for parsing documents and `OpenAIEmbedder` for embedding text. This includes handling and processing images within PDFs.
 - **Document Store**: The `DocumentStoreServer` indexes parsed documents and retrieves relevant chunks for answering questions.
 - **Question Answering**: Uses the `BaseRAGQuestionAnswerer` class to call `GPT-4o` for generating responses based on the retrieved context.
 - **Server Setup**: Sets up a REST endpoint to serve the RAG application.
