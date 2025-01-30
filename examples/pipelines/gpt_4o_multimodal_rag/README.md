@@ -13,7 +13,7 @@
 
 ## **Overview**
 
-This app template showcases how you can build a multimodal RAG application and launch a document processing pipeline that utilizes `GPT-4o` for both parsing and generation tasks. Pathway processes unstructured financial documents within specified directories, extracting and storing the information in a scalable in-memory vector index. This index is optimized for dynamic RAG, ensuring that search results are continuously updated as documents are modified or new files are added.
+This app template showcases how you can build a multimodal RAG application and launch a document processing pipeline that utilizes a vision language model like the `GPT-4o` for parsing. Pathway processes unstructured financial documents within specified directories, extracting and storing the information in a scalable in-memory index. This index is optimized for dynamic RAG, ensuring that search results are continuously updated as documents are modified or new files are added.
 
 Using this approach, you can make your AI application run in permanent connection with your drive, in sync with your documents which include visually formatted elements: tables, charts, images, etc. 
 
@@ -155,6 +155,7 @@ By default, the app uses a local data source to read documents from the `data` f
 > Note: Recommended way of running the Pathway on Windows is Docker, refer to [Running with the Docker section](#with-docker).
 
 First, make sure to install the requirements by running:
+
 ```bash
 pip install -r requirements.txt -U
 ```

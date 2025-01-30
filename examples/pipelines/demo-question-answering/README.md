@@ -11,7 +11,7 @@
 
 # Pathway RAG app with always up-to-date knowledge
 
-This demo shows how to create a RAG application using [Pathway](https://github.com/pathwaycom/pathway) that provides always up-to-date knowledge to your LLM without the need for a separate ETL. 
+This demo shows how to create a real-time RAG application using [Pathway](https://github.com/pathwaycom/pathway) that provides always up-to-date knowledge to your LLM without the need for a separate ETL. 
 
 You can have a preview of the demo [here](https://pathway.com/solutions/ai-pipelines).
 
@@ -20,7 +20,7 @@ This significantly reduces the developer's workload.
 
 This demo allows you to:
 
-- Create a vector store with real-time document indexing from Google Drive, Microsoft 365 SharePoint, or a local directory;
+- Create a Document store with real-time document indexing from Google Drive, Microsoft 365 SharePoint, or a local directory;
 - Connect an OpenAI LLM model of choice to your knowledge base;
 - Get quality, accurate, and precise responses to your questions;
 - Ask questions about folders, files or all your documents easily, with the help of filtering options;
@@ -40,7 +40,7 @@ Note: This app relies on [Document Store](https://pathway.com/developers/api-doc
 
 ## Summary of available endpoints
 
-This example spawns a lightweight webserver that accepts queries on six possible endpoints, divided into two categories: document indexing and RAG with LLM.
+This example spawns a lightweight webserver using Pathway’s [`QASummaryRestServer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/servers#pathway.xpacks.llm.servers.QASummaryRestServer)) that accepts queries on five possible endpoints, divided into two categories: document indexing and RAG with LLM.
 
 ### Document Indexing capabilities
 - `/v1/retrieve` to perform similarity search;
@@ -55,11 +55,25 @@ See the [using the app section](###Using-the-app) to learn how to use the provid
 
 ## How it works
 
-This pipeline uses several Pathway connectors to read the data from the local drive, Google Drive, and Microsoft SharePoint sources. It allows you to poll the changes with low latency and to do the modifications tracking. So, if something changes in the tracked files, the corresponding change is reflected in the internal collections. The contents are read into a single Pathway Table as binary objects. 
+1. **Data Ingestion**  
+We define one or more sources in `app.yaml` (local directories, Google Drive, Microsoft SharePoint, etc.).  
+- The provided demo references a local folder `data/` by default.  
+- The code can poll these sources at configured intervals, so when new documents appear or existing ones change, they are automatically parsed and re-indexed in real-time.
 
-After that, those binary objects are parsed with [unstructured](https://unstructured.io/) library and split into chunks. With the usage of OpenAI API, the pipeline embeds the obtained chunks.
+2. **Parsing & Splitting**  
+Using [Unstructured](https://unstructured.io/) (through Pathway’s [`ParseUnstructured`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/parsers#pathway.xpacks.llm.parsers.ParseUnstructured)) and [TokenCountSplitter](https://pathway.com/developers/api-docs/pathway-xpacks-llm/splitters#pathway.xpacks.llm.splitters.TokenCountSplitter), documents are chunked into smaller parts.
 
-Finally, the embeddings are indexed with the capabilities of Pathway's machine-learning library. The user can then query the created index with simple HTTP requests to the endpoints mentioned above.
+3. **Embedding**  
+Via [`OpenAIEmbedder`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/embedders#pathway.xpacks.llm.embedders.OpenAIEmbedder), the chunks get turned into embeddings. You can substitute your own embedder if you wish.
+
+4. **Indexing**  
+Using [`BruteForceKnnFactory`](https://pathway.com/developers/api-docs/pathway-stdlib/indexing#pathway.stdlib.indexing.BruteForceKnnFactory), the embeddings are stored in a vector index. This is all streaming as well, so new embeddings are added or updated automatically.
+
+5. **Serving**  
+- We create a [`SummaryQuestionAnswerer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/question_answering#pathway.xpacks.llm.question_answering.SummaryQuestionAnswerer) (as specified in `app.py`), which can handle both question-answering and summarization requests.  
+- A web server, [`QASummaryRestServer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/servers#pathway.xpacks.llm.servers.QASummaryRestServer), exposes multiple endpoints for retrieval, Q&A, summarization, and more.
+
+Because Pathway is fully incremental, any changes to your source files immediately flow through parsing, embedding, indexing, and ultimately get reflected in the answers from the LLM. The user can then query the created index with simple HTTP requests to the endpoints mentioned above.
 
 ## Pipeline Organization
 
@@ -81,7 +95,7 @@ You can also use user-defined functions using the [`@pw.udf`](https://pathway.co
 
 - RAG
 
-Pathway provides all the tools to create a RAG application and query it: a [Pathway vector store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/splitters) and a web server (defined with the [REST connector](https://pathway.com/developers/api-docs/pathway-io/http#pathway.io.http.rest_connector)).
+Pathway provides all the tools to create a RAG application and query it: a [Pathway Document store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store#pathway.xpacks.llm.document_store.DocumentStore) and a web server (defined with the [REST connector](https://pathway.com/developers/api-docs/pathway-io/http#pathway.io.http.rest_connector)).
 They are defined in our demo in the main class `PathwayRAG` along with the different functions and schemas used by the RAG.
 
 For the sake of the demo, we kept the app simple, consisting of the main components you would find in a regular RAG application. It can be further enhanced with query writing methods, re-ranking layer and custom splitting steps.
@@ -144,6 +158,40 @@ $llm: !pw.xpacks.llm.llms.LiteLLMChat
   api_base: "http://localhost:11434"
 ```
 
+### Index of your choice
+
+The [`DocumentStore`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store#pathway.xpacks.llm.document_store.DocumentStore) makes building and customizing a document indexing pipeline straightforward. It processes documents and enables querying the closest documents to a given query based on your chosen indexing strategy. Here's how you can use a hybrid indexing approach, combining vector-based and text-based retrieval: 
+
+Example: Hybrid Indexing with `BruteForceKNN` and `TantivyBM25`
+
+The following example demonstrates how to configure and use the [HybridIndex](/developers/api-docs/indexing#pathway.stdlib.indexing.HybridIndex)) that combines:
+
+- **`BruteForceKNN`**: A vector-based index leveraging embeddings for semantic similarity search.
+- **[`TantivyBM25`](/developers/api-docs/indexing#pathway.stdlib.indexing.TantivyBM25)**: A text-based index using BM25 for keyword matching.
+
+
+```yaml
+$knn_index: !pw.stdlib.indexing.BruteForceKnnFactory
+  reserved_space: 1000
+  embedder: $embedder
+  metric: !pw.engine.BruteForceKnnMetricKind.COS
+  dimensions: 1536
+
+$bm25_index: !pw.stdlib.indexing.TantivyBM25Factory
+
+$hybrid_index_factory: !pw.stdlib.indexing.HybridIndexFactory
+  retriever_factories:
+    - $knn_index
+    - $bm25_index
+
+$document_store: !pw.xpacks.llm.document_store.DocumentStore
+  docs: $sources
+  parser: $parser
+  splitter: $splitter
+  retriever_factory: $hybrid_index_factory
+```
+Choose the indexing strategy that fits your requirements with `DocumentStore`
+
 ### Webserver
 
 You can configure the host and the port of the webserver.
@@ -192,6 +240,12 @@ This data source requires Scale or Enterprise [license key](https://pathway.com/
 To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint/#pathway.xpacks.connectors.sharepoint.read).
 
 ## How to run the project
+
+Clone the llm-app repository from GitHub. This repository contains all the files you’ll need.
+
+```bash
+git clone https://github.com/pathwaycom/llm-app.git
+```
 
 ### Locally
 If you are on Windows, please refer to [running with docker](#With-Docker) section below.
@@ -268,7 +322,7 @@ Search API gives you the ability to search in available inputs and get up-to-dat
 
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8006/v1/retrieve' \
+  'http://0.0.0.0:8000/v1/retrieve' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
