@@ -35,7 +35,7 @@ import pathway as pw
 from pathway.stdlib.ml.index import KNNIndex
 from pathway.xpacks.llm.embedders import OpenAIEmbedder
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
-from pathway.xpacks.llm.parsers import ParseUnstructured
+from pathway.xpacks.llm.parsers import UnstructuredParser
 from pathway.xpacks.llm.splitters import TokenCountSplitter
 
 # To use advanced features with Pathway Scale, get your free license key from
@@ -165,7 +165,7 @@ def run(
         service_user_credentials_file=service_user_credentials_file,
         refresh_interval=30,  # interval between fetch operations in seconds, lower this for more responsiveness
     )
-    parser = ParseUnstructured()
+    parser = UnstructuredParser()
     documents = files.select(texts=parser(pw.this.data))
     documents = documents.flatten(pw.this.texts)
     documents = documents.select(texts=pw.this.texts[0])

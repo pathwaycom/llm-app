@@ -65,7 +65,7 @@ import psycopg
 import tiktoken
 from pathway.stdlib.utils.col import unpack_col
 from pathway.xpacks.llm.llms import OpenAIChat, prompt_chat_single_qa
-from pathway.xpacks.llm.parsers import ParseUnstructured
+from pathway.xpacks.llm.parsers import UnstructuredParser
 
 # To use advanced features with Pathway Scale, get your free license key from
 # https://pathway.com/features and paste it below.
@@ -302,7 +302,7 @@ def run(
         data_dir,
         format="binary",
     )
-    parser = ParseUnstructured()
+    parser = UnstructuredParser()
     unstructured_documents = files.select(texts=parser(pw.this.data)).select(
         texts=strip_metadata(pw.this.texts)
     )
