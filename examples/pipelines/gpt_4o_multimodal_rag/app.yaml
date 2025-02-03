@@ -65,6 +65,10 @@ question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer
   indexer: $document_store
   # You can set the number of documents to be included as the context of the query
   # search_topk: 6
+  # You can use your own prompt for querying.
+  # For that set prompt_template to string with `{query}` used as a placeholder for the question,
+  # and `{context}` as a placeholder for context documents.
+  # prompt_template: "Given these documents: {context}, please answer the question: {query}"
 
 # Change host and port by uncommenting these lines
 # host: "0.0.0.0"
