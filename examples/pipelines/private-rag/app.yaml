@@ -32,9 +32,8 @@ $llm: !pw.xpacks.llm.llms.LiteLLMChat
     max_retries: 6
   cache_strategy: !pw.udfs.DefaultCache
   temperature: 0
-  top_p: 1
-  format: "json"  # only available in Ollama local deploy, not usable in Mistral API
-  api_base: "http://localhost:11434"
+  api_base: "http://localhost:11434"  
+  # api_base: "http://host.docker.internal:11434" # use this when you are running the app in the Docker on Mac or Windows
 
 $embedding_model: "avsolatorio/GIST-small-Embedding-v0"
 

@@ -186,13 +186,24 @@ First, make sure your local LLM is up and running. By default, the pipeline trie
 ### With Docker
 In order to let the pipeline get updated with each change in local files, you need to mount the folder onto the docker. The following commands show how to do that.
 
+#### Linux
 ```bash
 # Build the image in this folder
 docker build -t privaterag .
 
 # Run the image, mount the `data` folder into image 
-# -e is used to pass value of LLM_API_BASE environmental variable
-docker run -v ./data:/app/data -e LLM_API_BASE -p 8000:8000 privaterag
+docker run --net host -v ./data:/app/data privaterag
+```
+
+#### Mac or Windows
+In the `app.yaml` change `api_base` to be `http://host.docker.internal:11434`. Then run:
+
+```bash
+# Build the image in this folder
+docker build -t privaterag .
+
+# Run the image, mount the `data` folder into image 
+docker run -v ./data:/app/data -p 8000:8000 privaterag
 ```
 
 ### Locally
