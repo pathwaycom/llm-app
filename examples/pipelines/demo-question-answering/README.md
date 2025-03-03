@@ -40,7 +40,7 @@ Note: This app relies on [Document Store](https://pathway.com/developers/api-doc
 
 ## Summary of available endpoints
 
-This example spawns a lightweight webserver using Pathway’s [`QASummaryRestServer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/servers#pathway.xpacks.llm.servers.QASummaryRestServer)) that accepts queries on five possible endpoints, divided into two categories: document indexing and RAG with LLM.
+This example spawns a lightweight webserver using Pathway’s [`QASummaryRestServer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/servers#pathway.xpacks.llm.servers.QASummaryRestServer) that accepts queries on five possible endpoints, divided into two categories: document indexing and RAG with LLM.
 
 ### Document Indexing capabilities
 - `/v1/retrieve` to perform similarity search;
@@ -164,7 +164,7 @@ The [`DocumentStore`](https://pathway.com/developers/api-docs/pathway-xpacks-llm
 
 Example: Hybrid Indexing with `BruteForceKNN` and `TantivyBM25`
 
-The following example demonstrates how to configure and use the [HybridIndex](/developers/api-docs/indexing#pathway.stdlib.indexing.HybridIndex)) that combines:
+The following example demonstrates how to configure and use the [HybridIndex](https://pathway.com/developers/api-docs/indexing#pathway.stdlib.indexing.HybridIndex) that combines:
 
 - **`BruteForceKNN`**: A vector-based index leveraging embeddings for semantic similarity search.
 - **[`TantivyBM25`](/developers/api-docs/indexing#pathway.stdlib.indexing.TantivyBM25)**: A text-based index using BM25 for keyword matching.
