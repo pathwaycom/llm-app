@@ -46,7 +46,6 @@ $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   reserved_space: 1000
   embedder: $embedder
   metric: !pw.stdlib.indexing.BruteForceKnnMetricKind.COS
-  dimensions: 1536
   
 $document_store: !pw.xpacks.llm.document_store.DocumentStore
   docs: $sources
@@ -66,7 +65,7 @@ question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer
 
 # Change host and port by uncommenting these lines
 # host: "0.0.0.0"
-# port: 8000
+# port: $PATHWAY_PORT
 
 # Cache configuration
 # with_cache: true

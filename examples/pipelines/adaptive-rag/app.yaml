@@ -46,7 +46,6 @@ $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
   reserved_space: 1000
   embedder: $embedder
   metric: !pw.stdlib.indexing.BruteForceKnnMetricKind.COS
-  dimensions: 1536
 
 $document_store: !pw.xpacks.llm.document_store.DocumentStore
   docs: $sources

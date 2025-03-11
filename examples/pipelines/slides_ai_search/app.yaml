@@ -34,8 +34,13 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
   temperature: 0.0
   capacity: 8 # reduce this in case you are hitting API throttle limits
 
-embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
+$embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   cache_strategy: !pw.udfs.DefaultCache
+
+retriever_factory: !pw.indexing.BruteForceKnnFactory
+  reserved_space: 1000
+  embedder: $embedder
+  metric: !pw.indexing.BruteForceKnnMetricKind.COS
 
 details_schema:
   category:
@@ -74,7 +79,7 @@ details_schema:
 
 # Change host and port by uncommenting these lines
 # host: "0.0.0.0"
-# port: 8000
+# port: $PATHWAY_PORT
 
 # Cache configuration
 # with_cache: true

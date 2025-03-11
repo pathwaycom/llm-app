@@ -263,13 +263,13 @@ See the [installation page](https://docs.vllm.ai/en/latest/getting_started/insta
 The following command will run the Phi 3 vision model and mimic the OpenAI API.
 
 ```bash
-python -m vllm.entrypoints.openai.api_server --model microsoft/Phi-3-vision-128k-instruct --trust-remote-code --dtype=half --image-input-type pixel_values --image-token-id=32044 --image-input-shape=1,3,1008,1344 --image-feature-size=1921 --max-model-len=42500 --gpu-memory-utilization 0.9  --swap-space 16 --max-num-seqs 65
+python -m vllm.entrypoints.openai.api_server --model microsoft/Phi-3-vision-128k-instruct --trust-remote-code --dtype=half --max-model-len=42500 --gpu-memory-utilization 0.9  --swap-space 16 --max-num-seqs 65
 ```
 
 Check if the model is available with:
 
 ```bash
-curl http://localhost:8000/v1/completions \ns \
+curl http://localhost:8000/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
         "model": "microsoft/Phi-3-vision-128k-instruct",
@@ -288,8 +288,8 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
   capacity: 1
   base_url: "http://localhost:8000/v1"
   api_key: "ignore the key, not needed"
-  cache_strategy: !DiskCache
-  retry_strategy: !ExponentialBackoffRetryStrategy
+  cache_strategy: !pw.udfs.DefaultCache
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 3
 ```
 
@@ -308,7 +308,7 @@ We replace the `embedder` with the following embedding model in `app.yaml`:
 ```yaml
 $embedding_model: "avsolatorio/GIST-small-Embedding-v0"
 
-embedder: !pw.xpacks.llms.embedders.SentenceTransformerEmbedder
+embedder: !pw.xpacks.llm.embedders.SentenceTransformerEmbedder
   model: $embedding_model
   call_kwargs: 
     show_progress_bar: false

@@ -199,7 +199,9 @@ with st.sidebar:
             markdown_table += f"| [{file_name}]({link}) |\n"
         st.markdown(markdown_table, unsafe_allow_html=True)
     else:
-        st.markdown("## No new files detected.")
+        st.markdown("## All files indexed.")
+
+    st.button("⟳ Refresh", use_container_width=True)
 
 
 category_options = st.session_state["available_categories"]
@@ -407,22 +409,6 @@ if question:
                 },
             )
             col1, col2, col3 = st.columns([12, 1, 1])
-            with col2:
-                st.button(
-                    "👍",
-                    on_click=log_rate_answer,
-                    type="primary",
-                    key=slide_id + "_up",
-                    args=("like", *log_args),
-                )
-            with col3:
-                st.button(
-                    "👎",
-                    on_click=log_rate_answer,
-                    type="secondary",
-                    key=slide_id + "_down",
-                    args=("dislike", *log_args),
-                )
 
     else:
         st.markdown(

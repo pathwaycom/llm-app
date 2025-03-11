@@ -12,6 +12,7 @@ from typing import Any
 import pathway as pw
 from dotenv import load_dotenv
 from pathway.xpacks import llm
+from pathway.xpacks.llm.document_store import SlidesDocumentStore
 from pathway_slides_ai_search import DeckRetrieverWithFileSave, add_slide_id, get_model
 from pydantic import BaseModel, ConfigDict, FilePath, InstanceOf
 
@@ -23,7 +24,7 @@ class App(BaseModel):
     sources: list[InstanceOf[pw.Table]]
 
     llm: InstanceOf[pw.UDF]
-    embedder: InstanceOf[llm.embedders.BaseEmbedder]
+    retriever_factory: InstanceOf[pw.indexing.AbstractRetrieverFactory]
 
     search_topk: int = 6
 
@@ -43,11 +44,12 @@ class App(BaseModel):
             run_mode="parallel",
             include_schema_in_text=False,
             llm=self.llm,
+            cache_strategy=pw.udfs.DefaultCache(),
         )
 
-        doc_store = llm.vector_store.SlidesVectorStoreServer(
-            *self.sources,
-            embedder=self.embedder,
+        doc_store = SlidesDocumentStore(
+            self.sources,
+            retriever_factory=self.retriever_factory,
             splitter=None,
             parser=parser,
             doc_post_processors=[add_slide_id],

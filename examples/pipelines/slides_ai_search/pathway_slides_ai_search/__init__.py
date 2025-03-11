@@ -123,12 +123,12 @@ class DeckRetrieverWithFileSave(DeckRetriever):
         IMAGE_DUMP_FOLDER.mkdir(parents=True, exist_ok=True)
         FILE_DUMP_FOLDER.mkdir(parents=True, exist_ok=True)
 
-        chunked_docs = self.indexer._graph["chunked_docs"]
+        chunked_docs = self.indexer.chunked_docs
         t = chunked_docs.select(
-            data=pw.this.data["metadata"],
+            data=pw.this.metadata,
         )
         pw.io.subscribe(t, on_change=self.dump_img_callback)
 
-        docs = self.indexer._graph["docs"]
-        t = docs.select(data=docs.data, path=docs._metadata["path"])
+        docs = self.indexer.input_docs
+        t = docs.select(data=docs.text, path=docs.metadata["path"])
         pw.io.subscribe(t, on_change=self.dump_file_callback)
