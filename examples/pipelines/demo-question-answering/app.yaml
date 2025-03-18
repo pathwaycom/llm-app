@@ -25,7 +25,7 @@ $sources:
   #   refresh_interval: 30
 
 $llm: !pw.xpacks.llm.llms.OpenAIChat
-  model: "gpt-3.5-turbo"
+  model: "gpt-4o"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
   cache_strategy: !pw.udfs.DefaultCache
@@ -42,10 +42,10 @@ $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
 $parser: !pw.xpacks.llm.parsers.UnstructuredParser
   cache_strategy: !pw.udfs.DefaultCache
 
-$retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
+$retriever_factory: !pw.stdlib.indexing.UsearchKnnFactory
   reserved_space: 1000
   embedder: $embedder
-  metric: !pw.stdlib.indexing.BruteForceKnnMetricKind.COS
+  metric: !pw.stdlib.indexing.USearchMetricKind.COS
   
 $document_store: !pw.xpacks.llm.document_store.DocumentStore
   docs: $sources
