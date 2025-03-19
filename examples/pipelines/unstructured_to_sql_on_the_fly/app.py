@@ -190,8 +190,8 @@ def structure_on_the_fly(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.ExponentialBackoffRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.ExponentialBackoffRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     responses = prompt.select(
@@ -233,8 +233,8 @@ def unstructured_query(
         model=model_locator,
         temperature=temperature,
         max_tokens=max_tokens,
-        retry_strategy=pw.asynchronous.ExponentialBackoffRetryStrategy(),
-        cache_strategy=pw.asynchronous.DefaultCache(),
+        retry_strategy=pw.udfs.ExponentialBackoffRetryStrategy(),
+        cache_strategy=pw.udfs.DefaultCache(),
     )
 
     query += query.select(
