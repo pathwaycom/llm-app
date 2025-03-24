@@ -30,7 +30,6 @@ We use the data in this table to call our adaptive retrieval logic.
 
 To do that, we use `answer_with_geometric_rag_strategy_from_index` implementation provided under the `pathway.xpacks.llm.question_answering`. 
 This function takes an index, LLM, prompt and adaptive parameters such as the starting number of documents. Then, iteratively asks the question to the LLM with an increasing number of context documents retrieved from the index.
-We also set `strict_prompt=True`. This adjusts the prompt with additional instructions and adds additional rails to parse the response.
 
 We encourage you to check the implementation of `answer_with_geometric_rag_strategy_from_index`.
 
