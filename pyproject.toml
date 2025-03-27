@@ -32,30 +32,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 pathway = "^0.12.0"
-openai = "^1.2.4"
-requests = "^2.31.0"
-diskcache = "^5.6.1"
-streamlit = "^1.26.0"
-sentence-transformers = { version = "^2.2.2", optional = true }
-torch = { version = "~2.2.1", optional = true }
-unstructured = { extras = ["all-docs"], version = "^0.11.8", optional = true }
-tiktoken = { version = "^0.6.0", optional = true }
-psycopg = { version = "^3.1.12", optional = true }
-litellm = "^1.18.0"
-transformers = { version = "^4.39.0", optional = true }
-
-
-[tool.poetry.extras]
-local = ["torch", "sentence-transformers", "transformers"]
-unstructured = ["unstructured", "tiktoken"]
-unstructured_to_sql = ["tiktoken", "psycopg", "unstructured"]
-
-[tool.poetry.group.examples]
-optional = true
-
-[tool.poetry.group.examples.dependencies]
-click = "^8.1.6"
-python-dotenv = "^1.0.0"
 
 [tool.poetry.group.linters]
 optional = true
