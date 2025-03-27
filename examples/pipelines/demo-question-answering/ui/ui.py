@@ -77,9 +77,9 @@ def get_options_list(metadata_list: list[dict], opt_key: str) -> list:
     return list(options)
 
 
-logger.info("Requesting pw_list_documents...")
-document_meta_list = conn.pw_list_documents(keys=[])
-logger.info("Received response pw_list_documents")
+logger.info("Requesting list_documents...")
+document_meta_list = conn.list_documents(keys=[])
+logger.info("Received response list_documents")
 
 st.session_state["document_meta_list"] = document_meta_list
 
@@ -157,7 +157,7 @@ if question:
     )
 
     with st.spinner("Retrieving response..."):
-        api_response = conn.pw_ai_answer(question)
+        api_response = conn.answer(question)
         response = api_response["response"]
 
     logger.info(

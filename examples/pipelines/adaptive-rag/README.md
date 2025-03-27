@@ -22,7 +22,7 @@ This app relies on modules provided under `pathway.xpacks.llm`.
 BaseRAGQuestionAnswerer is the base class to build RAG applications with Pathway vector store and Pathway xpack components.
 It is meant to get you started with your RAG application right away. 
 
-Here, we extend the `BaseRAGQuestionAnswerer` to implement the adaptive retrieval and reply to requests in the endpoint `/v1/pw_ai_answer`. 
+Here, we extend the `BaseRAGQuestionAnswerer` to implement the adaptive retrieval and reply to requests in the endpoint `/v2/answer`. 
 Since we are interested in changing the behavior and logic of the RAG, we only modify `answer` function that handles all this logic, and then replies to the post request.
 
 `answer` function takes the `pw_ai_queries` table as the input, this table contains the prompt, and other arguments coming from the post request, see the `BaseRAGQuestionAnswerer` class and defined schemas to learn more about getting inputs with post requests.
@@ -162,7 +162,7 @@ python app.py
 Finally, query the application with;
 
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "What is the start date of the contract?" 
 }'
 ```

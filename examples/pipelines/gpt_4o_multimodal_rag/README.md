@@ -196,7 +196,7 @@ In this demo, we run the service on localhost (`0.0.0.0:8000`). You can connect 
 
 First, let's check the files contained in your folder are currently indexed:
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
+curl -X 'POST'   'http://0.0.0.0:8000/v2/list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
 ```
 
 This will return the list of files e.g. if you start with the [data folder](./data) provided in the demo, the answer will be as follows:
@@ -209,7 +209,7 @@ If you now add or remove files from your connected folder, you can repeat the re
 Now, let's ask a question from one of the tables inside the report. In our tests, regular RAG applications struggled with the tables and couldn't answer to this question correctly.
 
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "How much was Operating lease cost in 2021?" 
 }'
 ```
@@ -222,7 +222,7 @@ When we check the context that is sent to the LLM, we see that Pathway included 
 Let's try another one,
 
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "What is the operating income for the fiscal year of 2022?" 
 }'
 ```
@@ -231,7 +231,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
 Another example, let's ask a question that can be answered from the table on the 48th page of the PDF.
 
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "How much was Marketable securities worth in 2021 in the consolidated balance sheets?"                                              
 }'
 ```
@@ -240,7 +240,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H '
 
 Now, let's also fetch the context documents,
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "How much was Operating lease cost in 2021?", "return_context_docs": true
 }'
 ```

@@ -19,7 +19,7 @@ The app utilizes modules under `pathway.xpacks.llm`. The `BaseRAGQuestionAnswere
 
 This example uses `AdaptiveRAGQuestionAnswerer`, an extension of `BaseRAGQuestionAnswerer` with adaptive retrieval. For more on building and deploying RAG applications with Pathway, including containerization, refer to the demo on question answering.
 
-The application responds to requests at the `/v1/pw_ai_answer` endpoint. The `pw_ai_query` function takes the `pw_ai_queries` table as input, containing prompts and other arguments from the post request. This table's data is used to call the adaptive retrieval logic.
+The application responds to requests at the `/v2/answer` endpoint. The `answer_query` function takes the `pw_ai_queries` table as input, containing prompts and other arguments from the post request. This table's data is used to call the adaptive retrieval logic.
 
 The `AdaptiveRAGQuestionAnswerer` implementation under `pathway.xpacks.llm.question_answering` builds a RAG app with the Pathway vector store and components. It supports two question answering strategies, short (concise) and long (detailed) responses, set during the post request. It allows LLM agnosticity, giving the freedom to choose between proprietary or open-source LLMs. It adapts the number of chunks used as a context, starting with `n_starting_documents` chunks and increasing until an answer is found.
 
@@ -222,7 +222,7 @@ python app.py
 Finally, query the application with;
 
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "What is the start date of the contract?" 
 }'
 ```

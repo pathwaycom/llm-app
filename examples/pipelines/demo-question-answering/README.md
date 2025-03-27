@@ -45,11 +45,11 @@ This example spawns a lightweight webserver using Pathway’s [`QASummaryRestSer
 ### Document Indexing capabilities
 - `/v1/retrieve` to perform similarity search;
 - `/v1/statistics` to get the basic stats about the indexer's health;
-- `/v1/pw_list_documents` to retrieve the metadata of all files currently processed by the indexer.
+- `/v2/list_documents` to retrieve the metadata of all files currently processed by the indexer.
 
 ### LLM and RAG capabilities
-- `/v1/pw_ai_answer` to ask questions about your documents, or directly talk with your LLM;
-- `/v1/pw_ai_summary` to summarize a list of texts;
+- `/v2/answer` to ask questions about your documents, or directly talk with your LLM;
+- `/v2/summarize` to summarize a list of texts;
 
 See the [using the app section](###Using-the-app) to learn how to use the provided endpoints.
 
@@ -305,7 +305,7 @@ Finally, for endpoints that expect data in the query, you can pass it with `-d '
 Get the list of available inputs and associated metadata.
 
 ```bash
-curl -X 'POST'   'http://localhost:8000/v1/pw_list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
+curl -X 'POST'   'http://localhost:8000/v2/list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
 ```
 
 #### Searching in your documents
@@ -341,7 +341,7 @@ For question answering without any context, simply omit `filters` key in the pay
 
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/pw_ai_answer' \
+  'http://0.0.0.0:8000/v2/answer' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -352,7 +352,7 @@ curl -X 'POST' \
 Question answering with the knowledge from a specific file, based on the path.
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/pw_ai_answer' \
+  'http://0.0.0.0:8000/v2/answer' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -364,7 +364,7 @@ curl -X 'POST' \
 Alternatively, with the knowledge from files that have the word `Ide` in their paths.
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/pw_ai_answer' \
+  'http://0.0.0.0:8000/v2/answer' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -376,7 +376,7 @@ curl -X 'POST' \
 You can also retrieve the context documents that were used to answer the question,
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/pw_ai_answer' \
+  'http://0.0.0.0:8000/v2/answer' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -399,7 +399,7 @@ To summarize a list of texts, use the following `curl` command.
 
 ```bash
 curl -X 'POST' \
-  'http://0.0.0.0:8000/v1/pw_ai_summary' \
+  'http://0.0.0.0:8000/v2/summarize' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -424,4 +424,4 @@ First, you can try adding your files and seeing changes in the index. To test in
 If you are using Google Drive or other sources, simply upload your files there.
 
 ### Using the UI
-This pipeline includes a simple ui written in Streamlit. After you run the pipeline with `docker compose up`, you can access the UI at `http://localhost:8501`. This UI uses the `/v1/pw_ai_answer` endpoint to answer your questions.
+This pipeline includes a simple ui written in Streamlit. After you run the pipeline with `docker compose up`, you can access the UI at `http://localhost:8501`. This UI uses the `/v2/answer` endpoint to answer your questions.

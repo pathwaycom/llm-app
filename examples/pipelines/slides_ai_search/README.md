@@ -200,7 +200,7 @@ UI is not a necessary component, especially for developers. If you are intereste
 
 First, let's check the indexed files:
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
+curl -X 'POST'   'http://0.0.0.0:8000/v2/list_documents'   -H 'accept: */*'   -H 'Content-Type: application/json'
 ```
 
 This will return a list of metadata from the indexed files.
@@ -209,7 +209,7 @@ Now, let's search through our slides:
 
 
 ```bash
-curl -X 'POST'   'http://0.0.0.0:8000/v1/pw_ai_answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "prompt": "diagrams that contain value propositions" 
 }'
 ```

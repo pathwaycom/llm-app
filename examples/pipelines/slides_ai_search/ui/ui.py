@@ -122,9 +122,9 @@ def get_adjacent_image_urls(metadata: dict) -> list[str]:
 st.session_state["available_categories"] = None
 st.session_state["available_languages"] = None
 
-logger.info("Requesting pw_list_documents...")
-document_meta_list = conn.pw_list_documents(keys=[])
-logger.info("Received response pw_list_documents")
+logger.info("Requesting list_documents...")
+document_meta_list = conn.list_documents(keys=[])
+logger.info("Received response list_documents")
 
 st.session_state["document_meta_list"] = document_meta_list
 
@@ -351,7 +351,7 @@ if question:
         }
     )
 
-    response = conn.pw_ai_answer(question, filters=combined_query_filter)
+    response = conn.answer(question, filters=combined_query_filter)
 
     logger.info(
         {
