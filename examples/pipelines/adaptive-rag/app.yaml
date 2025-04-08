@@ -39,7 +39,7 @@ $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
 $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
   max_tokens: 400
 
-$parser: !pw.xpacks.llm.parsers.UnstructuredParser
+$parser: !pw.xpacks.llm.parsers.DoclingParser
   cache_strategy: !pw.udfs.DefaultCache
 
 $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
@@ -59,7 +59,6 @@ question_answerer: !pw.xpacks.llm.question_answering.AdaptiveRAGQuestionAnswerer
   n_starting_documents: 2
   factor: 2
   max_iterations: 4
-  strict_prompt: true
 
 # Change host and port by uncommenting these lines
 # host: "0.0.0.0"
