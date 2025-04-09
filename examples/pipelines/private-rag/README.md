@@ -49,7 +49,7 @@ The architecture consists of two connected technology bricks, which will run as 
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/ai-pipelines/configure-yaml/).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml/).
 
 In the `app.yaml` file we define:
 - input connectors

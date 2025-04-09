@@ -109,7 +109,7 @@ Default LLM provider in this template is OpenAI, so, unless you change the confi
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/ai-pipelines/configure-yaml/).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml/).
 
 In the `app.yaml` file we define:
 - input connectors

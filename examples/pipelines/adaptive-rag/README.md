@@ -12,7 +12,7 @@
 
 # End to end Adaptive RAG with Pathway
 
-This is the accompanying code for deploying the `adaptive RAG` technique with Pathway. To understand the technique and learn how it can save tokens without sacrificing accuracy, read [our showcase](https://pathway.com/developers/templates/adaptive-rag).
+This is the accompanying code for deploying the `adaptive RAG` technique with Pathway. To understand the technique and learn how it can save tokens without sacrificing accuracy, read [our showcase](https://pathway.com/developers/templates/rag/adaptive-rag).
 
 To learn more about building & deploying RAG applications with Pathway, including containerization, refer to [demo question answering](../demo-question-answering/README.md).
 
@@ -35,7 +35,7 @@ We encourage you to check the implementation of `answer_with_geometric_rag_strat
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/ai-pipelines/configure-yaml).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml).
 
 In the `app.yaml` file we define:
 - input connectors

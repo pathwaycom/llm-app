@@ -31,7 +31,7 @@ Pipeline 2 then starts a REST API endpoint serving queries about programming in 
 Each query text is converted into a SQL query using the OpenAI API.
 
 Architecture diagram and description are at
-https://pathway.com/developers/templates/unstructured-to-structured
+https://pathway.com/developers/templates/rag/unstructured-to-structured
 
 
 ⚠️ This project requires a running PostgreSQL instance.
