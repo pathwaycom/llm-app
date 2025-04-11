@@ -3,9 +3,9 @@
 import logging
 import os
 
-import requests
 import streamlit as st
 from dotenv import load_dotenv
+from pathway.xpacks.llm.document_store import IndexingStatus
 from pathway.xpacks.llm.question_answering import RAGClient
 
 load_dotenv()
@@ -71,9 +71,25 @@ div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-primary"
 question = st.text_input(label="", placeholder="Ask your question?")
 
 
-def get_options_list(metadata_list: list[dict], opt_key: str) -> list:
+def get_indexed_files(metadata_list: list[dict], opt_key: str) -> list:
     """Get all available options in a specific metadata key."""
-    options = set(map(lambda x: x[opt_key], metadata_list))
+    only_indexed_files = [
+        file
+        for file in metadata_list
+        if file["_indexing_status"] == IndexingStatus.INDEXED
+    ]
+    options = set(map(lambda x: x[opt_key], only_indexed_files))
+    return list(options)
+
+
+def get_ingested_files(metadata_list: list[dict], opt_key: str) -> list:
+    """Get all available options in a specific metadata key."""
+    not_indexed_files = [
+        file
+        for file in metadata_list
+        if file["_indexing_status"] == IndexingStatus.INGESTED
+    ]
+    options = set(map(lambda x: x[opt_key], not_indexed_files))
     return list(options)
 
 
@@ -83,7 +99,8 @@ logger.info("Received response list_documents")
 
 st.session_state["document_meta_list"] = document_meta_list
 
-available_files = get_options_list(st.session_state["document_meta_list"], "path")
+indexed_files = get_indexed_files(st.session_state["document_meta_list"], "path")
+ingested_files = get_ingested_files(st.session_state["document_meta_list"], "path")
 
 
 with st.sidebar:
@@ -92,11 +109,18 @@ with st.sidebar:
         icon=":material/code:",
     )
 
-    file_names = [i.split("/")[-1] for i in available_files]
+    indexed_file_names = [i.split("/")[-1] for i in indexed_files]
+    ingested_file_names = [i.split("/")[-1] for i in ingested_files]
 
     markdown_table = "| Indexed files |\n| --- |\n"
-    for file_name in file_names:
+    for file_name in indexed_file_names:
         markdown_table += f"| {file_name} |\n"
+
+    if len(ingested_file_names) > 0:
+        markdown_table += "| Files being processed |\n| --- |\n"
+        for file_name in ingested_file_names:
+            markdown_table += f"| {file_name} |\n"
+
     st.markdown(markdown_table, unsafe_allow_html=True)
 
     st.button("⟳ Refresh", use_container_width=True)
@@ -140,14 +164,6 @@ css = """
 st.markdown(css, unsafe_allow_html=True)
 
 
-def send_post_request(
-    url: str, data: dict, headers: dict = {}, timeout: int | None = None
-):
-    response = requests.post(url, json=data, headers=headers, timeout=timeout)
-    response.raise_for_status()
-    return response.json()
-
-
 if question:
     logger.info(
         {
@@ -157,8 +173,9 @@ if question:
     )
 
     with st.spinner("Retrieving response..."):
-        api_response = conn.answer(question)
+        api_response = conn.answer(question, return_context_docs=True)
         response = api_response["response"]
+        context_docs = api_response["context_docs"]
 
     logger.info(
         {
@@ -172,3 +189,9 @@ if question:
 
     st.markdown(f"**Answering question:** {question}")
     st.markdown(f"""{response}""")
+    with st.expander(label="Context documents"):
+        st.markdown("Documents sent to LLM as context:\n")
+        for i, doc in enumerate(context_docs):
+            st.markdown(
+                f"{i+1}. Path: {doc['metadata']['path']}\n ```\n{doc['text']}\n```"
+            )
