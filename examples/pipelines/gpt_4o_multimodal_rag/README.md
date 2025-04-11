@@ -4,7 +4,7 @@
     <img src="../../../assets/aws-fargate-logo.svg?raw=true" alt="AWS Logo" height="20" width="20">
     <a href="https://pathway.com/developers/user-guide/deployment/aws-fargate-deploy">Deploy with AWS</a> |
     <img src="../../../assets/azure-logo.svg?raw=true" alt="Azure Logo" height="20" width="20">
-    <a href="/developers/user-guide/deployment/azure-aci-deploy">Deploy with Azure</a> |
+    <a href="https://pathway.com/developers/user-guide/deployment/azure-aci-deploy">Deploy with Azure</a> |
     <img src="../../../assets/render.png?raw=true" alt="Render Logo" height="20" width="20">
     <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
 </p>
