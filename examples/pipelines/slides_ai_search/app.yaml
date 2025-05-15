@@ -50,13 +50,13 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
     max_retries: 6
     initial_delay: 2500
     backoff_factor: 2.5
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
   temperature: 0.0
   capacity: 8 # reduce this in case you are hitting API throttle limits
 
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
 
 # Sets up the retriever factory for indexing and retrieving documents.
 retriever_factory: !pw.indexing.BruteForceKnnFactory

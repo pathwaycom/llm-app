@@ -49,14 +49,14 @@ $llm: !pw.xpacks.llm.llms.OpenAIChat
   model: "gpt-4o"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
   temperature: 0
   capacity: 8
 
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   model: "text-embedding-ada-002"
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
 
 # Defines the splitter settings for dividing text into smaller chunks.
 $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter

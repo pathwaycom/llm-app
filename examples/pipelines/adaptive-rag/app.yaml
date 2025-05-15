@@ -50,14 +50,14 @@ $llm: !pw.xpacks.llm.llms.OpenAIChat
   model: "gpt-4o-mini"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
   temperature: 0
   capacity: 8
 
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   model: "text-embedding-ada-002"
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
 
 # Defines the splitter settings for dividing text into smaller chunks.
 $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
@@ -65,7 +65,7 @@ $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
 
 # Configures the parser for processing and extracting information from documents.
 $parser: !pw.xpacks.llm.parsers.DoclingParser
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
 
 # Sets up the retriever factory for indexing and retrieving documents.
 $retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
