@@ -288,7 +288,7 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
   capacity: 1
   base_url: "http://localhost:8000/v1"
   api_key: "ignore the key, not needed"
-  cache_strategy: !pw.udfs.DefaultCache
+  cache_strategy: !pw.udfs.DefaultCache {}
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 3
 ```
