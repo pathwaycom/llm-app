@@ -42,6 +42,9 @@ Each of the [App templates](examples/pipelines/) in this repo contains a README.
 
 You can also find [more ready-to-run code templates](https://pathway.com/developers/templates/) on the Pathway website.
 
+## Migration Guide
+
+If you're experiencing the "Table has no column with name doc" error, see our [Migration Guide](MIGRATION_GUIDE.md) for solutions and best practices. This guide addresses [GitHub Issue #52](https://github.com/pathwaycom/llm-app/issues/52) and provides updated code patterns that work with modern Pathway LLM applications.
 
 ## Some visual highlights
 
