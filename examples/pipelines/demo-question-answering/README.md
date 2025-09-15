@@ -28,7 +28,7 @@ This demo allows you to:
 - Get an executive outlook for a question on different files to easily access available knowledge in your documents;
 
 
-Note: This app relies on [Document Store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store) to learn more, you can check out [this blog post](https://pathway.com/developers/user-guide/llm-xpack/docs-indexing/).
+Note: This app relies on [Document Store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store) to learn more, you can check out [this blog post](https://pathway.com/developers/user-guide/llm-xpack/docs-indexing).
 
 ## Table of contents
 - [Summary of available endpoints](#Summary-of-available-endpoints)
@@ -91,7 +91,7 @@ This folder contains several objects:
 
 Pathway allows you to define custom prompts in addition to the ones provided in [`pathway.xpacks.llm`](https://pathway.com/developers/user-guide/llm-xpack/overview).
 
-You can also use user-defined functions using the [`@pw.udf`](https://pathway.com/developers/api-docs/pathway/#pathway.udf) decorator to define custom functions that will run on streaming data.
+You can also use user-defined functions using the [`@pw.udf`](https://pathway.com/developers/api-docs/pathway#pathway.udf) decorator to define custom functions that will run on streaming data.
 
 - RAG
 
@@ -109,7 +109,7 @@ Default LLM provider in this template is OpenAI, so, unless you change the confi
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml/).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml).
 
 In the `app.yaml` file we define:
 - input connectors
@@ -227,7 +227,7 @@ The local data source is configured by using map with tag `!pw.io.fs.read`. Then
 
 The Google Drive data source is enabled by using map with tag `!pw.io.gdrive.read`. The map must contain two main parameters:
 - `object_id`, containing the ID of the folder that needs to be indexed. It can be found from the URL in the web interface, where it's the last part of the address. For example, the publicly available demo folder in Google Drive has the URL `https://drive.google.com/drive/folders/1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs`. The last part of this address is `1cULDv2OaViJBmOfG5WB0oWcgayNrGtVs` and this is the `object_id` you would need to specify.
-- `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector/#setting-up-google-drive).
+- `service_user_credentials_file`, containing the path to the credentials files for the Google [service account](https://cloud.google.com/iam/docs/service-account-overview). To get more details on setting up the service account and getting credentials, you can also refer to [this tutorial](https://pathway.com/developers/user-guide/connectors/gdrive-connector#setting-up-google-drive).
 
 Besides, to speed up the indexing process you may want to specify the `refresh_interval` parameter, denoted by an integer number of seconds. It corresponds to the frequency between two sequential folder scans. If unset, it defaults to 30 seconds.
 
@@ -237,7 +237,7 @@ For the full list of the available parameters, please refer to the Google Drive 
 
 This data source requires Scale or Enterprise [license key](https://pathway.com/pricing) - you can obtain free Scale key on [Pathway website](https://pathway.com/get-license).
 
-To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint/#pathway.xpacks.connectors.sharepoint.read).
+To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and then provide values of `url`, `tenant`, `client_id`, `cert_path`, `thumbprint` and `root_path`. To read about the meaning of these arguments, check the Sharepoint connector [documentation](https://pathway.com/developers/api-docs/pathway-xpacks-sharepoint#pathway.xpacks.connectors.sharepoint.read).
 
 ## How to run the project
 
@@ -333,7 +333,7 @@ curl -X 'POST' \
 
 #### Asking questions to LLM (With and without RAG)
 
-- Note: The local version of this app does not require `openai_api_key` parameter in the payload of the query. Embedder and LLM will use the API key in the `.env` file. However, Pathway hosted public demo available on the [website](https://pathway.com/solutions/ai-pipelines/) requires a valid `openai_api_key` to execute the query.
+- Note: The local version of this app does not require `openai_api_key` parameter in the payload of the query. Embedder and LLM will use the API key in the `.env` file. However, Pathway hosted public demo available on the [website](https://pathway.com/solutions/ai-pipelines) requires a valid `openai_api_key` to execute the query.
 
 - Note: All of the RAG endpoints use the `model` provided in the config by default, however, you can specify another model with the `model` parameter in the payload to use a different one for generating the response.
 
