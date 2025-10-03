@@ -2,6 +2,8 @@ services:
   app:
     build:
       context: .
+      args:
+        PATHWAY_SRC_IMAGE: ${PATHWAY_SRC_IMAGE:-pathwaycom/pathway:latest}
     ports:
       - "${PATHWAY_PORT:-8000}:${PATHWAY_PORT:-8000}"
     networks:
@@ -16,6 +18,8 @@ services:
   ui:
     build:
       context: ui
+      args:
+        PATHWAY_SRC_IMAGE: ${PATHWAY_SRC_IMAGE:-pathwaycom/pathway:latest}
     networks:
       - network
     environment:
