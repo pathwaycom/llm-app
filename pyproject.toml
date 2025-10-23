@@ -57,7 +57,7 @@ profile = "black"
 
 [tool.mypy]
 python_version = "3.10"
-exclude = ["examples/data", "examples/pipelines/adaptive-rag", "examples/pipelines/private-rag", "examples/pipelines/demo-document-indexing"]
+exclude = ["templates/adaptive_rag", "templates/private_rag", "templates/document_indexing", "templates/multimodal_rag", "templates/question_answering_rag", "examples/pipelines/adaptive-rag", "examples/pipelines/private-rag", "examples/pipelines/demo-document-indexing", "examples/pipelines/demo-question-answering"]
 ignore_missing_imports = true
 check_untyped_defs = true
 warn_redundant_casts = true

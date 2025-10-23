@@ -21,13 +21,13 @@ The application templates provided in this repo scale up to **millions of pages 
 
 | Application (template)                                                                           | Description                                                                                                                                                                                                                                                                                                                                                         |
 | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`Question-Answering RAG App`](examples/pipelines/demo-question-answering/)    | Basic end-to-end RAG app. A question-answering pipeline that uses the GPT model of choice to provide answers to queries to your documents (PDF, DOCX,...) on a live connected data source (files, Google Drive, Sharepoint,...). You can also try out a [demo REST endpoint](https://pathway.com/solutions/rag-pipelines#try-it-out).              |
-| [`Live Document Indexing (Vector Store / Retriever)`](examples/pipelines/demo-document-indexing/)     | A real-time document indexing pipeline for RAG that acts as a vector store service. It performs live indexing on your documents (PDF, DOCX,...) from a connected data source (files, Google Drive, Sharepoint,...). It can be used with any frontend, or integrated as a retriever backend for a [Langchain](https://pathway.com/blog/langchain-integration) or [Llamaindex](https://pathway.com/blog/llamaindex-pathway) application. You can also try out a [demo REST endpoint](https://pathway.com/solutions/ai-contract-management#try-it-out).         |
-| [`Multimodal RAG pipeline with GPT4o`](examples/pipelines/gpt_4o_multimodal_rag/) | Multimodal RAG using GPT-4o in the parsing stage to index PDFs and other documents from a connected data source files, Google Drive, Sharepoint,...). It is perfect for extracting information from unstructured financial documents in your folders (including charts and tables), updating results as documents change or new ones arrive.|
-| [`Unstructured-to-SQL pipeline + SQL question-answering`](examples/pipelines/unstructured_to_sql_on_the_fly/) | A RAG example which connects to unstructured financial data sources (financial report PDFs), structures the data into SQL, and loads it into a PostgreSQL table. It also answers natural language user queries to these financial documents by translating them into SQL using an LLM and executing the query on the PostgreSQL table. |
-| [`Adaptive RAG App`](examples/pipelines/adaptive-rag/) | A RAG application using Adaptive RAG, a technique developed by Pathway to reduce token cost in RAG up to 4x while maintaining accuracy. |
-| [`Private RAG App with Mistral and Ollama`](examples/pipelines/private-rag/) |  A fully private (local) version of the `demo-question-answering` RAG pipeline using Pathway, Mistral, and Ollama. |
-| [`Slides AI Search App`](examples/pipelines/slides_ai_search/)                                        | An indexing pipeline for retrieving slides. It performs multi-modal of PowerPoint and PDF and maintains live index of your slides."|
+| [`Question-Answering RAG App`](templates/question_answering_rag/)    | Basic end-to-end RAG app. A question-answering pipeline that uses the GPT model of choice to provide answers to queries to your documents (PDF, DOCX,...) on a live connected data source (files, Google Drive, Sharepoint,...). You can also try out a [demo REST endpoint](https://pathway.com/solutions/rag-pipelines#try-it-out).              |
+| [`Live Document Indexing (Vector Store / Retriever)`](templates/document_indexing/)     | A real-time document indexing pipeline for RAG that acts as a vector store service. It performs live indexing on your documents (PDF, DOCX,...) from a connected data source (files, Google Drive, Sharepoint,...). It can be used with any frontend, or integrated as a retriever backend for a [Langchain](https://pathway.com/blog/langchain-integration) or [Llamaindex](https://pathway.com/blog/llamaindex-pathway) application. You can also try out a [demo REST endpoint](https://pathway.com/solutions/ai-contract-management#try-it-out).         |
+| [`Multimodal RAG pipeline with GPT4o`](templates/multimodal_rag/) | Multimodal RAG using GPT-4o in the parsing stage to index PDFs and other documents from a connected data source files, Google Drive, Sharepoint,...). It is perfect for extracting information from unstructured financial documents in your folders (including charts and tables), updating results as documents change or new ones arrive.|
+| [`Unstructured-to-SQL pipeline + SQL question-answering`](templates/unstructured_to_sql_on_the_fly/) | A RAG example which connects to unstructured financial data sources (financial report PDFs), structures the data into SQL, and loads it into a PostgreSQL table. It also answers natural language user queries to these financial documents by translating them into SQL using an LLM and executing the query on the PostgreSQL table. |
+| [`Adaptive RAG App`](templates/adaptive_rag/) | A RAG application using Adaptive RAG, a technique developed by Pathway to reduce token cost in RAG up to 4x while maintaining accuracy. |
+| [`Private RAG App with Mistral and Ollama`](templates/private_rag/) |  A fully private (local) version of the `question_answering_rag` RAG pipeline using Pathway, Mistral, and Ollama. |
+| [`Slides AI Search App`](templates/slides_ai_search/)                                        | An indexing pipeline for retrieving slides. It performs multi-modal of PowerPoint and PDF and maintains live index of your slides."|
 
 
 ## How do these AI Pipelines work?
@@ -38,7 +38,7 @@ The apps rely on the [Pathway Live Data framework](https://github.com/pathwaycom
 
 ## Getting started
 
-Each of the [App templates](examples/pipelines/) in this repo contains a README.md with instructions on how to run it.
+Each of the [App templates](templates/) in this repo contains a README.md with instructions on how to run it.
 
 You can also find [more ready-to-run code templates](https://pathway.com/developers/templates/) on the Pathway website.
 
@@ -47,16 +47,16 @@ You can also find [more ready-to-run code templates](https://pathway.com/develop
 
 Effortlessly extract and organize table and chart data from PDFs, docs, and more with multimodal RAG - in real-time:
 
-![Effortlessly extract and organize table and chart data from PDFs, docs, and more with multimodal RAG - in real-time](https://github.com/pathwaycom/llm-app/blob/main/examples/pipelines/gpt_4o_multimodal_rag/gpt4o_with_pathway_comparison.gif)
+![Effortlessly extract and organize table and chart data from PDFs, docs, and more with multimodal RAG - in real-time](https://github.com/pathwaycom/llm-app/blob/main/templates/multimodal_rag/gpt4o_with_pathway_comparison.gif)
 
-(Check out [`Multimodal RAG pipeline with GPT4o`](examples/pipelines/gpt_4o_multimodal_rag/) to see the whole pipeline in the works. You may also check out the [`Unstructured-to-SQL pipeline`](examples/pipelines/unstructured_to_sql_on_the_fly/) for a minimal example that works with non-multimodal models as well.)
+(Check out [`Multimodal RAG pipeline with GPT4o`](templates/multimodal_rag/) to see the whole pipeline in the works. You may also check out the [`Unstructured-to-SQL pipeline`](templates/unstructured_to_sql_on_the_fly/) for a minimal example that works with non-multimodal models as well.)
 
 
 Automated real-time knowledge mining and alerting:
 
-![Automated real-time knowledge mining and alerting](examples/pipelines/drive_alert/drive_alert_demo.gif)
+![Automated real-time knowledge mining and alerting](templates/drive_alert/drive_alert_demo.gif)
 
-(Check out the [`Alerting when answers change on Google Drive`](https://github.com/pathwaycom/llm-app/tree/main/examples/pipelines/drive_alert) app example.)
+(Check out the [`Alerting when answers change on Google Drive`](https://github.com/pathwaycom/llm-app/tree/main/templates/drive_alert) app example.)
 
 
 ###  Do-it-Yourself Videos
