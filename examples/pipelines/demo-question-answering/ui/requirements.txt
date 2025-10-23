@@ -1,2 +1,0 @@
-streamlit==1.37.0
-load_dotenv==0.1.0

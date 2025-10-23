@@ -1,3 +1,0 @@
-pathway[all]
-python-dotenv~=1.0
-mpmath~=1.3
