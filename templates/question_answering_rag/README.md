@@ -11,9 +11,7 @@
 
 # Pathway RAG app with always up-to-date knowledge
 
-This demo shows how to create a real-time RAG application using [Pathway](https://github.com/pathwaycom/pathway) that provides always up-to-date knowledge to your LLM without the need for a separate ETL. 
-
-You can have a preview of the demo [here](https://pathway.com/solutions/ai-pipelines).
+This demo shows how to create a real-time RAG application using [Pathway](https://github.com/pathwaycom/pathway) that provides always up-to-date knowledge to your LLM without the need for a separate ETL.
 
 You will see a running example of how to get started with the Pathway vector store that eliminates the need for ETL pipelines which are needed in the regular VectorDBs. 
 This significantly reduces the developer's workload.
@@ -61,13 +59,13 @@ We define one or more sources in `app.yaml` (local directories, Google Drive, Mi
 - The code can poll these sources at configured intervals, so when new documents appear or existing ones change, they are automatically parsed and re-indexed in real-time.
 
 2. **Parsing & Splitting**  
-Using [Unstructured](https://unstructured.io/) (through Pathway’s [`ParseUnstructured`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/parsers#pathway.xpacks.llm.parsers.ParseUnstructured)) and [TokenCountSplitter](https://pathway.com/developers/api-docs/pathway-xpacks-llm/splitters#pathway.xpacks.llm.splitters.TokenCountSplitter), documents are chunked into smaller parts.
+Using [Docling](https://www.docling.ai/) (through Pathway’s [`DoclingParser`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/parsers#pathway.xpacks.llm.parsers.DoclingParser)) and [TokenCountSplitter](https://pathway.com/developers/api-docs/pathway-xpacks-llm/splitters#pathway.xpacks.llm.splitters.TokenCountSplitter), documents are parsed and chunked into smaller parts.
 
 3. **Embedding**  
 Via [`OpenAIEmbedder`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/embedders#pathway.xpacks.llm.embedders.OpenAIEmbedder), the chunks get turned into embeddings. You can substitute your own embedder if you wish.
 
 4. **Indexing**  
-Using [`BruteForceKnnFactory`](https://pathway.com/developers/api-docs/pathway-stdlib/indexing#pathway.stdlib.indexing.BruteForceKnnFactory), the embeddings are stored in a vector index. This is all streaming as well, so new embeddings are added or updated automatically.
+Using [`USearchKnnFactory`](https://pathway.com/developers/api-docs/indexing#pathway.stdlib.indexing.UsearchKnnFactory), the embeddings are stored in a vector index. This is all streaming as well, so new embeddings are added or updated automatically.
 
 5. **Serving**  
 - We create a [`SummaryQuestionAnswerer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/question_answering#pathway.xpacks.llm.question_answering.SummaryQuestionAnswerer) (as specified in `app.py`), which can handle both question-answering and summarization requests.  
@@ -80,24 +78,22 @@ Because Pathway is fully incremental, any changes to your source files immediate
 This folder contains several objects:
 - `app.py`, the application code using Pathway and written in Python;
 - `app.yaml`, the file containing configuration of the pipeline, like LLM models, sources or server address;
-- `requirements.txt`, the dependencies for the pipeline. It can be passed to `pip install -r ...` to install everything that is needed to launch the pipeline locally;
+- `requirements.txt`, the dependencies for the pipeline. It can be passed to `pip install -r requirements.txt` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
 - `.env`, a short environment variables configuration file where the OpenAI key must be stored;
 - `data/`, a folder with exemplary files that can be used for the test runs.
 - `ui/`, a simple ui written in Streamlit for asking questions.
 
 ## Pathway tooling
-- Prompts and helpers
+### Prompts and helpers
 
 Pathway allows you to define custom prompts in addition to the ones provided in [`pathway.xpacks.llm`](https://pathway.com/developers/user-guide/llm-xpack/overview).
 
 You can also use user-defined functions using the [`@pw.udf`](https://pathway.com/developers/api-docs/pathway#pathway.udf) decorator to define custom functions that will run on streaming data.
 
-- RAG
+### RAG
 
 Pathway provides all the tools to create a RAG application and query it: a [Pathway Document store](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store#pathway.xpacks.llm.document_store.DocumentStore) and a web server (defined with the [REST connector](https://pathway.com/developers/api-docs/pathway-io/http#pathway.io.http.rest_connector)).
-They are defined in our demo in the main class `PathwayRAG` along with the different functions and schemas used by the RAG.
-
 For the sake of the demo, we kept the app simple, consisting of the main components you would find in a regular RAG application. It can be further enhanced with query writing methods, re-ranking layer and custom splitting steps.
 
 Don't hesitate to take a look at our [documentation](https://pathway.com/developers/user-guide/introduction/welcome) to learn how Pathway works.
@@ -128,21 +124,20 @@ Here some examples of what can be modified.
 
 ### LLM Model
 
-You can choose any of the GPT-3.5 Turbo, GPT-4, or GPT-4 Turbo models proposed by Open AI.
-You can find the whole list on their [models page](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo).
+You can choose any of the models offered by Open AI, like GPT-5, GPT-4.1, or GPT-4o.
+You can find the whole list on their [models page](https://platform.openai.com/docs/models).
 
-You simply need to change the `model` to the one you want to use:
+You simply need to change the `model` to the one you want to use, e.g., to use GPT-5:
 ```yaml
 $llm: !pw.xpacks.llm.llms.OpenAIChat
-  model: "gpt-3.5-turbo"
+  model: "gpt-5"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DiskCache
-  temperature: 0.05
+  cache_strategy: !pw.udfs.DefaultCache
   capacity: 8
 ```
 
-The default model is `gpt-3.5-turbo`
+The default model is `gpt-4.1-mini`.
 
 You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
 e.g. here is configuration for locally run Mistral model.
@@ -162,24 +157,24 @@ $llm: !pw.xpacks.llm.llms.LiteLLMChat
 
 The [`DocumentStore`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/document_store#pathway.xpacks.llm.document_store.DocumentStore) makes building and customizing a document indexing pipeline straightforward. It processes documents and enables querying the closest documents to a given query based on your chosen indexing strategy. Here's how you can use a hybrid indexing approach, combining vector-based and text-based retrieval: 
 
-Example: Hybrid Indexing with `BruteForceKNN` and `TantivyBM25`
+Example: Hybrid Indexing with `USearchKNN` and `TantivyBM25`
 
 The following example demonstrates how to configure and use the [HybridIndex](https://pathway.com/developers/api-docs/indexing#pathway.stdlib.indexing.HybridIndex) that combines:
 
-- **`BruteForceKNN`**: A vector-based index leveraging embeddings for semantic similarity search.
+- **`USearchKNN`**: A vector-based index leveraging embeddings for semantic similarity search.
 - **[`TantivyBM25`](https://pathway.com/developers/api-docs/indexing#pathway.stdlib.indexing.TantivyBM25)**: A text-based index using BM25 for keyword matching.
 
 
 ```yaml
-$knn_index: !pw.stdlib.indexing.BruteForceKnnFactory
+$knn_index: !pw.indexing.USearchKnnFactory
   reserved_space: 1000
   embedder: $embedder
-  metric: !pw.engine.BruteForceKnnMetricKind.COS
+  metric: !pw.indexing.USearchKnnMetricKind.COS
   dimensions: 1536
 
-$bm25_index: !pw.stdlib.indexing.TantivyBM25Factory
+$bm25_index: !pw.indexing.TantivyBM25Factory
 
-$hybrid_index_factory: !pw.stdlib.indexing.HybridIndexFactory
+$hybrid_index_factory: !pw.indexing.HybridIndexFactory
   retriever_factories:
     - $knn_index
     - $bm25_index
@@ -203,11 +198,11 @@ port: 8000
 
 ### Cache
 
-You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+You can configure whether you want to enable cache or persistence, to avoid repeated API accesses, and where the cache is stored.
 Default values:
 ```yaml
-with_cache: True
-cache_backend: !pw.persistence.Backend.filesystem
+persistence_mode: !pw.PersistenceMode.UDF_CACHING
+persistence_backend: !pw.persistence.Backend.filesystem
   path: ".Cache"
 ```
 
@@ -215,7 +210,7 @@ cache_backend: !pw.persistence.Backend.filesystem
 
 You can configure the data sources by changing `$sources` in `app.yaml`.
 You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
 By default, the app uses a local data source to read documents from the `data` folder.
 
@@ -357,7 +352,7 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "prompt": "What is the start date of the contract?",
-  "filters": "globmatch(`IdeanomicsInc_20160330_10-K_EX-10.26_9512211_EX-10.26_Content License Agreement.pdf`, path)"
+  "filters": "globmatch(`"IdeanomicsInc_20160330_10-K_EX-10.26_9512211_EX-10.26_Content License Agreement.pdf"`, path)"
 }'
 ```
 
@@ -369,7 +364,7 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "prompt": "What is the start date of the contract?",
-  "filters": "contains(path, `Ide`)"
+  "filters": "contains(path, `"Ide"`)"
 }'
 ```
 

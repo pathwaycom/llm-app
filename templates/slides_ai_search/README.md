@@ -93,7 +93,7 @@ This demo consists of three parts:
     * Our example schema includes fields such as `category`, `tags`, `title`, `main_color`, `language`, and `has_images`. This can be modified for specific use cases.
     * Note that, UI is configured to make use of two extracted fields `category` and `language`, these need to be kept for the UI to work. However, the app can still be used without the UI with different schemas or no parsed schema.
 2. **Embedding**:
-    * Parsed slide content is embedded with the OpenAI's `text-embedding-ada-002` embedder.
+    * Parsed slide content is embedded with the OpenAI's `text-embedding-3-small` embedder.
     * The embeddings are then stored in Pathway's vector store using the `SlidesVectorStoreServer`.
 3. **Metadata Handling**:
     * Images and files are dumped into local directories (`storage/pw_dump_images` and `storage/pw_dump_files`).
@@ -133,7 +133,7 @@ This folder contains several components necessary for setting up and running the
     **OpenAI API Usage**:
     * This app relies on `gpt-4o` model for image parsing. OpenAI currently limits the usage to paid users only. It is possible to use any other model (including local models) with the modules under the `pathway.xpacks`.
     * If you are experiencing API throttle, you can set the `capacity` parameter of the LLM instance `llms.OpenAIChat` to be lower. This parameter defines the number of parallel requests. Or, it is possible to disable parallel requests and only parse sequentially by changing the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
-    * Update: The newly released `gpt-4o-mini` model has a similar image understanding performance at lower costs, it is also another good option.
+    * Update: You can also change the model to any of the newer multimodal models, like GPT-5 or GPT-5.1, or their smaller variants.
 
 2. **Pathway’s License Key**: 
     * This app template is available for free via [Pathway Scale](https://pathway.com/features).

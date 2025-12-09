@@ -51,14 +51,16 @@ $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
   max_tokens: 400
 
 # Configures the parser for processing and extracting information from documents.
-$parser: !pw.xpacks.llm.parsers.UnstructuredParser
+$parser: !pw.xpacks.llm.parsers.DoclingParser
+  async_mode: "fully_async"
+  chunk: false
   cache_strategy: !pw.udfs.DefaultCache {}
 
 # Sets up the retriever factory for indexing and retrieving documents.
-$retriever_factory: !pw.stdlib.indexing.BruteForceKnnFactory
+$retriever_factory: !pw.indexing.UsearchKnnFactory
   reserved_space: 1000
   embedder: $embedder
-  metric: !pw.stdlib.indexing.BruteForceKnnMetricKind.COS
+  metric: !pw.indexing.USearchMetricKind.COS
 
 # Manages the storage and retrieval of documents for the RAG template.
 document_store: !pw.xpacks.llm.document_store.DocumentStore
@@ -71,8 +73,15 @@ document_store: !pw.xpacks.llm.document_store.DocumentStore
 # host: "0.0.0.0"
 # port: 8000
 
-# Activate on-disk caching for UDFs for which `cache_strategy` is set
-# with_cache: true
+# By default, caching is enabled for UDFs with cache_strategy set.
+# You can disable it by uncommenting the following line.
+# persistence_mode: null
+# You can also set persistence_mode to !pw.PersistenceMode.PERSISTING to enable persistence
+# across restarts.
+# By default, when enabled, Cache is stored in .Cache directory.
+# You can customize the location by uncommenting and modifying the following lines:
+# persistence_backend: !pw.persistence.Backend.filesystem
+#   path: ".Cache"
 
 # If `terminate_on_error` is true then the program will terminate whenever any error is encountered.
 # Defaults to false, uncomment the following line if you want to set it to true

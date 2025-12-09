@@ -19,7 +19,7 @@ To learn more about building & deploying RAG applications with Pathway, includin
 ## Introduction
 This app relies on modules provided under `pathway.xpacks.llm`. 
 
-BaseRAGQuestionAnswerer is the base class to build RAG applications with Pathway vector store and Pathway xpack components.
+`BaseRAGQuestionAnswerer` is the base class to build RAG applications with Pathway vector store and Pathway xpack components.
 It is meant to get you started with your RAG application right away. 
 
 Here, we extend the `BaseRAGQuestionAnswerer` to implement the adaptive retrieval and reply to requests in the endpoint `/v2/answer`. 
@@ -54,21 +54,20 @@ Here some examples of what can be modified.
 
 ### LLM Model
 
-You can choose any of the GPT-3.5 Turbo, GPT-4, or GPT-4 Turbo models proposed by Open AI.
-You can find the whole list on their [models page](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo).
+You can choose any of the models offered by Open AI, like GPT-5, GPT-4.1, or GPT-4o.
+You can find the whole list on their [models page](https://platform.openai.com/docs/models).
 
-You simply need to change the `model` to the one you want to use:
+You simply need to change the `model` to the one you want to use, e.g., to use GPT-5:
 ```yaml
 $llm: !pw.xpacks.llm.llms.OpenAIChat
-  model: "gpt-3.5-turbo"
+  model: "gpt-5"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DiskCache
-  temperature: 0.05
+  cache_strategy: !pw.udfs.DefaultCache
   capacity: 8
 ```
 
-The default model is `gpt-3.5-turbo`
+The default model is `gpt-4.1-mini`.
 
 You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
 e.g. here is configuration for locally run Mistral model.
@@ -95,11 +94,11 @@ port: 8000
 
 ### Cache
 
-You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+You can configure whether you want to enable cache or persistence, to avoid repeated API accesses, and where the cache is stored.
 Default values:
 ```yaml
-with_cache: True
-cache_backend: !pw.persistence.Backend.filesystem
+persistence_mode: !pw.PersistenceMode.UDF_CACHING
+persistence_backend: !pw.persistence.Backend.filesystem
   path: ".Cache"
 ```
 
@@ -107,7 +106,7 @@ cache_backend: !pw.persistence.Backend.filesystem
 
 You can configure the data sources by changing `$sources` in `app.yaml`.
 You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
 By default, the app uses a local data source to read documents from the `data` folder.
 

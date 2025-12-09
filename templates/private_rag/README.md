@@ -82,11 +82,11 @@ port: 8000
 
 ### Cache
 
-You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+You can configure whether you want to enable cache or persistence, to avoid repeated API accesses, and where the cache is stored.
 Default values:
 ```yaml
-with_cache: True
-cache_backend: !pw.persistence.Backend.filesystem
+persistence_mode: !pw.PersistenceMode.UDF_CACHING
+persistence_backend: !pw.persistence.Backend.filesystem
   path: ".Cache"
 ```
 
@@ -94,7 +94,7 @@ cache_backend: !pw.persistence.Backend.filesystem
 
 You can configure the data sources by changing `$sources` in `app.yaml`.
 You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
 By default, the app uses a local data source to read documents from the `data` folder.
 
@@ -172,11 +172,11 @@ $llm: !pw.xpacks.llm.llms.LiteLLMChat
   model: $llm_model
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DiskCache
+  cache_strategy: !pw.udfs.DefaultCache {}
   temperature: 0
-  top_p: 1
-  format: "json"  # only available in Ollama local deploy, not usable in Mistral API
-  api_base: "http://localhost:11434"
+  api_base: "http://localhost:11434"  
+  # api_base: "http://host.docker.internal:11434" # use this when you are running the app in the Docker on Mac or Windows
+  async_mode: "fully_async"
 ```
 
 ## Running the app

@@ -89,24 +89,24 @@ Here some examples of what can be modified.
 
 ### LLM Model
 
-This template by default uses two llm models - GPT-3.5 Turbo for answering queries and GPT-4o for parsing tables and images.
+This template by default uses two llm models - GPT-4.1-mini for answering queries and GPT-4o for parsing tables and images.
 
-You can replace GPT-3.5 Turbo with other Open AI models, like GPT-4, or GPT-4 Turbo.
-You can find the whole list on their [models page](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo).
+You can replace either of them with other Open AI models, like GPT-4.1 or GPT-5, but keep in mind that the model used for parsing needs to support image input.
+You can find the whole list on their [models page](https://platform.openai.com/docs/models).
 
-You simply need to change the `model` to the one you want to use:
+To change the model of the answering llm, you simply need to change the `model` in the `$llm` variable to the one you want to use, e.g. to use `GPT-5` set:
 ```yaml
 $llm: !pw.xpacks.llm.llms.OpenAIChat
-  model: "gpt-3.5-turbo"
+  model: "gpt-5"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
-  cache_strategy: !pw.udfs.DiskCache
-  temperature: 0.05
+  cache_strategy: !pw.udfs.DefaultCache {}
+  temperature: 0
   capacity: 8
 ```
 
 You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
-e.g. here is configuration for locally run Mistral model.
+e.g. here is configuration for locally run Mistral model with Ollama.
 
 ```yaml
 $llm: !pw.xpacks.llm.llms.LiteLLMChat
@@ -132,11 +132,11 @@ port: 8000
 
 ### Cache
 
-You can configure whether you want to enable cache, to avoid repeated API accesses, and where the cache is stored.
+You can configure whether you want to enable cache or persistence, to avoid repeated API accesses, and where the cache is stored.
 Default values:
 ```yaml
-with_cache: True
-cache_backend: !pw.persistence.Backend.filesystem
+persistence_mode: !pw.PersistenceMode.UDF_CACHING
+persistence_backend: !pw.persistence.Backend.filesystem
   path: ".Cache"
 ```
 
@@ -144,7 +144,7 @@ cache_backend: !pw.persistence.Backend.filesystem
 
 You can configure the data sources by changing `$sources` in `app.yaml`.
 You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
 By default, the app uses a local data source to read documents from the `data` folder.
 

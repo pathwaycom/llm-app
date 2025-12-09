@@ -53,16 +53,19 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
   cache_strategy: !pw.udfs.DefaultCache {}
   temperature: 0.0
   capacity: 8 # reduce this in case you are hitting API throttle limits
+  async_mode: "fully_async"
 
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   cache_strategy: !pw.udfs.DefaultCache {}
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy {}
+  model: "text-embedding-3-small"
 
 # Sets up the retriever factory for indexing and retrieving documents.
-retriever_factory: !pw.indexing.BruteForceKnnFactory
+retriever_factory: !pw.indexing.UsearchKnnFactory
   reserved_space: 1000
   embedder: $embedder
-  metric: !pw.indexing.BruteForceKnnMetricKind.COS
+  metric: !pw.indexing.USearchMetricKind.COS
 
 # Defines the schema used for the data extraction of each slide.
 details_schema:
@@ -104,8 +107,15 @@ details_schema:
 # host: "0.0.0.0"
 # port: $PATHWAY_PORT
 
-# Activate on-disk caching for UDFs for which `cache_strategy` is set
-# with_cache: true
+# By default, caching is enabled for UDFs with cache_strategy set.
+# You can disable it by uncommenting the following line.
+# persistence_mode: null
+# You can also set persistence_mode to !pw.PersistenceMode.PERSISTING to enable persistence
+# across restarts.
+# By default, when enabled, Cache is stored in .Cache directory.
+# You can customize the location by uncommenting and modifying the following lines:
+# persistence_backend: !pw.persistence.Backend.filesystem
+#   path: ".Cache"
 
 # If `terminate_on_error` is true then the program will terminate whenever any error is encountered.
 # Defaults to false, uncomment the following line if you want to set it to true

@@ -46,17 +46,19 @@ $sources:
 # https://pathway.com/developers/templates/rag-customization/llm-chats
 
 $llm: !pw.xpacks.llm.llms.OpenAIChat
-  model: "gpt-4o"
+  model: "gpt-4.1-mini"
   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
     max_retries: 6
   cache_strategy: !pw.udfs.DefaultCache {}
   temperature: 0
   capacity: 8
+  async_mode: "fully_async"
 
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
-  model: "text-embedding-ada-002"
+  model: "text-embedding-3-small"
   cache_strategy: !pw.udfs.DefaultCache {}
+  retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy {}
 
 # Defines the splitter settings for dividing text into smaller chunks.
 $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
@@ -64,13 +66,16 @@ $splitter: !pw.xpacks.llm.splitters.TokenCountSplitter
 
 # Configures the parser for processing and extracting information from documents.
 $parser: !pw.xpacks.llm.parsers.DoclingParser
+  table_parsing_strategy: "llm"
   async_mode: "fully_async"
+  chunk: false
+  cache_strategy: !pw.udfs.DefaultCache {}
 
 # Sets up the retriever factory for indexing and retrieving documents.
-$retriever_factory: !pw.stdlib.indexing.UsearchKnnFactory
+$retriever_factory: !pw.indexing.UsearchKnnFactory
   reserved_space: 1000
   embedder: $embedder
-  metric: !pw.stdlib.indexing.USearchMetricKind.COS
+  metric: !pw.indexing.USearchMetricKind.COS
   
 # Manages the storage and retrieval of documents for the RAG template.
 $document_store: !pw.xpacks.llm.document_store.DocumentStore
@@ -98,8 +103,15 @@ question_answerer: !pw.xpacks.llm.question_answering.BaseRAGQuestionAnswerer
 # host: "0.0.0.0"
 # port: $PATHWAY_PORT
 
-# Activate on-disk caching for UDFs for which `cache_strategy` is set
-# with_cache: true
+# By default, caching is enabled for UDFs with cache_strategy set.
+# You can disable it by uncommenting the following line.
+# persistence_mode: null
+# You can also set persistence_mode to !pw.PersistenceMode.PERSISTING to enable persistence
+# across restarts.
+# By default, when enabled, Cache is stored in .Cache directory.
+# You can customize the location by uncommenting and modifying the following lines:
+# persistence_backend: !pw.persistence.Backend.filesystem
+#   path: ".Cache"
 
 # If `terminate_on_error` is true then the program will terminate whenever any error is encountered.
 # Defaults to false, uncomment the following line if you want to set it to true

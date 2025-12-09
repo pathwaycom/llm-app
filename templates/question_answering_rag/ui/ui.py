@@ -103,7 +103,17 @@ indexed_files = get_indexed_files(st.session_state["document_meta_list"], "path"
 ingested_files = get_ingested_files(st.session_state["document_meta_list"], "path")
 
 
+logo_htm = """
+<div>
+    <figure style="display: flex; align-items: center; margin: 0;">
+        <img style="max-width:300px" src="app/static/pathway-logo-black.png" alt="Pathway Logo">
+    </figure>
+</div>
+"""
+
 with st.sidebar:
+    st.markdown(logo_htm, unsafe_allow_html=True)
+
     st.info(
         body="See the source code [here](https://github.com/pathwaycom/llm-app/tree/main/templates/question_answering_rag).",  # noqa: E501
         icon=":material/code:",

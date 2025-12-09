@@ -40,7 +40,7 @@ Finally, the embeddings are indexed with the capabilities of Pathway's machine-l
 ## Pipeline Organization
 
 This folder contains several objects:
-- `main.py`, the pipeline code using Pathway and written in Python;
+- `app.py`, the pipeline code using Pathway and written in Python;
 - `app.yaml`, the file containing configuration of the pipeline, like embedding model, sources, or the server address;
 - `requirements.txt`, the textfile denoting the pip dependencies for running this pipeline. It can be passed to `pip install -r ...` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
@@ -96,9 +96,9 @@ cache_backend: !pw.persistence.Backend.filesystem
 
 You can configure the data sources by changing `$sources` in `app.yaml`.
 You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe how to configure local, Google Drive and Sharepoint source, but you can use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
 
-By default, the app uses a local data source to read documents from the `data` folder.
+By default, the app uses a local data source to read documents from the `files-from-indexing` folder.
 
 #### Local Data Source
 

@@ -8,6 +8,7 @@
 
 from pathlib import Path
 from typing import Any
+from warnings import warn
 
 import pathway as pw
 from dotenv import load_dotenv
@@ -30,7 +31,9 @@ class App(BaseModel):
 
     details_schema: FilePath | dict[str, Any] | None = None
 
-    with_cache: bool = True
+    with_cache: bool | None = None  # deprecated
+    persistence_backend: pw.persistence.Backend | None = None
+    persistence_mode: pw.PersistenceMode | None = pw.PersistenceMode.UDF_CACHING
     terminate_on_error: bool = False
 
     def run(self) -> None:
@@ -45,6 +48,7 @@ class App(BaseModel):
             include_schema_in_text=False,
             llm=self.llm,
             cache_strategy=pw.udfs.DefaultCache(),
+            async_mode="fully_async",
         )
 
         doc_store = SlidesDocumentStore(
@@ -62,12 +66,37 @@ class App(BaseModel):
 
         app.build_server(host=self.host, port=self.port)
 
-        app.run_server(
-            with_cache=self.with_cache,
+        if self.persistence_mode is None:
+            if self.with_cache is True:
+                warn(
+                    "`with_cache` is deprecated. Please use `persistence_mode` instead.",
+                    DeprecationWarning,
+                )
+                persistence_mode = pw.PersistenceMode.UDF_CACHING
+            else:
+                persistence_mode = None
+        else:
+            persistence_mode = self.persistence_mode
+
+        if persistence_mode is not None:
+            if self.persistence_backend is None:
+                persistence_backend = pw.persistence.Backend.filesystem("./Cache")
+            else:
+                persistence_backend = self.persistence_backend
+            persistence_config = pw.persistence.Config(
+                persistence_backend,
+                persistence_mode=persistence_mode,
+            )
+        else:
+            persistence_config = None
+
+        pw.run(
+            persistence_config=persistence_config,
             terminate_on_error=self.terminate_on_error,
+            monitoring_level=pw.MonitoringLevel.NONE,
         )
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
 
 if __name__ == "__main__":
