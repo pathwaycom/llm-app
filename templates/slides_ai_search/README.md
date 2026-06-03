@@ -19,7 +19,7 @@ How is this different?
 
 * Build highly accurate RAG pipelines powered by indexes that are updated in real-time.
 * All of the steps, including parsing, embedding and indexing happen locally on your machine (local or cloud). 
-* Pathway uses vision language models to understand and index your presentations and PDFs, automatically updating as changes are made.
+* Pathway Live Data Framework uses vision language models to understand and index your presentations and PDFs, automatically updating as changes are made.
 * Get started with a minimalistic and production-ready approach.
 
 Boost productivity with accurate search across your PowerPoints, PDFs, and Slides all within your work environment. Try out the [demo](https://sales-rag-chat.demo.pathway.com/#search-your-slide-decks) here.
@@ -32,10 +32,10 @@ For a quick start, you need to only change the following fields:
 - `PATHWAY_LICENSE_KEY`
 - `OPENAI_API_KEY`
 
-This app template is available for free via [Pathway Scale](https://pathway.com/features). Get your [license key here](https://pathway.com/user/license) and fill in the `PATHWAY_LICENSE_KEY` here in the `.env` file.
+This app template is available for free via [Pathway Live Data Framework Scale](https://pathway.com/features). Get your [license key here](https://pathway.com/user/license) and fill in the `PATHWAY_LICENSE_KEY` here in the `.env` file.
 
 To learn more about configuring the input sources, how to overcome OpenAI limits and other information, check out the [configuration section below](#prerequisitesconfiguration).
-> **Note:** Pathway API is only used for logging basic statistics, everything happens and stays in your computer, except the OpenAI API calls. No personal or private data will be sent to Pathway servers. Handling of the data, processing, parsing and indexing are done locally.
+> **Note:** Pathway Live Data Framework API is only used for logging basic statistics, everything happens and stays in your computer, except the OpenAI API calls. No personal or private data will be sent to Pathway Live Data Framework servers. Handling of the data, processing, parsing and indexing are done locally.
 
 ## How it Helps
 
@@ -70,7 +70,7 @@ The architecture of the Slides AI Search App is designed to connect various loca
 ![Architecture](ai-slides-diagram.svg)
 
 This demo consists of three parts:
-* `app.py`: Pathway app that handles parsing, indexing and backend.
+* `app.py`: Pathway Live Data Framework app that handles parsing, indexing and backend.
 * `nginx`: File server that hosts images to be consumed by the UI.
 * `UI`: A Streamlit UI for interacting with the app.
 
@@ -94,7 +94,7 @@ This demo consists of three parts:
     * Note that, UI is configured to make use of two extracted fields `category` and `language`, these need to be kept for the UI to work. However, the app can still be used without the UI with different schemas or no parsed schema.
 2. **Embedding**:
     * Parsed slide content is embedded with the OpenAI's `text-embedding-3-small` embedder.
-    * The embeddings are then stored in Pathway's vector store using the `SlidesVectorStoreServer`.
+    * The embeddings are then stored in Pathway Live Data Framework's vector store using the `SlidesVectorStoreServer`.
 3. **Metadata Handling**:
     * Images and files are dumped into local directories (`storage/pw_dump_images` and `storage/pw_dump_files`).
     * Each slide gets a unique ID. This helps with opening files and images from the UI.
@@ -118,7 +118,7 @@ This folder contains several components necessary for setting up and running the
     * **Note:** If you intend the use the default UI, `category` and the `language` fields in the schema are needed for the filtering options in the UI. The UI will not function properly without them.
 
 3. **.env**:
-    * Config file for the environment variables, such as the OpenAI API key and Pathway key.
+    * Config file for the environment variables, such as the OpenAI API key and Pathway Live Data Framework key.
 
 ## **Prerequisites/Configuration**
 
@@ -135,10 +135,10 @@ This folder contains several components necessary for setting up and running the
     * If you are experiencing API throttle, you can set the `capacity` parameter of the LLM instance `llms.OpenAIChat` to be lower. This parameter defines the number of parallel requests. Or, it is possible to disable parallel requests and only parse sequentially by changing the `run_mode` in the `SlideParser` to `run_mode="sequential"` instead of the `"parallel"`.
     * Update: You can also change the model to any of the newer multimodal models, like GPT-5 or GPT-5.1, or their smaller variants.
 
-2. **Pathway’s License Key**: 
-    * This app template is available for free via [Pathway Scale](https://pathway.com/features).
+2. **Pathway Live Data Framework’s License Key**: 
+    * This app template is available for free via [Pathway Live Data Framework Scale](https://pathway.com/features).
     * Get your [license key here](https://pathway.com/user/license).
-    * **Note:** Pathway API is only used for logging basic statistics, everything happens and stays in your computer except the OpenAI API calls. No personal or private data will be sent to Pathway servers.
+    * **Note:** Pathway Live Data Framework API is only used for logging basic statistics, everything happens and stays in your computer except the OpenAI API calls. No personal or private data will be sent to Pathway Live Data Framework servers.
 
 ### **Configuring the Inputs**
 
@@ -147,12 +147,12 @@ By default, the app takes the files under the `./data/` folder as input. Inputs 
 It is possible to configure the app to use any kind of input, `Google Drive`, `Microsoft 365 SharePoint`, or a `local directory` to name a few.
 You can also use other kind of data sources using the [connectors](https://pathway.com/developers/user-guide/connecting-to-data/connectors) provided by Pathway.
 
-Pathway polls the changes with low latency. So, if something changes in the tracked files, the corresponding change is reflected in real-time, and search results are updated accordingly.
+The Pathway Live Data Framework polls the changes with low latency. So, if something changes in the tracked files, the corresponding change is reflected in real-time, and search results are updated accordingly.
 To learn more about the data sources, you can check out [demo question answering](../question_answering_rag/README.md#data-sources)
 
 ## How to run the project on your machine
 
-First, clone the Pathway LLM App Repository
+First, clone the Pathway Live Data Framework LLM App Repository
 
 ```bash
 git clone https://github.com/pathwaycom/llm-app.git
@@ -216,7 +216,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Conten
 
 This will search through our files, and return parsed slides with the `text`, `slide_id` and other `metadata` (also including the parsed schema).
 
-#### With the Pathway RAG Client
+#### With the Pathway Live Data Framework RAG Client
 
 Import RAGClient with:
 
@@ -330,7 +330,7 @@ Running the whole demo without Docker is a bit tricky as there are three compone
 
 If you are on Windows, please refer to the [running with Docker](#Running-with-docker) section below. 
 
-To run the Pathway app without the UI, 
+To run the Pathway Live Data Framework app without the UI, 
 
 ```bash
 python app.py

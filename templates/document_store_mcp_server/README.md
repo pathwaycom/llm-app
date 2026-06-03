@@ -33,16 +33,16 @@ You can get specification of those tools by querying the `list_tools` on the MCP
 
 ## How It Works
 
-This pipeline uses several Pathway connectors to read the data from the local drive, Google Drive, or Microsoft SharePoint sources. It allows you to poll the changes with low latency and to do the modifications tracking. So, if something changes in the tracked files, the corresponding change is reflected in the internal collections. The contents are read into a single Pathway Table as binary objects. 
+This pipeline uses several Pathway Live Data Framework connectors to read the data from the local drive, Google Drive, or Microsoft SharePoint sources. It allows you to poll the changes with low latency and to do the modifications tracking. So, if something changes in the tracked files, the corresponding change is reflected in the internal collections. The contents are read into a single Pathway Live Data Framework Table as binary objects. 
 
 After that, those binary objects are parsed with the [Docling](https://www.docling.ai/) library and split into chunks. With the usage of the [SentenceTransformer](https://www.sbert.net/) embedder, the pipeline embeds the obtained chunks.
 
-Finally, the embeddings are indexed with the capabilities of Pathway's machine-learning library. The user can then query the created index by connecting to the MCP server using an MCP client.
+Finally, the embeddings are indexed with the capabilities of Pathway Live Data Framework's machine-learning library. The user can then query the created index by connecting to the MCP server using an MCP client.
 
 ## Pipeline Organization
 
 This folder contains several objects:
-- `app.py`, the pipeline code using Pathway and written in Python;
+- `app.py`, the pipeline code using Pathway Live Data Framework and written in Python;
 - `app.yaml`, the file containing configuration of the pipeline, like embedding model, sources, or the server address;
 - `requirements.txt`, the textfile denoting the pip dependencies for running this pipeline. It can be passed to `pip install -r requirements.txt` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
@@ -51,14 +51,14 @@ This folder contains several objects:
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway Live Data Framework templates, read [our guide](https://pathway.com/developers/templates/configure-yaml).
 
 In the `app.yaml` file we define:
 - input connectors
 - embedder
 - index
 and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
-Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
+The Pathway Live Data Framework [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
 
 Here some examples of what can be modified.
 
@@ -129,8 +129,8 @@ To use it, set the map tag to be `!pw.xpacks.connectors.sharepoint.read`, and th
 
 ## Running the Template
 
-### Pathway License Key
-Pathway MCP Server requires a Pathway license key, so before you run the template, you need to set the license key. This template is available for free via [Pathway Scale](https://pathway.com/features), for which you can get the license key [here](https://pathway.com/user/license). Once you have your license key, create a `.env` file, in which set `PATHWAY_LICENSE_KEY` to your license key - see `.env.example` for an example of `.env` file.
+### Pathway Live Data Framework License Key
+The Pathway Live Data Framework MCP Server requires a Pathway Live Data Framework license key, so before you run the template, you need to set the license key. This template is available for free via [Pathway Live Data Framework Scale](https://pathway.com/features), for which you can get the license key [here](https://pathway.com/user/license). Once you have your license key, create a `.env` file, in which set `PATHWAY_LICENSE_KEY` to your license key - see `.env.example` for an example of `.env` file.
 
 ### Locally
 

@@ -9,7 +9,7 @@
     <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
 </p>
 
-# Pathway + PostgreSQL + LLM: app for querying financial reports with live document structuring pipeline
+# Pathway Live Data Framework + PostgreSQL + LLM: app for querying financial reports with live document structuring pipeline
 
 The aim of this pipeline is to extract and structure the data out of unstructured data (PDFs, queries)
 on the fly.
@@ -24,9 +24,9 @@ This example consists of two separate parts that can be used independently.
 Specifically, Pipeline 1 reads in a collection of financial PDF documents from a local directory
 (that can be synchronized with a Dropbox account), tokenizes each document using the tiktoken encoding,
 then extracts, using the OpenAI API, the wanted fields.
-The values are stored in a Pathway table which is then output to a PostgreSQL instance.
+The values are stored in a Pathway Live Data Framework table which is then output to a PostgreSQL instance.
 
-Pipeline 2 then starts a REST API endpoint serving queries about programming in Pathway.
+Pipeline 2 then starts a REST API endpoint serving queries about programming in Pathway Live Data Framework.
 
 Each query text is converted into a SQL query using the OpenAI API.
 

@@ -10,16 +10,16 @@
 </p>
 
 
-# End to end Adaptive RAG with Pathway
+# End to end Adaptive RAG with Pathway Live Data Framework
 
 This is the accompanying code for deploying the `adaptive RAG` technique with Pathway. To understand the technique and learn how it can save tokens without sacrificing accuracy, read [our showcase](https://pathway.com/developers/templates/rag/adaptive-rag).
 
-To learn more about building & deploying RAG applications with Pathway, including containerization, refer to [demo question answering](../question_answering_rag/README.md).
+To learn more about building & deploying RAG applications with Pathway Live Data Framework, including containerization, refer to [demo question answering](../question_answering_rag/README.md).
 
 ## Introduction
 This app relies on modules provided under `pathway.xpacks.llm`. 
 
-`BaseRAGQuestionAnswerer` is the base class to build RAG applications with Pathway vector store and Pathway xpack components.
+`BaseRAGQuestionAnswerer` is the base class to build RAG applications with Pathway Live Data Framework vector store and Pathway Live Data Framework xpack components.
 It is meant to get you started with your RAG application right away. 
 
 Here, we extend the `BaseRAGQuestionAnswerer` to implement the adaptive retrieval and reply to requests in the endpoint `/v2/answer`. 
@@ -69,7 +69,7 @@ $llm: !pw.xpacks.llm.llms.OpenAIChat
 
 The default model is `gpt-4.1-mini`.
 
-You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
+You can also use different provider, by using different class from [Pathway Live Data Framework LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
 e.g. here is configuration for locally run Mistral model.
 
 ```yaml
@@ -146,7 +146,7 @@ docker run -v ./data:/app/data -e OPENAI_API_KEY -p 8000:8000 adaptiverag
 ```
 
 ### Locally
-To run locally you need to install the Pathway app with LLM dependencies using:
+To run locally you need to install the Pathway Live Data Framework app with LLM dependencies using:
 ```bash
 pip install pathway[all]
 ```

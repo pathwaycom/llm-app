@@ -9,11 +9,11 @@
     <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
 </p>
 
-# Multimodal RAG with Pathway: Process your Financial Reports and Tables with GPT-4o
+# Multimodal RAG with Pathway Live Data Framework: Process your Financial Reports and Tables with GPT-4o
 
 ## **Overview**
 
-This app template showcases how you can build a multimodal RAG application and launch a document processing pipeline that utilizes a vision language model like the `GPT-4o` for parsing. Pathway processes unstructured financial documents within specified directories, extracting and storing the information in a scalable in-memory index. This index is optimized for dynamic RAG, ensuring that search results are continuously updated as documents are modified or new files are added.
+This app template showcases how you can build a multimodal RAG application and launch a document processing pipeline that utilizes a vision language model like the `GPT-4o` for parsing. The Pathway Live Data Framework processes unstructured financial documents within specified directories, extracting and storing the information in a scalable in-memory index. This index is optimized for dynamic RAG, ensuring that search results are continuously updated as documents are modified or new files are added.
 
 Using this approach, you can make your AI application run in permanent connection with your drive, in sync with your documents which include visually formatted elements: tables, charts, images, etc. 
 
@@ -23,7 +23,7 @@ In this showcase, we focused on the finance domain because financial documents o
 
 The following GIF shows a snippet from our experiments:
 
-![Regular RAG vs Pathway Multimodal comparison](gpt4o_with_pathway_comparison.gif)
+![Regular RAG vs Pathway Live Data Framework Multimodal comparison](gpt4o_with_pathway_comparison.gif)
 
 If you want to skip the explanations, you can directly find the code [here](#Running-the-app).
 
@@ -61,7 +61,7 @@ For more advanced RAG options, make sure to check out [rerankers](https://pathwa
 ## Pipeline Organization
 
 This folder contains several objects:
-- `app.py`, the main application code using Pathway and written in Python. It reads configuration from `app.yaml`, and runs a server answering queries to the defined pipeline.
+- `app.py`, the main application code using Pathway Live Data Framework and written in Python. It reads configuration from `app.yaml`, and runs a server answering queries to the defined pipeline.
 - `app.yaml`, YAML configuration file, that defines components of the pipeline.
 - `Dockerfile`, the Docker configuration for running the pipeline in a container. It includes instructions for installing dependencies and setting up the runtime environment.
 - `requirements.txt`, the dependencies for the pipeline. This file can be passed to `pip install -r requirements.txt` to install everything needed to launch the pipeline locally.
@@ -105,7 +105,7 @@ $llm: !pw.xpacks.llm.llms.OpenAIChat
   capacity: 8
 ```
 
-You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
+You can also use different provider, by using different class from [Pathway Live Data Framework LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
 e.g. here is configuration for locally run Mistral model with Ollama.
 
 ```yaml
@@ -152,7 +152,7 @@ By default, the app uses a local data source to read documents from the `data` f
 
 ## Running the app
 
-> Note: Recommended way of running the Pathway on Windows is Docker, refer to [Running with the Docker section](#with-docker).
+> Note: Recommended way of running the Pathway Live Data Framework on Windows is Docker, refer to [Running with the Docker section](#with-docker).
 
 First, make sure to install the requirements by running:
 
@@ -216,7 +216,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Conten
 > `{"response": "$2,699 million"}`
 
 This response was correct thanks to the initial LLM parsing step. 
-When we check the context that is sent to the LLM, we see that Pathway included the table in the context where as other RAG applications failed to include the table.
+When we check the context that is sent to the LLM, we see that the Pathway Live Data Framework included the table in the context where as other RAG applications failed to include the table.
 
 
 Let's try another one,
@@ -256,7 +256,7 @@ This showcase demonstrates setting up a powerful RAG pipeline with advanced tabl
 - Knowledge graphs: Leverage relationships between entities to improve understanding.
 - Hybrid indexing: Combine different indexing strategies for optimal retrieval.
 - Adaptive reranking: Iteratively enlarge the context for optimal accuracy, see [our example](../adaptive_rag/README.md).
-Stay tuned for future examples exploring these advanced techniques with Pathway!
+Stay tuned for future examples exploring these advanced techniques with Pathway Live Data Framework!
 
 RAG applications are most effective when tailored to your specific use case. Here's how you can customize yours:
 
@@ -272,10 +272,10 @@ Let's discuss how we can help you build a powerful, customized RAG application. 
 ## Quick Links:
 
 - [Pathway Developer Documentation](https://pathway.com/developers/user-guide/introduction/welcome)
-- [Pathway App Templates](https://pathway.com/developers/templates)
-- [Discord Community of Pathway](https://discord.gg/pathway)
+- [Pathway Live Data Framework App Templates](https://pathway.com/developers/templates)
+- [Discord Community of Pathway Live Data Framework](https://discord.gg/pathway)
 - [Pathway Issue Tracker](https://github.com/pathwaycom/pathway/issues)
 - [End-to-end dynamic RAG pipeline with Pathway](https://github.com/pathwaycom/llm-app/tree/main/templates/question_answering_rag)
-- [Using Pathway as a retriever with LlamaIndex](https://docs.llamaindex.ai/en/stable/examples/retrievers/pathway_retriever/) 
+- [Using Pathway Live Data Framework as a retriever with LlamaIndex](https://docs.llamaindex.ai/en/stable/examples/retrievers/pathway_retriever/) 
 
 Make sure to drop a "Star" to our repositories if you found this resource helpful!

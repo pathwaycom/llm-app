@@ -9,11 +9,11 @@
     <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
 </p>
 
-# Pathway RAG app with always up-to-date knowledge
+# Pathway Live Data Framework RAG app with always up-to-date knowledge
 
 This demo shows how to create a real-time RAG application using [Pathway](https://github.com/pathwaycom/pathway) that provides always up-to-date knowledge to your LLM without the need for a separate ETL.
 
-You will see a running example of how to get started with the Pathway vector store that eliminates the need for ETL pipelines which are needed in the regular VectorDBs. 
+You will see a running example of how to get started with the Pathway Live Data Framework vector store that eliminates the need for ETL pipelines which are needed in the regular VectorDBs. 
 This significantly reduces the developer's workload.
 
 This demo allows you to:
@@ -71,12 +71,12 @@ Using [`USearchKnnFactory`](https://pathway.com/developers/api-docs/indexing#pat
 - We create a [`SummaryQuestionAnswerer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/question_answering#pathway.xpacks.llm.question_answering.SummaryQuestionAnswerer) (as specified in `app.py`), which can handle both question-answering and summarization requests.  
 - A web server, [`QASummaryRestServer`](https://pathway.com/developers/api-docs/pathway-xpacks-llm/servers#pathway.xpacks.llm.servers.QASummaryRestServer), exposes multiple endpoints for retrieval, Q&A, summarization, and more.
 
-Because Pathway is fully incremental, any changes to your source files immediately flow through parsing, embedding, indexing, and ultimately get reflected in the answers from the LLM. The user can then query the created index with simple HTTP requests to the endpoints mentioned above.
+Because Pathway Live Data Framework is fully incremental, any changes to your source files immediately flow through parsing, embedding, indexing, and ultimately get reflected in the answers from the LLM. The user can then query the created index with simple HTTP requests to the endpoints mentioned above.
 
 ## Pipeline Organization
 
 This folder contains several objects:
-- `app.py`, the application code using Pathway and written in Python;
+- `app.py`, the application code using Pathway Live Data Framework and written in Python;
 - `app.yaml`, the file containing configuration of the pipeline, like LLM models, sources or server address;
 - `requirements.txt`, the dependencies for the pipeline. It can be passed to `pip install -r requirements.txt` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
@@ -84,7 +84,7 @@ This folder contains several objects:
 - `data/`, a folder with exemplary files that can be used for the test runs.
 - `ui/`, a simple ui written in Streamlit for asking questions.
 
-## Pathway tooling
+## Pathway Live Data Framework tooling
 ### Prompts and helpers
 
 Pathway allows you to define custom prompts in addition to the ones provided in [`pathway.xpacks.llm`](https://pathway.com/developers/user-guide/llm-xpack/overview).
@@ -139,7 +139,7 @@ $llm: !pw.xpacks.llm.llms.OpenAIChat
 
 The default model is `gpt-4.1-mini`.
 
-You can also use different provider, by using different class from [Pathway LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
+You can also use different provider, by using different class from [Pathway Live Data Framework LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview),
 e.g. here is configuration for locally run Mistral model.
 
 ```yaml
@@ -290,7 +290,7 @@ The general structure is sending a request to `http://{HOST}:{PORT}/{ENDPOINT}`.
 
 Where HOST is the `host` variable you specify in your app configuration. PORT is the `port` number you are running your app on, and ENDPOINT is the specific extension for endpoints. They are specified in the application code, and they are listed with the versioning as `/v1/...`.
 
-Note that, if you are using the Pathway hosted version, you should send requests to `https://...` rather than `http://...` and emit the `:{PORT}` part of the URL.
+Note that, if you are using the Pathway Live Data Framework hosted version, you should send requests to `https://...` rather than `http://...` and emit the `:{PORT}` part of the URL.
 
 You need to add two headers, `-H 'accept: */*'   -H 'Content-Type: application/json'`.
 

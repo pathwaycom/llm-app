@@ -10,7 +10,7 @@
 [![follow on X](  https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/intent/follow?screen_name=pathway_com)
 </div>
 
-Pathway's **AI Pipelines** allow you to quickly put in production AI applications that offer **high-accuracy RAG and AI enterprise search at scale** using the most **up-to-date knowledge** available in your data sources. It provides you ready-to-deploy **LLM (Large Language Model) App Templates**. You can test them on your own machine and deploy on-cloud (GCP, AWS, Azure, Render,...) or on-premises.
+The Pathway Live Data Framework's **AI Pipelines** allow you to quickly put in production AI applications that offer **high-accuracy RAG and AI enterprise search at scale** using the most **up-to-date knowledge** available in your data sources. It provides you ready-to-deploy **LLM (Large Language Model) App Templates**. You can test them on your own machine and deploy on-cloud (GCP, AWS, Azure, Render,...) or on-premises.
 
 The apps connect and sync (all new data additions, deletions, updates) with data sources on your **file system, Google Drive, Sharepoint, S3, Kafka, PostgreSQL, real-time data APIs**. They come with no infrastructure dependencies that would need a separate setup. They include **built-in data indexing** enabling vector search, hybrid search, and full-text search - all done in-memory, with cache.
 
@@ -26,7 +26,7 @@ The application templates provided in this repo scale up to **millions of pages 
 | [`Multimodal RAG pipeline with GPT4o`](templates/multimodal_rag/) | Multimodal RAG using GPT-4o in the parsing stage to index PDFs and other documents from a connected data source files, Google Drive, Sharepoint,...). It is perfect for extracting information from unstructured financial documents in your folders (including charts and tables), updating results as documents change or new ones arrive.|
 | [`Unstructured-to-SQL pipeline + SQL question-answering`](templates/unstructured_to_sql_on_the_fly/) | A RAG example which connects to unstructured financial data sources (financial report PDFs), structures the data into SQL, and loads it into a PostgreSQL table. It also answers natural language user queries to these financial documents by translating them into SQL using an LLM and executing the query on the PostgreSQL table. |
 | [`Adaptive RAG App`](templates/adaptive_rag/) | A RAG application using Adaptive RAG, a technique developed by Pathway to reduce token cost in RAG up to 4x while maintaining accuracy. |
-| [`Private RAG App with Mistral and Ollama`](templates/private_rag/) |  A fully private (local) version of the `question_answering_rag` RAG pipeline using Pathway, Mistral, and Ollama. |
+| [`Private RAG App with Mistral and Ollama`](templates/private_rag/) |  A fully private (local) version of the `question_answering_rag` RAG pipeline using Pathway Live Data Framework, Mistral, and Ollama. |
 | [`Slides AI Search App`](templates/slides_ai_search/)                                        | An indexing pipeline for retrieving slides. It performs multi-modal of PowerPoint and PDF and maintains live index of your slides."|
 
 
@@ -61,7 +61,7 @@ Automated real-time knowledge mining and alerting:
 
 ###  Do-it-Yourself Videos
 
-▶️ [An introduction to building LLM apps with Pathway](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
+▶️ [An introduction to building LLM apps with Pathway Live Data Framework](https://www.youtube.com/watch?v=kcrJSk00duw) - by [Jan Chorowski](https://scholar.google.com/citations?user=Yc94070AAAAJ)
 
 ▶️ [Let's build a real-world LLM app in 11 minutes](https://www.youtube.com/watch?v=k1XGo7ts4tI) - by [Pau Labarta Bajo](https://substack.com/@paulabartabajo)
 

@@ -9,21 +9,21 @@
     <a href="https://pathway.com/developers/user-guide/deployment/render-deploy"> Deploy with Render </a>
 </p>
 
-# Fully private RAG with Pathway
+# Fully private RAG with Pathway Live Data Framework
 
 ## **Overview**
 
-Retrieval-Augmented Generation (RAG) is a powerful method for answering questions using a private knowledge database. Ensuring data security is essential, especially for sensitive information like trade secrets, confidential IP, GDPR-protected data, and internal documents. This showcase demonstrates setting up a private RAG pipeline with adaptive retrieval using Pathway, Mistral, and Ollama. The provided code deploys this adaptive RAG technique with Pathway, ensuring no API access or data leaves the local machine.
+Retrieval-Augmented Generation (RAG) is a powerful method for answering questions using a private knowledge database. Ensuring data security is essential, especially for sensitive information like trade secrets, confidential IP, GDPR-protected data, and internal documents. This showcase demonstrates setting up a private RAG pipeline with adaptive retrieval using Pathway Live Data Framework, Mistral, and Ollama. The provided code deploys this adaptive RAG technique with Pathway Live Data Framework, ensuring no API access or data leaves the local machine.
 
-The app utilizes modules under `pathway.xpacks.llm`. The `BaseRAGQuestionAnswerer` class is the foundation for building RAG applications with the Pathway vector store and xpack components, enabling a quick start with RAG applications.
+The app utilizes modules under `pathway.xpacks.llm`. The `BaseRAGQuestionAnswerer` class is the foundation for building RAG applications with the Pathway Live Data Framework vector store and xpack components, enabling a quick start with RAG applications.
 
-This example uses `AdaptiveRAGQuestionAnswerer`, an extension of `BaseRAGQuestionAnswerer` with adaptive retrieval. For more on building and deploying RAG applications with Pathway, including containerization, refer to the demo on question answering.
+This example uses `AdaptiveRAGQuestionAnswerer`, an extension of `BaseRAGQuestionAnswerer` with adaptive retrieval. For more on building and deploying RAG applications with Pathway Live Data Framework, including containerization, refer to the demo on question answering.
 
 The application responds to requests at the `/v2/answer` endpoint. The `answer_query` function takes the `pw_ai_queries` table as input, containing prompts and other arguments from the post request. This table's data is used to call the adaptive retrieval logic.
 
-The `AdaptiveRAGQuestionAnswerer` implementation under `pathway.xpacks.llm.question_answering` builds a RAG app with the Pathway vector store and components. It supports two question answering strategies, short (concise) and long (detailed) responses, set during the post request. It allows LLM agnosticity, giving the freedom to choose between proprietary or open-source LLMs. It adapts the number of chunks used as a context, starting with `n_starting_documents` chunks and increasing until an answer is found.
+The `AdaptiveRAGQuestionAnswerer` implementation under `pathway.xpacks.llm.question_answering` builds a RAG app with the Pathway Live Data Framework vector store and components. It supports two question answering strategies, short (concise) and long (detailed) responses, set during the post request. It allows LLM agnosticity, giving the freedom to choose between proprietary or open-source LLMs. It adapts the number of chunks used as a context, starting with `n_starting_documents` chunks and increasing until an answer is found.
 
-To learn more about building & deploying RAG applications with Pathway, including containerization, refer to [demo question answering](../question_answering_rag/README.md).
+To learn more about building & deploying RAG applications with Pathway Live Data Framework, including containerization, refer to [demo question answering](../question_answering_rag/README.md).
 
 
 ## Table of contents
@@ -44,7 +44,7 @@ This includes the technical details to the steps to create a REST Endpoint to ru
 ![Architecture](https://i.imgur.com/9TJEoUd.png)
 
 The architecture consists of two connected technology bricks, which will run as services on your machine:
-- Pathway brings support for real-time data synchronization pipelines out of the box, and the possibility of secure private document handling with enterprise connectors for synchronizing Sharepoint and Google Drive incrementally. The Pathway service you'll run performs live document indexing pipeline, and will use Pathway’s built-in vector store.
+- Pathway Live Data Framework brings support for real-time data synchronization pipelines out of the box, and the possibility of secure private document handling with enterprise connectors for synchronizing Sharepoint and Google Drive incrementally. The Pathway Live Data Framework service you'll run performs live document indexing pipeline, and will use Pathway Live Data Framework’s built-in vector store.
 - The language model you use will be a Mistral 7B, which you will locally deploy as an Ollama service. This model was chosen for its performance and compact size.
 
 ## Customizing the pipeline
@@ -207,7 +207,7 @@ docker run -v ./data:/app/data -p 8000:8000 privaterag
 ```
 
 ### Locally
-To run locally you need to install the Pathway app with LLM dependencies using:
+To run locally you need to install the Pathway Live Data Framework app with LLM dependencies using:
 ```bash
 pip install pathway[all]
 ```
@@ -231,7 +231,7 @@ curl -X 'POST'   'http://0.0.0.0:8000/v2/answer'   -H 'accept: */*'   -H 'Conten
 
 ## Conclusion:
 
-Now you have a fully private RAG set up with Pathway and Ollama. All your data remains safe on your system. Moreover, the set-up is optimized for speed, thanks to how Ollama runs the LLM, and how Pathway’s adaptive retrieval mechanism reduces token consumption while preserving the accuracy of the RAG.
+Now you have a fully private RAG set up with Pathway Live Data Framework and Ollama. All your data remains safe on your system. Moreover, the set-up is optimized for speed, thanks to how Ollama runs the LLM, and how Pathway Live Data Framework’s adaptive retrieval mechanism reduces token consumption while preserving the accuracy of the RAG.
 
 This is a full production-ready set-up which includes reading your data sources, parsing the data, and serving the endpoint.
 This private RAG setup can be run entirely locally with open-source LLMs, making it ideal for organizations with sensitive data and explainable AI needs.
@@ -239,11 +239,11 @@ This private RAG setup can be run entirely locally with open-source LLMs, making
 ## Quick Links:
 
 - [Pathway Developer Documentation](https://pathway.com/developers/user-guide/introduction/welcome)
-- [Pathway App Templates](https://pathway.com/developers/templates)
-- [Discord Community of Pathway](https://discord.gg/pathway)
+- [Pathway Live Data Framework App Templates](https://pathway.com/developers/templates)
+- [Discord Community of Pathway Live Data Framework](https://discord.gg/pathway)
 - [Pathway Issue Tracker](https://github.com/pathwaycom/pathway/issues)
 - [End-to-end dynamic RAG pipeline with Pathway](https://github.com/pathwaycom/llm-app/tree/main/templates/question_answering_rag)
-- [Using Pathway as a vector store with Langchain](https://python.langchain.com/v0.2/docs/integrations/vectorstores/pathway/) 
-- [Using Pathway as a retriever with LlamaIndex](https://docs.llamaindex.ai/en/stable/examples/retrievers/pathway_retriever/) 
+- [Using Pathway Live Data Framework as a vector store with Langchain](https://python.langchain.com/v0.2/docs/integrations/vectorstores/pathway/) 
+- [Using Pathway Live Data Framework as a retriever with LlamaIndex](https://docs.llamaindex.ai/en/stable/examples/retrievers/pathway_retriever/) 
 
 Make sure to drop a “Star” to our repositories if you found this resource helpful!

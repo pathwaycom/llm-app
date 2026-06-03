@@ -11,7 +11,7 @@
 
 # Realtime Document Indexing: Vector Store with always-up-to-date knowledge
 
-This is a basic service for a real-time document indexing pipeline powered by [Pathway](https://github.com/pathwaycom/pathway).
+This is a basic service for a real-time document indexing pipeline powered by [Pathway Live Data Framework](https://github.com/pathwaycom/pathway).
 
 The capabilities of the pipeline include:
     
@@ -31,16 +31,16 @@ Please refer to the Open API doc on Hosted Pipelines [website](https://pathway.c
 
 ## How It Works
 
-This pipeline uses several Pathway connectors to read the data from the local drive, Google Drive, and Microsoft SharePoint sources. It allows you to poll the changes with low latency and to do the modifications tracking. So, if something changes in the tracked files, the corresponding change is reflected in the internal collections. The contents are read into a single Pathway Table as binary objects. 
+This pipeline uses several Pathway Live Data Framework connectors to read the data from the local drive, Google Drive, and Microsoft SharePoint sources. It allows you to poll the changes with low latency and to do the modifications tracking. So, if something changes in the tracked files, the corresponding change is reflected in the internal collections. The contents are read into a single Pathway Live Data Framework Table as binary objects. 
 
 After that, those binary objects are parsed with [unstructured](https://unstructured.io/) library and split into chunks. With the usage of OpenAI API, the pipeline embeds the obtained chunks.
 
-Finally, the embeddings are indexed with the capabilities of Pathway's machine-learning library. The user can then query the created index with simple HTTP requests to the endpoints mentioned above.
+Finally, the embeddings are indexed with the capabilities of Pathway Live Data Framework's machine-learning library. The user can then query the created index with simple HTTP requests to the endpoints mentioned above.
 
 ## Pipeline Organization
 
 This folder contains several objects:
-- `app.py`, the pipeline code using Pathway and written in Python;
+- `app.py`, the pipeline code using Pathway Live Data Framework and written in Python;
 - `app.yaml`, the file containing configuration of the pipeline, like embedding model, sources, or the server address;
 - `requirements.txt`, the textfile denoting the pip dependencies for running this pipeline. It can be passed to `pip install -r ...` to install everything that is needed to launch the pipeline locally;
 - `Dockerfile`, the Docker configuration for running the pipeline in the container;
@@ -50,14 +50,14 @@ This folder contains several objects:
 
 ## Customizing the pipeline
 
-The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway templates, read [our guide](https://pathway.com/developers/templates/configure-yaml).
+The code can be modified by changing the `app.yaml` configuration file. To read more about YAML files used in Pathway Live Data Framework templates, read [our guide](https://pathway.com/developers/templates/configure-yaml).
 
 In the `app.yaml` file we define:
 - input connectors
 - embedder
 - index
 and any of these can be replaced or, if no longer needed, removed. For components that can be used check 
-Pathway [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
+The Pathway Live Data Framework [LLM xpack](https://pathway.com/developers/user-guide/llm-xpack/overview), or you can implement your own.
 
 Here some examples of what can be modified.
 
@@ -96,7 +96,7 @@ cache_backend: !pw.persistence.Backend.filesystem
 
 You can configure the data sources by changing `$sources` in `app.yaml`.
 You can add as many data sources as you want. You can have several sources of the same kind, for instance, several local sources from different folders.
-The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway package.
+The sections below describe how to configure local, Google Drive and Sharepoint source, and you can check the examples of YAML configuration in our [user guide](https://pathway.com/developers/templates/yaml-snippets/data-sources-examples/). While these are not described in this Section, you can also use any input [connector](https://pathway.com/developers/user-guide/connecting-to-data/connectors) from Pathway Live Data Framework package.
 
 By default, the app uses a local data source to read documents from the `files-from-indexing` folder.
 

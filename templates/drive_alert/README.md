@@ -1,4 +1,4 @@
-# Pathway + LLM + Slack notification: RAG App with real-time alerting when answers change in documents
+# Pathway Live Data Framework + LLM + Slack notification: RAG App with real-time alerting when answers change in documents
 
 Microservice for a context-aware alerting ChatGPT assistant.
 
@@ -15,14 +15,14 @@ One example would be `Tell me and alert about the start date of the campaign for
 
 ## How Does It Work?
 
-First, Pathway connects to Google Drive, extracts all documents, splits them into chunks, turns them into
+First, Pathway Live Data Framework connects to Google Drive, extracts all documents, splits them into chunks, turns them into
 vectors using OpenAI embedding service, and store in a nearest neighbor index.
 
 Each query text is first turned into a vector, then relevant document chunks are found
 using the nearest neighbor index. A prompt is built from the relevant chunk
 and sent to the OpenAI GPT3.5 chat service for processing and answering.
 
-After an initial answer is provided, Pathway monitors changes to documents and selectively
+After an initial answer is provided, Pathway Live Data Framework monitors changes to documents and selectively
 re-triggers potentially affected queries. If the new answer is significantly different from
 the previously presented one, a new notification is created.
 
@@ -30,7 +30,7 @@ the previously presented one, a new notification is created.
 
 Before running the app, you will need to give the app access to the Google Drive folder, we follow the steps below.
 
-In order to access files on your Google Drive from the Pathway app, you will need a Google Cloud project and a service user.
+In order to access files on your Google Drive from the Pathway Live Data Framework app, you will need a Google Cloud project and a service user.
 
 ### Create a new project in the Google API console:
 

@@ -3,7 +3,7 @@
 # Copyright © 2026 Pathway
 
 # Copied and adapted from templates/slides_ai_search/app.py
-# To use advanced features with Pathway Scale, get your free license key from
+# To use advanced features with Pathway Live Data Framework Scale, get your free license key from
 # https://pathway.com/features and paste it in the `.env` file (check `.env.example`).
 
 from pathlib import Path
