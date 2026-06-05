@@ -57,7 +57,7 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
 
 # Alternatively, use MiniMax with its OpenAI-compatible API (https://api.minimax.io/v1):
 # llm: !pw.xpacks.llm.llms.OpenAIChat
-#   model: "MiniMax-M2.7"
+#   model: "MiniMax-M3"
 #   api_key: $MINIMAX_API_KEY
 #   base_url: "https://api.minimax.io/v1"
 #   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
