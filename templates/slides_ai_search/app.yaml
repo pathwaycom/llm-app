@@ -55,6 +55,20 @@ llm: !pw.xpacks.llm.llms.OpenAIChat
   capacity: 8 # reduce this in case you are hitting API throttle limits
   async_mode: "fully_async"
 
+# Alternatively, use MiniMax with its OpenAI-compatible API (https://api.minimax.io/v1):
+# llm: !pw.xpacks.llm.llms.OpenAIChat
+#   model: "MiniMax-M3"
+#   api_key: $MINIMAX_API_KEY
+#   base_url: "https://api.minimax.io/v1"
+#   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+#     max_retries: 6
+#     initial_delay: 2500
+#     backoff_factor: 2.5
+#   cache_strategy: !pw.udfs.DefaultCache {}
+#   temperature: 1.0
+#   capacity: 8
+#   async_mode: "fully_async"
+
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   cache_strategy: !pw.udfs.DefaultCache {}

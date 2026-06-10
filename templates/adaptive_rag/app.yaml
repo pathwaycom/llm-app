@@ -54,6 +54,17 @@ $llm: !pw.xpacks.llm.llms.OpenAIChat
   temperature: 0
   capacity: 8
 
+# Alternatively, use MiniMax with its OpenAI-compatible API (https://api.minimax.io/v1):
+# $llm: !pw.xpacks.llm.llms.OpenAIChat
+#   model: "MiniMax-M3"
+#   api_key: $MINIMAX_API_KEY
+#   base_url: "https://api.minimax.io/v1"
+#   retry_strategy: !pw.udfs.ExponentialBackoffRetryStrategy
+#     max_retries: 6
+#   cache_strategy: !pw.udfs.DefaultCache {}
+#   temperature: 1.0
+#   capacity: 8
+
 # Specifies the embedder model for converting text into embeddings.
 $embedder: !pw.xpacks.llm.embedders.OpenAIEmbedder
   model: "text-embedding-3-small"
