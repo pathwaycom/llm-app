@@ -13,7 +13,9 @@ load_dotenv()
 PATHWAY_HOST = os.environ.get("PATHWAY_HOST", "app")
 PATHWAY_PORT = os.environ.get("PATHWAY_PORT", 8000)
 
-st.set_page_config(page_title="Pathway Live Data Framework RAG App", page_icon="favicon.ico")
+st.set_page_config(
+    page_title="Pathway Live Data Framework RAG App", page_icon="favicon.ico"
+)
 
 logging.basicConfig(
     level=logging.INFO,
