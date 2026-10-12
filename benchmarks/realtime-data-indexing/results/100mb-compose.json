@@ -1,0 +1,170 @@
+{
+  "name": "serviette-consistency-bench",
+  "networks": {
+    "default": {
+      "name": "serviette-consistency-bench_default",
+      "ipam": {}
+    }
+  },
+  "services": {
+    "indexer": {
+      "build": {
+        "context": "/home/sergey/serviette",
+        "dockerfile": "benchmarks/realtime-data-indexing/Dockerfile"
+      },
+      "command": [
+        "python",
+        "-m",
+        "serviette.cli",
+        "indexer",
+        "--config",
+        "/bench/config.yaml"
+      ],
+      "depends_on": {
+        "qdrant": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "HF_HOME": "/hf-cache",
+        "HF_HUB_OFFLINE": "1",
+        "MALLOC_ARENA_MAX": "",
+        "OMP_NUM_THREADS": "12",
+        "OPENAI_API_KEY": "x",
+        "PATHWAY_LICENSE_KEY": "<redacted>",
+        "_RJEM_MALLOC_CONF": "background_thread:true"
+      },
+      "image": "serviette-bench",
+      "networks": {
+        "default": null
+      },
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/sergey/.cache/huggingface",
+          "target": "/hf-cache",
+          "read_only": true,
+          "bind": {}
+        },
+        {
+          "type": "bind",
+          "source": "/mnt/scratch/sergey/serviette-consistency-20261012/datasets/100mb/docs",
+          "target": "/data/docs",
+          "read_only": true,
+          "bind": {}
+        },
+        {
+          "type": "bind",
+          "source": "/home/sergey/serviette/benchmarks/realtime-data-indexing/config.yaml",
+          "target": "/bench/config.yaml",
+          "read_only": true,
+          "bind": {}
+        }
+      ]
+    },
+    "qdrant": {
+      "command": null,
+      "entrypoint": null,
+      "image": "qdrant/qdrant:latest",
+      "networks": {
+        "default": null
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 6333,
+          "published": "8301",
+          "protocol": "tcp"
+        }
+      ]
+    },
+    "server": {
+      "build": {
+        "context": "/home/sergey/serviette",
+        "dockerfile": "benchmarks/realtime-data-indexing/Dockerfile"
+      },
+      "command": [
+        "python",
+        "-m",
+        "serviette.cli",
+        "server",
+        "--config",
+        "/bench/config.yaml"
+      ],
+      "depends_on": {
+        "qdrant": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "HF_HOME": "/hf-cache",
+        "HF_HUB_OFFLINE": "1",
+        "MALLOC_ARENA_MAX": "",
+        "OPENAI_API_KEY": "x",
+        "PATHWAY_LICENSE_KEY": "<redacted>",
+        "_RJEM_MALLOC_CONF": "background_thread:true"
+      },
+      "image": "serviette-bench",
+      "networks": {
+        "default": null
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 8000,
+          "published": "8300",
+          "protocol": "tcp"
+        }
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/sergey/.cache/huggingface",
+          "target": "/hf-cache",
+          "read_only": true,
+          "bind": {}
+        },
+        {
+          "type": "bind",
+          "source": "/mnt/scratch/sergey/serviette-consistency-20261012/datasets/100mb/docs",
+          "target": "/data/docs",
+          "read_only": true,
+          "bind": {}
+        },
+        {
+          "type": "bind",
+          "source": "/home/sergey/serviette/benchmarks/realtime-data-indexing/config.yaml",
+          "target": "/bench/config.yaml",
+          "read_only": true,
+          "bind": {}
+        }
+      ]
+    }
+  },
+  "x-serviette": {
+    "build": {
+      "context": "../..",
+      "dockerfile": "benchmarks/realtime-data-indexing/Dockerfile"
+    },
+    "environment": {
+      "HF_HOME": "/hf-cache",
+      "HF_HUB_OFFLINE": "1",
+      "MALLOC_ARENA_MAX": "",
+      "OPENAI_API_KEY": "x",
+      "PATHWAY_LICENSE_KEY": "PV3L-4L4N-TF7R-JWM7-LKVK-PX3E-FHTX-KMNC",
+      "_RJEM_MALLOC_CONF": "background_thread:true"
+    },
+    "image": "serviette-bench",
+    "volumes": [
+      "~/.cache/huggingface:/hf-cache:ro",
+      "/mnt/scratch/sergey/serviette-consistency-20261012/datasets/100mb/docs:/data/docs:ro",
+      "./config.yaml:/bench/config.yaml:ro"
+    ]
+  }
+}

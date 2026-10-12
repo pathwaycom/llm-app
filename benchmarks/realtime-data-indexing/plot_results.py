@@ -105,9 +105,12 @@ def main():
     environment = json.loads((args.results / "run-environment.json").read_text())
     files = np.array([r["summary"]["documents"] for r in runs], dtype=float)
     extra = np.array([r["final_components"]["connector_extra_mb_estimate"] for r in runs])
-    slope = float(np.dot(files, extra * 1024**2) / np.dot(files, files))
+    # Allow fixed connector overhead rather than attributing it to file count.
+    slope, intercept = np.polyfit(files, extra * 1024**2, 1)
+    slope, intercept = float(slope), float(intercept)
     ratio = runs[-1]["summary"]["peak_pss_mb"] / runs[0]["summary"]["peak_pss_mb"]
-    derived = {"connector_bytes_per_file_estimate": slope, "peak_memory_ratio": ratio,
+    derived = {"connector_bytes_per_file_estimate": slope,
+               "connector_fixed_overhead_bytes_estimate": intercept, "peak_memory_ratio": ratio,
                "runs": [{"size": r["size"], "peak_components": r["peak_components"],
                          "final_components": r["final_components"]} for r in runs]}
     (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
@@ -122,7 +125,7 @@ def main():
     ax.legend(fontsize=9)
     right.scatter(files / 1000, extra, color="#5145ef", label="rank-0 private-memory excess (estimate)")
     x = np.linspace(0, files.max() * 1.05, 100)
-    right.plot(x / 1000, slope * x / 1024**2, "--", color="#10a34a", label=f"fit: ~{slope:.0f} bytes × files")
+    right.plot(x / 1000, (intercept + slope * x) / 1024**2, "--", color="#10a34a", label=f"fit: fixed overhead + ~{slope:.0f} bytes × files")
     for run, xx, yy in zip(runs, files / 1000, extra):
         right.annotate(run["label"], (xx, yy), xytext=(5, 0), textcoords="offset points", fontsize=9)
     right.set(title="File-watch memory proxy", xlabel="watched files, thousands", ylabel="extra private memory, MiB")
@@ -171,7 +174,8 @@ at peak PSS. `*-indexer.txt.gz` contains the container log.
 The right panel estimates file-watch memory as rank 0's private-page excess
 over the median of the seven other workers at the final sample. It includes
 any other unequal worker allocations; it is not an allocation-level measurement.
-The line is a least-squares fit through zero (~{slope:.0f} bytes per file).
+The line is a least-squares fit with an intercept (~{slope:.0f} bytes per file;
+fixed overhead estimate {intercept / 1024**2:.1f} MiB).
 The pie splits peak PSS into worker private pages, estimated rank-0 excess,
 supervisor private pages and shared PSS. Worker pages include the engine,
 embedding runtime and buffers; `/proc` cannot attribute them separately.
