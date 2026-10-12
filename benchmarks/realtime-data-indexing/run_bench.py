@@ -422,6 +422,9 @@ def main() -> None:
         "indexer_cpu_seconds": round(cpu_seconds, 1) if cpu_seconds else None,
         "avg_parallelism": round(cpu_seconds / duration, 1) if cpu_seconds else None,
         "vector_db_disk_mb": round(db_bytes / 1024 / 1024, 1) if db_bytes else None,
+        "qdrant_image_id": subprocess.check_output(
+            ["docker", "inspect", "--format", "{{.Image}}", qdrant], text=True
+        ).strip(),
         "vector_db_mb_per_corpus_mb": (
             round(db_bytes / 1024 / 1024 / size_mb, 2) if db_bytes else None
         ),
