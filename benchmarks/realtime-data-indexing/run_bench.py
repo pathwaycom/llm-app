@@ -42,6 +42,22 @@ for proc in Path('/proc').iterdir():
                 if line.startswith(('VmRSS:', 'VmHWM:', 'Pss:', 'Private_Clean:', 'Private_Dirty:')):
                     key, value = line.split(':', 1)
                     row[key] = int(value.split()[0])
+        # File mappings identify shared local-embedding libraries. Anonymous
+        # allocations require a separate controlled initialization measurement.
+        groups = {'embedding': {'Pss': 0, 'private_kb': 0},
+                  'other': {'Pss': 0, 'private_kb': 0}}
+        group = 'other'
+        for line in (proc / 'smaps').read_text().splitlines():
+            parts = line.split()
+            if parts and '-' in parts[0] and ':' not in parts[0]:
+                path = parts[-1] if len(parts) >= 6 else ''
+                group = 'embedding' if any(part in path for part in
+                    ('/torch/', '/nvidia/', '/triton/', '/sentence_transformers/', '/tokenizers/', '/safetensors/')) else 'other'
+            elif line.startswith('Pss:'):
+                groups[group]['Pss'] += int(parts[1])
+            elif line.startswith(('Private_Clean:', 'Private_Dirty:')):
+                groups[group]['private_kb'] += int(parts[1])
+        row['mapping_groups'] = groups
         rows.append(row)
     except (OSError, ValueError):
         continue
@@ -391,6 +407,8 @@ def main() -> None:
         "corpus_mb": round(size_mb, 1),
         "documents": docs_count,
         "chunks": stats.get("chunks"),
+        "max_observed_chunks": last_count,
+        "chunk_count_metric": "Qdrant approximate count at completion; CSV chunks is the maximum observed count",
         "indexing_seconds": round(duration, 1),
         "throughput_mb_per_min": round(size_mb / (duration / 60), 2),
         "peak_rss_mb": round(peak_mb, 1),

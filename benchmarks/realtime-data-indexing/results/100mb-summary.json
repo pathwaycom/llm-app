@@ -109,5 +109,7 @@
   "retrieval_accuracy": "5/5",
   "embedder": "sentence-transformers/static-retrieval-mrl-en-v1 (local, 256 dims)",
   "approx_text_pages": 52431,
-  "accuracy_misses": []
+  "accuracy_misses": [],
+  "max_observed_chunks": 53651,
+  "chunk_count_metric": "Qdrant approximate count at completion; CSV chunks is the maximum observed count"
 }

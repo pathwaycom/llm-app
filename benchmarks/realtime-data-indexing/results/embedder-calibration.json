@@ -1,0 +1,177 @@
+{
+  "description": "Diagnostic: eight workers, before/after local embedder initialization.\n\nRun between indexing sizes, in the same image and environment. This does\nnot replace the indexing benchmark. Anonymous local-embedding memory is\nestimated by the private-page increment; shared code comes from main-run\nmapping samples. Keep workers alive at each barrier to count shared pages\nproportionally across all eight rather than multiplying a single RSS value.\n",
+  "workers": 8,
+  "jemalloc_conf": "background_thread:true",
+  "omp_threads": "12",
+  "stages": {
+    "baseline": [
+      {
+        "Pss": 121819,
+        "Private_Clean": 2936,
+        "Private_Dirty": 107036
+      },
+      {
+        "Pss": 119002,
+        "Private_Clean": 464,
+        "Private_Dirty": 107044
+      },
+      {
+        "Pss": 118853,
+        "Private_Clean": 40,
+        "Private_Dirty": 107072
+      },
+      {
+        "Pss": 119120,
+        "Private_Clean": 316,
+        "Private_Dirty": 107012
+      },
+      {
+        "Pss": 119129,
+        "Private_Clean": 104,
+        "Private_Dirty": 107096
+      },
+      {
+        "Pss": 119451,
+        "Private_Clean": 260,
+        "Private_Dirty": 107068
+      },
+      {
+        "Pss": 119407,
+        "Private_Clean": 676,
+        "Private_Dirty": 107052
+      },
+      {
+        "Pss": 118832,
+        "Private_Clean": 16,
+        "Private_Dirty": 106988
+      }
+    ],
+    "runtime": [
+      {
+        "Pss": 594428,
+        "Private_Clean": 3200,
+        "Private_Dirty": 539524
+      },
+      {
+        "Pss": 592001,
+        "Private_Clean": 884,
+        "Private_Dirty": 539556
+      },
+      {
+        "Pss": 591723,
+        "Private_Clean": 380,
+        "Private_Dirty": 539648
+      },
+      {
+        "Pss": 591359,
+        "Private_Clean": 328,
+        "Private_Dirty": 539528
+      },
+      {
+        "Pss": 597426,
+        "Private_Clean": 6512,
+        "Private_Dirty": 539620
+      },
+      {
+        "Pss": 592319,
+        "Private_Clean": 872,
+        "Private_Dirty": 539696
+      },
+      {
+        "Pss": 592118,
+        "Private_Clean": 960,
+        "Private_Dirty": 539656
+      },
+      {
+        "Pss": 591283,
+        "Private_Clean": 304,
+        "Private_Dirty": 539420
+      }
+    ],
+    "model_warm": [
+      {
+        "Pss": 849266,
+        "Private_Clean": 3208,
+        "Private_Dirty": 792976
+      },
+      {
+        "Pss": 851213,
+        "Private_Clean": 916,
+        "Private_Dirty": 797352
+      },
+      {
+        "Pss": 844150,
+        "Private_Clean": 396,
+        "Private_Dirty": 790672
+      },
+      {
+        "Pss": 848505,
+        "Private_Clean": 328,
+        "Private_Dirty": 795308
+      },
+      {
+        "Pss": 854645,
+        "Private_Clean": 7532,
+        "Private_Dirty": 794584
+      },
+      {
+        "Pss": 844396,
+        "Private_Clean": 884,
+        "Private_Dirty": 790400
+      },
+      {
+        "Pss": 845748,
+        "Private_Clean": 916,
+        "Private_Dirty": 791944
+      },
+      {
+        "Pss": 839030,
+        "Private_Clean": 304,
+        "Private_Dirty": 785804
+      }
+    ],
+    "model_released": [
+      {
+        "Pss": 849143,
+        "Private_Clean": 3204,
+        "Private_Dirty": 792976
+      },
+      {
+        "Pss": 851053,
+        "Private_Clean": 884,
+        "Private_Dirty": 797352
+      },
+      {
+        "Pss": 844034,
+        "Private_Clean": 384,
+        "Private_Dirty": 790672
+      },
+      {
+        "Pss": 848389,
+        "Private_Clean": 328,
+        "Private_Dirty": 795308
+      },
+      {
+        "Pss": 854497,
+        "Private_Clean": 7516,
+        "Private_Dirty": 794584
+      },
+      {
+        "Pss": 844280,
+        "Private_Clean": 868,
+        "Private_Dirty": 790400
+      },
+      {
+        "Pss": 845603,
+        "Private_Clean": 900,
+        "Private_Dirty": 791944
+      },
+      {
+        "Pss": 838914,
+        "Private_Clean": 304,
+        "Private_Dirty": 785804
+      }
+    ]
+  },
+  "image": "sha256:84b80c81426ebd36d7a1b9635d536c1ed8d05df4079e199f9924d3dbe4839c81"
+}

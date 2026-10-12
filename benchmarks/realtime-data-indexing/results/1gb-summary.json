@@ -1,0 +1,138 @@
+{
+  "dataset": "1gb",
+  "corpus_mb": 1000.0,
+  "documents": 240516,
+  "chunks": 604299,
+  "indexing_seconds": 293.6,
+  "throughput_mb_per_min": 204.35,
+  "peak_rss_mb": 11306.9,
+  "peak_pss_mb": 6980.8,
+  "peak_processes": [
+    {
+      "pid": 1,
+      "worker_rank": null,
+      "VmHWM": 989848,
+      "VmRSS": 989848,
+      "Pss": 627136,
+      "Private_Clean": 212,
+      "Private_Dirty": 583568
+    },
+    {
+      "pid": 144,
+      "worker_rank": null,
+      "VmHWM": 183220,
+      "VmRSS": 183220,
+      "Pss": 107278,
+      "Private_Clean": 84,
+      "Private_Dirty": 98528
+    },
+    {
+      "pid": 159,
+      "worker_rank": 0,
+      "VmHWM": 1479060,
+      "VmRSS": 1477968,
+      "Pss": 979990,
+      "Private_Clean": 1456,
+      "Private_Dirty": 915160
+    },
+    {
+      "pid": 160,
+      "worker_rank": 1,
+      "VmHWM": 1279256,
+      "VmRSS": 1278216,
+      "Pss": 777325,
+      "Private_Clean": 108,
+      "Private_Dirty": 714564
+    },
+    {
+      "pid": 161,
+      "worker_rank": 2,
+      "VmHWM": 1278908,
+      "VmRSS": 1277308,
+      "Pss": 778555,
+      "Private_Clean": 1452,
+      "Private_Dirty": 714220
+    },
+    {
+      "pid": 162,
+      "worker_rank": 3,
+      "VmHWM": 1272260,
+      "VmRSS": 1271864,
+      "Pss": 772901,
+      "Private_Clean": 1088,
+      "Private_Dirty": 708544
+    },
+    {
+      "pid": 163,
+      "worker_rank": 4,
+      "VmHWM": 1279164,
+      "VmRSS": 1278276,
+      "Pss": 778984,
+      "Private_Clean": 540,
+      "Private_Dirty": 715968
+    },
+    {
+      "pid": 164,
+      "worker_rank": 5,
+      "VmHWM": 1273708,
+      "VmRSS": 1273036,
+      "Pss": 773988,
+      "Private_Clean": 316,
+      "Private_Dirty": 710180
+    },
+    {
+      "pid": 165,
+      "worker_rank": 6,
+      "VmHWM": 1271656,
+      "VmRSS": 1271300,
+      "Pss": 772349,
+      "Private_Clean": 1056,
+      "Private_Dirty": 708356
+    },
+    {
+      "pid": 166,
+      "worker_rank": 7,
+      "VmHWM": 1277992,
+      "VmRSS": 1277204,
+      "Pss": 779792,
+      "Private_Clean": 740,
+      "Private_Dirty": 716088
+    }
+  ],
+  "peak_elapsed_s": 297.30629689991474,
+  "jemalloc_conf": "background_thread:true",
+  "omp_threads": 12,
+  "indexer_cpu_seconds": 3078.4,
+  "avg_parallelism": 10.5,
+  "vector_db_disk_mb": 1890.3,
+  "vector_db_mb_per_corpus_mb": 1.89,
+  "retrieval_accuracy": "18/20",
+  "embedder": "sentence-transformers/static-retrieval-mrl-en-v1 (local, 256 dims)",
+  "approx_text_pages": 524288,
+  "accuracy_misses": [
+    {
+      "expected": "0004/4000-Fat-tailed-distribution.txt",
+      "query": "Fat-tailed distribution: A fat-tailed distribution is a probability distribution that exhibits a large skewness or kurto",
+      "got": [
+        "0002/1834-Overdispersion.txt",
+        "0000/2592-Cumulative-distribution-function.txt",
+        "0019/3908-Von-Mises-Fisher-distribution.txt",
+        "0000/1640-Binomial-distribution.txt",
+        "0000/2592-Cumulative-distribution-function.txt"
+      ]
+    },
+    {
+      "expected": "0005/6000-Jamie-Mueller.txt",
+      "query": "Jamie Mueller: Jamie F.",
+      "got": [
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt"
+      ]
+    }
+  ],
+  "max_observed_chunks": 604598,
+  "chunk_count_metric": "Qdrant approximate count at completion; CSV chunks is the maximum observed count"
+}

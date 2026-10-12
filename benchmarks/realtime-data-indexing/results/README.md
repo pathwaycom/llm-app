@@ -11,6 +11,7 @@ Completed:
 | corpus | files | chunks | indexing time | peak PSS (GiB) | Qdrant disk (GiB) | retrieval |
 |---|---|---|---|---|---|---|
 | 100 MB | 12 969 | 53 651 | 44.0 s | 6.86 | 0.61 | 5/5 |
+| 1 GB | 240 516 | 604 299 | 293.6 s | 6.82 | 1.85 | 18/20 |
 
 The old 100 MB row reported 66,136 chunks, 39 s, 6.6 GB peak PSS and
 0.6 GB Qdrant storage. The file count is unchanged. The entire corpus was
@@ -31,3 +32,17 @@ window. `_mb` fields contain MiB. Input targets are nominally labeled:
 The publication will be regenerated only after all six sizes complete and
 the plotting script validates the summaries against their CSVs and process
 snapshots. Its final result notes will replace this progress page.
+
+Qdrant approximate counts can fall during segment optimization. CSV `chunks`
+records the completion detector's maximum observed count, and summary
+`max_observed_chunks` preserves it explicitly; summary `chunks` is the
+approximate count at completion. On 1 GB these are 604,598 and 604,299.
+These fields retain the existing benchmark methodology, and are not exact
+allocation or point-count audits.
+
+The local-embedder diagnostic (`embedder-calibration.json`) separately runs
+eight workers in the same image/environment, recording private and PSS
+before local embedding imports and after model warming. Private-page growth
+is about 5.24 GiB across eight workers. Its own graph has no live document
+processing, so attribution to a live indexing peak remains an estimate.
+Shared library PSS will be taken from the main 10 GB peak's mappings.

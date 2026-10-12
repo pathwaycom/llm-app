@@ -58,6 +58,35 @@ def duration(seconds):
     return f"{seconds / 3600:.1f} h"
 
 
+def embedder_breakdown(run, calibration):
+    def private_total(stage):
+        return sum(p['Private_Clean'] + p['Private_Dirty'] for p in calibration['stages'][stage]) / 1024
+    baseline = private_total('baseline')
+    worker_embedder_private = private_total('model_warm') - baseline
+    processes = run['summary']['peak_processes']
+    if not all('mapping_groups' in p for p in processes):
+        raise ValueError('10 GB peak must include embedding-library mapping measurements')
+    c = run['peak_components']
+    # Initialization and live batches have different buffer lifetimes. Never
+    # attribute more private memory than the measured worker footprint minus
+    # its independently measured pre-embedder baseline. Supervisor private
+    # pages remain in the residual; some may also be removable with a remote
+    # embedder, so this estimate does not subtract them speculatively.
+    embedding_private = min(worker_embedder_private, c['workers_private_mb'] - baseline)
+    embedding_shared = sum(max(0, p['mapping_groups']['embedding']['Pss'] -
+        p['mapping_groups']['embedding']['private_kb']) for p in processes) / 1024
+    metadata = c['connector_extra_mb_estimate']
+    remaining_private = c['workers_private_mb'] + c['supervisors_private_mb'] - embedding_private
+    other_shared = c['shared_pss_mb'] - embedding_shared
+    if min(embedding_private, remaining_private, other_shared) < -1:
+        raise ValueError('Embedder attribution is incompatible with measured peak pages')
+    return {'local_embedder_private_mb_estimate': embedding_private,
+            'local_embedder_shared_libraries_mb': embedding_shared,
+            'file_watch_mb_estimate': metadata,
+            'remaining_indexer_private_mb_estimate': remaining_private,
+            'other_shared_mb': max(0, other_shared)}
+
+
 def load(results):
     runs = []
     for size, label in SIZES:
@@ -67,8 +96,8 @@ def load(results):
         peak = max(s["pss_mb"] for s in samples)
         if abs(peak - summary["peak_pss_mb"]) > 0.11:
             raise ValueError(f"{size}: CSV peak does not match summary")
-        if int(samples[-1]["chunks"]) != summary["chunks"]:
-            raise ValueError(f"{size}: final CSV chunk count does not match summary")
+        if int(samples[-1]["chunks"]) != summary["max_observed_chunks"]:
+            raise ValueError(f"{size}: CSV high-water chunk count does not match summary")
         if summary["jemalloc_conf"] != "background_thread:true" or summary["omp_threads"] != 12:
             raise ValueError(f"{size}: different measured configuration")
         with gzip.open(results / f"{size}-processes.jsonl.gz", "rt") as fh:
@@ -103,6 +132,13 @@ def main():
     args = parser.parse_args()
     runs = load(args.results)  # Fail before touching published files if any run is missing.
     environment = json.loads((args.results / "run-environment.json").read_text())
+    ten = next(r for r in runs if r["size"] == "10gb")
+    calibration = json.loads((args.results / 'embedder-calibration.json').read_text())
+    if (calibration['image'] != environment['image'] or calibration['workers'] != 8
+            or calibration['jemalloc_conf'] != 'background_thread:true'
+            or calibration['omp_threads'] != '12'):
+        raise ValueError('Embedder diagnostic and indexing runs have different setups')
+    c = embedder_breakdown(ten, calibration)
     files = np.array([r["summary"]["documents"] for r in runs], dtype=float)
     extra = np.array([r["final_components"]["connector_extra_mb_estimate"] for r in runs])
     # Allow fixed connector overhead rather than attributing it to file count.
@@ -136,16 +172,22 @@ def main():
     fig.savefig(args.assets / "bench-memory.png", dpi=130)
     plt.close(fig)
 
-    ten = next(r for r in runs if r["size"] == "10gb")
-    c = ten["peak_components"]
+    derived['10gb_embedder_breakdown'] = c
+    derived['10gb_indexer_without_local_embedder_mb_estimate'] = (
+        ten['summary']['peak_pss_mb'] - c['local_embedder_private_mb_estimate'] - c['local_embedder_shared_libraries_mb'])
+    (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
     values = list(c.values())
-    labels = ["Worker private pages\n(embeddings + engine + buffers)",
-              "Rank-0 excess\n(file-watch estimate)", "Supervisor private pages", "Shared pages (PSS)"]
+    labels = ["Local embedder private memory\n(calibrated estimate)",
+              "Local embedder shared libraries\n(measured PSS)",
+              "File-watch memory\n(rank-0 excess estimate)",
+              "Remaining indexer private memory\n(engine + buffers + supervisors; estimate)",
+              "Other shared pages\n(measured PSS)"]
     labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
     fig, ax = plt.subplots(figsize=(11, 6))
-    ax.pie(values, labels=labels, autopct="%1.0f%%", colors=["#5145ef", "#10a34a", "#cbd5e1", "#a5b4fc"],
+    ax.pie(values, labels=labels, autopct="%1.0f%%", colors=["#5145ef", "#a5b4fc", "#10a34a", "#64748b", "#cbd5e1"],
            wedgeprops={"edgecolor": "white"})
-    ax.set_title(f"10 GB corpus: breakdown at measured peak ({ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS)")
+    ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS\n"
+                 f"Estimated indexer without local embedder: {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB")
     fig.tight_layout()
     fig.savefig(args.assets / "bench-memory-breakdown.png", dpi=130)
     plt.close(fig)
@@ -166,6 +208,11 @@ Input labels retain the published nominal sizes: 1 GB means a target of
 CSV columns ending in `_mb` contain MiB. Pages use 2,000 bytes per page.
 Peaks are the maximum sampled total PSS, not kernel high-water marks.
 Sampling continues through the existing completion window.
+The chunk-count methodology is unchanged: the summary uses Qdrant's
+approximate count at completion, while CSV `chunks` retains the maximum
+observed count used by the completion detector. Segment optimization can
+reduce approximate counts, so these two fields need not be identical;
+`max_observed_chunks` records the CSV's value in the summary explicitly.
 
 `*-memory.csv` and `*-processes.jsonl.gz` record aggregate and per-process
 measurements at the same times; `*-summary.json` includes the process snapshot
@@ -176,9 +223,20 @@ over the median of the seven other workers at the final sample. It includes
 any other unequal worker allocations; it is not an allocation-level measurement.
 The line is a least-squares fit with an intercept (~{slope:.0f} bytes per file;
 fixed overhead estimate {intercept / 1024**2:.1f} MiB).
-The pie splits peak PSS into worker private pages, estimated rank-0 excess,
-supervisor private pages and shared PSS. Worker pages include the engine,
-embedding runtime and buffers; `/proc` cannot attribute them separately.
+The pie attributes local-embedding private memory using an eight-process
+controlled diagnostic in the same image: graph imports before the embedder,
+runtime imported, model loaded and warmed on three 2,048-text batches, then
+model released. `embedder-calibration.json` records all stages. The private
+increment after warming estimates the local stack's private cost across eight
+workers. This is capped at the observed non-file-watch worker private memory
+minus the calibrated pre-embedder baseline, since live and diagnostic buffers
+have different lifetimes. Supervisor private pages are left in the residual;
+any embedding allocations there are not subtracted speculatively.
+Shared embedding-library PSS comes directly from mapping samples
+at the 10 GB peak, with other shared pages separated. Anonymous attribution
+and the indexer-without-local-embedder figure are estimates, not an actual
+external-service benchmark; client overhead and changes in working buffers
+are not measured. The embedding service's own memory is outside that figure.
 Derived values are saved in `derived.json`.
 
 Regenerate with `python plot_results.py --update-readme`.
@@ -219,9 +277,9 @@ Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS
 <p align="center"><em>All curves and table values come from the same runs with allocator background purging enabled. File-watch memory is estimated from rank-0 private-memory excess over the median of the other workers.</em></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS peak: worker private pages, estimated file-watch excess, supervisor private pages and shared PSS." width="85%">
+  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS peak: estimated local-embedder private memory, measured shared embedding libraries, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
 </p>
-<p align="center"><em>Process measurements at the actual 10 GB peak. Worker private pages include embeddings, engine and buffers; the file-watch share is an estimate. Shared pages are counted once through PSS.</em></p>
+<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder private memory is estimated from a separate eight-process initialization diagnostic; shared library PSS is measured from mappings. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
 
 Setup: {environment['logical_cpus']}-logical-CPU host (see the saved CPU model),
 streaming mode, 8 worker processes with 12 OpenMP threads each,

@@ -66,6 +66,17 @@ def main():
         if summary["chunks"] < summary["documents"]:
             raise RuntimeError(f"Incomplete indexing: {size}")
         print(f"Finished {size}: {summary['chunks']} chunks, {summary['peak_pss_mb']} MiB PSS", flush=True)
+    print("Measuring local embedder initialization separately from indexing", flush=True)
+    diagnostic = subprocess.run(
+        ["docker", "compose", "run", "--rm", "--no-deps", "-T", "-v",
+         f"{ROOT / 'measure_embedder.py'}:/bench/measure_embedder.py:ro",
+         "indexer", "python", "/bench/measure_embedder.py"],
+        cwd=ROOT, capture_output=True, text=True, check=True)
+    calibration = json.loads(diagnostic.stdout)
+    calibration["image"] = metadata["image"]
+    (results / "embedder-calibration.json").write_text(json.dumps(calibration, indent=2) + "\n")
+    with gzip.open(results / "embedder-calibration.txt.gz", "wt") as fh:
+        fh.write(diagnostic.stderr)
     subprocess.run([sys.executable, str(ROOT / "plot_results.py"), "--update-readme"], check=True)
     print("All six sizes measured; README and figures regenerated.", flush=True)
 
