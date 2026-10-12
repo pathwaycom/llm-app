@@ -116,7 +116,7 @@ def load(results):
 
 
 def table(runs):
-    lines = ["| corpus | ≈ pages | files | chunks | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |",
+    lines = ["| corpus target | ≈ pages | files | chunks | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |",
              "|---|---|---|---|---|---|---|"]
     for run in runs:
         s = run["summary"]
@@ -264,7 +264,7 @@ and requires all six sizes before updating the publication.
     if args.update_readme:
         readme = REPO / "README.md"
         text = readme.read_text()
-        start = text.index("| corpus |", text.index("### Indexing resources"))
+        start = text.index("| corpus", text.index("### Indexing resources"))
         end = text.index("### Retrieval accuracy", start)
         versions = environment["versions"]
         replacement = f"""{published_table}
