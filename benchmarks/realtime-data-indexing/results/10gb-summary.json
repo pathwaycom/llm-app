@@ -1,0 +1,250 @@
+{
+  "dataset": "10gb",
+  "corpus_mb": 10000.0,
+  "documents": 3423359,
+  "chunks": 6761214,
+  "max_observed_chunks": 6788200,
+  "chunk_count_metric": "Qdrant approximate count at completion; CSV chunks is the maximum observed count",
+  "indexing_seconds": 3620.7,
+  "throughput_mb_per_min": 165.71,
+  "peak_rss_mb": 12627.0,
+  "peak_pss_mb": 8358.6,
+  "peak_processes": [
+    {
+      "pid": 1,
+      "worker_rank": null,
+      "VmHWM": 991480,
+      "VmRSS": 991480,
+      "Pss": 627866,
+      "Private_Clean": 300,
+      "Private_Dirty": 584176,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 50606,
+          "private_kb": 19868
+        },
+        "other": {
+          "Pss": 576747,
+          "private_kb": 564608
+        }
+      }
+    },
+    {
+      "pid": 131,
+      "worker_rank": null,
+      "VmHWM": 183284,
+      "VmRSS": 183284,
+      "Pss": 107115,
+      "Private_Clean": 24,
+      "Private_Dirty": 98496,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 0,
+          "private_kb": 0
+        },
+        "other": {
+          "Pss": 106905,
+          "private_kb": 98520
+        }
+      }
+    },
+    {
+      "pid": 159,
+      "worker_rank": 0,
+      "VmHWM": 2537796,
+      "VmRSS": 2535608,
+      "Pss": 2038745,
+      "Private_Clean": 844,
+      "Private_Dirty": 1974920,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64792,
+          "private_kb": 19900
+        },
+        "other": {
+          "Pss": 1973441,
+          "private_kb": 1955864
+        }
+      }
+    },
+    {
+      "pid": 160,
+      "worker_rank": 1,
+      "VmHWM": 1313820,
+      "VmRSS": 1311024,
+      "Pss": 825942,
+      "Private_Clean": 992,
+      "Private_Dirty": 763860,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64335,
+          "private_kb": 20536
+        },
+        "other": {
+          "Pss": 761095,
+          "private_kb": 744316
+        }
+      }
+    },
+    {
+      "pid": 161,
+      "worker_rank": 2,
+      "VmHWM": 1320756,
+      "VmRSS": 1317052,
+      "Pss": 834678,
+      "Private_Clean": 7104,
+      "Private_Dirty": 766412,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 69382,
+          "private_kb": 26580
+        },
+        "other": {
+          "Pss": 764782,
+          "private_kb": 746936
+        }
+      }
+    },
+    {
+      "pid": 162,
+      "worker_rank": 3,
+      "VmHWM": 1331092,
+      "VmRSS": 1328404,
+      "Pss": 828667,
+      "Private_Clean": 1108,
+      "Private_Dirty": 764368,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 65118,
+          "private_kb": 20144
+        },
+        "other": {
+          "Pss": 763033,
+          "private_kb": 745332
+        }
+      }
+    },
+    {
+      "pid": 163,
+      "worker_rank": 4,
+      "VmHWM": 1329896,
+      "VmRSS": 1323816,
+      "Pss": 826374,
+      "Private_Clean": 744,
+      "Private_Dirty": 761748,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 65322,
+          "private_kb": 19896
+        },
+        "other": {
+          "Pss": 760540,
+          "private_kb": 742596
+        }
+      }
+    },
+    {
+      "pid": 164,
+      "worker_rank": 5,
+      "VmHWM": 1326200,
+      "VmRSS": 1322140,
+      "Pss": 824952,
+      "Private_Clean": 496,
+      "Private_Dirty": 761512,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 65575,
+          "private_kb": 20044
+        },
+        "other": {
+          "Pss": 758868,
+          "private_kb": 741964
+        }
+      }
+    },
+    {
+      "pid": 165,
+      "worker_rank": 6,
+      "VmHWM": 1314068,
+      "VmRSS": 1311012,
+      "Pss": 822568,
+      "Private_Clean": 52,
+      "Private_Dirty": 761316,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 63213,
+          "private_kb": 19844
+        },
+        "other": {
+          "Pss": 758846,
+          "private_kb": 741524
+        }
+      }
+    },
+    {
+      "pid": 166,
+      "worker_rank": 7,
+      "VmHWM": 1311492,
+      "VmRSS": 1306240,
+      "Pss": 822334,
+      "Private_Clean": 512,
+      "Private_Dirty": 759796,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 63997,
+          "private_kb": 19920
+        },
+        "other": {
+          "Pss": 757831,
+          "private_kb": 740388
+        }
+      }
+    }
+  ],
+  "peak_elapsed_s": 3704.339952558279,
+  "jemalloc_conf": "background_thread:true",
+  "omp_threads": 12,
+  "indexer_cpu_seconds": 33262.7,
+  "avg_parallelism": 9.2,
+  "vector_db_disk_mb": 16455.5,
+  "qdrant_image_id": "sha256:0ad2e23181e5646b286253c04cea23f07040ca313cc377d9fa7b21db184b6406",
+  "vector_db_mb_per_corpus_mb": 1.65,
+  "retrieval_accuracy": "17/20",
+  "embedder": "sentence-transformers/static-retrieval-mrl-en-v1 (local, 256 dims)",
+  "approx_text_pages": 5242884,
+  "accuracy_misses": [
+    {
+      "expected": "0000/6000-Tom-Tango.txt",
+      "query": "Tom Tango: Tom Tango and \"TangoTiger\" are aliases used online by a baseball sabermetrics and ice hockey statistics analy",
+      "got": [
+        "0240/2077-Tango-disambiguation.txt",
+        "0240/2077-Tango-disambiguation.txt",
+        "0295/8960-Histoire-du-Tango.txt",
+        "0150/4615-In-tango.txt",
+        "0001/0504-List-of-public-domain-tangos.txt"
+      ]
+    },
+    {
+      "expected": "0003/6000-Black-capped-fruit-bat.txt",
+      "query": "Black-capped fruit bat: The black-capped fruit bat (Chironax melanocephalus) is a species of megabat in the monotypic ge",
+      "got": [
+        "0033/2843-Black-winged-little-yellow-bat.txt",
+        "0083/8702-Wrinkle-faced-bat.txt",
+        "0046/2629-Antillean-fruit-eating-bat.txt",
+        "0100/5548-List-of-bats.txt",
+        "0083/8676-Honduran-fruit-eating-bat.txt"
+      ]
+    },
+    {
+      "expected": "0005/6000-Jamie-Mueller.txt",
+      "query": "Jamie Mueller: Jamie F.",
+      "got": [
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0062/3994-Jamie-Marsh.txt"
+      ]
+    }
+  ]
+}
