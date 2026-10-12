@@ -183,10 +183,10 @@ def main():
     (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
     values = list(c.values())
     labels = ["Local embedder: private memory\n(calibrated estimate)",
-              "Local embedder: shared libraries\n(measured PSS)",
+              "Local embedder: shared libraries\n(mapping/calibration estimate)",
               "File-watch memory\n(rank-0 excess estimate)",
               "Indexer: engine, buffers, supervisors\n(private memory; estimate)",
-              "Other shared pages\n(measured PSS)"]
+              "Other shared pages\n(PSS residual)"]
     labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
     fig, ax = plt.subplots(figsize=(11.5, 6.5))
     wedges, _, _ = ax.pie(values, autopct=lambda p: f'{p:.0f}%' if p >= 6 else '',
@@ -253,8 +253,10 @@ workers. This is capped at the observed non-file-watch worker private memory
 minus the calibrated pre-embedder baseline, since live and diagnostic buffers
 have different lifetimes. Supervisor private pages are left in the residual;
 any embedding allocations there are not subtracted speculatively.
-Shared embedding-library PSS comes directly from mapping samples
-at the 10 GB peak, with other shared pages separated. Anonymous attribution
+Shared embedding-library PSS starts from mapping samples at the 10 GB peak
+and is capped by the diagnostic's shared-library increment, so libraries
+already needed by the parser are retained in the residual. Other shared
+pages are separated. Anonymous attribution
 and the indexer-without-local-embedder figure are estimates, not an actual
 external-service benchmark; client overhead and changes in working buffers
 are not measured. The embedding service's own memory is outside that figure.
@@ -298,9 +300,9 @@ Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS
 <p align="center"><em>All curves and table values come from the same runs with allocator background purging enabled. File-watch memory is estimated from rank-0 private-memory excess over the median of the other workers.</em></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS peak: estimated local-embedder private memory, measured shared embedding libraries, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
+  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
 </p>
-<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder private memory is estimated from a separate eight-process initialization diagnostic; shared library PSS is measured from mappings. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
+<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
 
 Setup: {environment['logical_cpus']}-logical-CPU host (see the saved CPU model),
 streaming mode, 8 worker processes with 12 OpenMP threads each,
