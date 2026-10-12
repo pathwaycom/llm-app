@@ -91,9 +91,9 @@ def embedder_breakdown(run, calibration):
             'other_shared_mb': max(0, other_shared)}
 
 
-def load(results):
+def load(results, sizes=SIZES):
     runs = []
-    for size, label in SIZES:
+    for size, label in sizes:
         summary = json.loads((results / f"{size}-summary.json").read_text())
         with (results / f"{size}-memory.csv").open() as fh:
             samples = [{k: float(v) for k, v in row.items()} for row in csv.DictReader(fh)]
@@ -128,20 +128,74 @@ def table(runs):
     return "\n".join(lines)
 
 
+def load_calibration(results, environment):
+    calibration = json.loads((results / 'embedder-calibration.json').read_text())
+    if (calibration['image'] != environment['image'] or calibration['workers'] != 8
+            or calibration['jemalloc_conf'] != 'background_thread:true'
+            or calibration['omp_threads'] != '12' or 'baseline_includes' not in calibration):
+        raise ValueError('Embedder diagnostic and indexing runs have different setups')
+    return calibration
+
+
+def draw_breakdown(ten, c, remaining_mb, output_path):
+    values = list(c.values())
+    labels = ["Local embedder: private memory\n(calibrated estimate)",
+              "Local embedder: shared libraries\n(mapping/calibration estimate)",
+              "File-watch memory\n(rank-0 excess estimate)",
+              "Indexer: engine, buffers, supervisors\n(private memory; estimate)",
+              "Other shared pages\n(PSS residual)"]
+    labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
+    fig, ax = plt.subplots(figsize=(11.5, 6.5))
+    wedges, _, _ = ax.pie(values, autopct=lambda p: f'{p:.0f}%' if p >= 6 else '',
+           startangle=90, colors=["#5145ef", "#a5b4fc", "#10a34a", "#64748b", "#cbd5e1"],
+           wedgeprops={"edgecolor": "white"})
+    # Space callouts independently of tiny wedge angles, so shared-page and
+    # metadata labels remain readable without overlapping.
+    anchors = [(np.cos(np.deg2rad((w.theta1 + w.theta2) / 2)),
+                np.sin(np.deg2rad((w.theta1 + w.theta2) / 2))) for w in wedges]
+    for side in [-1, 1]:
+        indexes = sorted([i for i, (x, y) in enumerate(anchors) if (1 if x >= 0 else -1) == side],
+                         key=lambda i: anchors[i][1])
+        positions = np.linspace(-1.0, 1.0, len(indexes)) if len(indexes) > 1 else [0]
+        for index, y in zip(indexes, positions):
+            ax.annotate(labels[index], xy=anchors[index], xytext=(side * 1.4, y),
+                        ha='left' if side > 0 else 'right', va='center', fontsize=12,
+                        arrowprops={'arrowstyle': '-', 'color': '#64748b',
+                                    'connectionstyle': 'angle3,angleA=0,angleB=90'})
+    ax.set_xlim(-1.85, 1.85)
+    ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS\n"
+                 f"Estimated indexer without local embedder: {remaining_mb / 1024:.1f} GiB")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=130)
+    plt.close(fig)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results", type=Path, default=ROOT / "results")
     parser.add_argument("--assets", type=Path, default=REPO / "docs/assets")
     parser.add_argument("--update-readme", action="store_true")
+    parser.add_argument('--breakdown-only', action='store_true',
+                        help='Render the completed 10 GB run into results/ without updating the publication')
     args = parser.parse_args()
+    if args.breakdown_only:
+        if args.update_readme:
+            parser.error('--breakdown-only cannot update the published README')
+        ten = load(args.results, [('10gb', '10 GB')])[0]
+        environment = json.loads((args.results / 'run-environment.json').read_text())
+        calibration = load_calibration(args.results, environment)
+        c = embedder_breakdown(ten, calibration)
+        remaining = (ten['summary']['peak_pss_mb'] - c['local_embedder_private_mb_estimate']
+                     - c['local_embedder_shared_libraries_mb'])
+        draw_breakdown(ten, c, remaining, args.results / '10gb-memory-breakdown.png')
+        report = {'components_mb': c, 'indexer_without_local_embedder_mb_estimate': remaining}
+        (args.results / '10gb-breakdown.json').write_text(json.dumps(report, indent=2) + '\n')
+        print(json.dumps(report, indent=2))
+        return
     runs = load(args.results)  # Fail before touching published files if any run is missing.
     environment = json.loads((args.results / "run-environment.json").read_text())
     ten = next(r for r in runs if r["size"] == "10gb")
-    calibration = json.loads((args.results / 'embedder-calibration.json').read_text())
-    if (calibration['image'] != environment['image'] or calibration['workers'] != 8
-            or calibration['jemalloc_conf'] != 'background_thread:true'
-            or calibration['omp_threads'] != '12' or 'baseline_includes' not in calibration):
-        raise ValueError('Embedder diagnostic and indexing runs have different setups')
+    calibration = load_calibration(args.results, environment)
     c = embedder_breakdown(ten, calibration)
     files = np.array([r["summary"]["documents"] for r in runs], dtype=float)
     extra = np.array([r["final_components"]["connector_extra_mb_estimate"] for r in runs])
@@ -181,36 +235,8 @@ def main():
     derived['10gb_indexer_without_local_embedder_mb_estimate'] = (
         ten['summary']['peak_pss_mb'] - c['local_embedder_private_mb_estimate'] - c['local_embedder_shared_libraries_mb'])
     (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
-    values = list(c.values())
-    labels = ["Local embedder: private memory\n(calibrated estimate)",
-              "Local embedder: shared libraries\n(mapping/calibration estimate)",
-              "File-watch memory\n(rank-0 excess estimate)",
-              "Indexer: engine, buffers, supervisors\n(private memory; estimate)",
-              "Other shared pages\n(PSS residual)"]
-    labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
-    fig, ax = plt.subplots(figsize=(11.5, 6.5))
-    wedges, _, _ = ax.pie(values, autopct=lambda p: f'{p:.0f}%' if p >= 6 else '',
-           startangle=90, colors=["#5145ef", "#a5b4fc", "#10a34a", "#64748b", "#cbd5e1"],
-           wedgeprops={"edgecolor": "white"})
-    # Space callouts independently of tiny wedge angles, so shared-page and
-    # metadata labels remain readable without overlapping.
-    anchors = [(np.cos(np.deg2rad((w.theta1 + w.theta2) / 2)),
-                np.sin(np.deg2rad((w.theta1 + w.theta2) / 2))) for w in wedges]
-    for side in [-1, 1]:
-        indexes = sorted([i for i, (x, y) in enumerate(anchors) if (1 if x >= 0 else -1) == side],
-                         key=lambda i: anchors[i][1])
-        positions = np.linspace(-1.0, 1.0, len(indexes)) if len(indexes) > 1 else [0]
-        for index, y in zip(indexes, positions):
-            ax.annotate(labels[index], xy=anchors[index], xytext=(side * 1.4, y),
-                        ha='left' if side > 0 else 'right', va='center', fontsize=12,
-                        arrowprops={'arrowstyle': '-', 'color': '#64748b',
-                                    'connectionstyle': 'angle3,angleA=0,angleB=90'})
-    ax.set_xlim(-1.85, 1.85)
-    ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS\n"
-                 f"Estimated indexer without local embedder: {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB")
-    fig.tight_layout()
-    fig.savefig(args.assets / "bench-memory-breakdown.png", dpi=130)
-    plt.close(fig)
+    draw_breakdown(ten, c, derived['10gb_indexer_without_local_embedder_mb_estimate'],
+                   args.assets / 'bench-memory-breakdown.png')
 
     published_table = table(runs)
     (args.results / "table.md").write_text(published_table + "\n")
