@@ -19,5 +19,6 @@
     "BENCH_JEMALLOC_CONF": "background_thread:true",
     "BENCH_OMP_THREADS": "12",
     "COMPOSE_PROJECT_NAME": "serviette-consistency-bench"
-  }
+  },
+  "qdrant_image": "sha256:0ad2e23181e5646b286253c04cea23f07040ca313cc377d9fa7b21db184b6406"
 }

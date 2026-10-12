@@ -52,7 +52,8 @@ for proc in Path('/proc').iterdir():
             if parts and '-' in parts[0] and ':' not in parts[0]:
                 path = parts[-1] if len(parts) >= 6 else ''
                 group = 'embedding' if any(part in path for part in
-                    ('/torch/', '/nvidia/', '/triton/', '/sentence_transformers/', '/tokenizers/', '/safetensors/')) else 'other'
+                    ('/torch/', '/nvidia/', '/triton/', '/sentence_transformers/', '/tokenizers/', '/safetensors/',
+                     '/models--sentence-transformers--static-retrieval-mrl-en-v1/')) else 'other'
             elif line.startswith('Pss:'):
                 groups[group]['Pss'] += int(parts[1])
             elif line.startswith(('Private_Clean:', 'Private_Dirty:')):
