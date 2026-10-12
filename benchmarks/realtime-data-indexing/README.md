@@ -4,10 +4,9 @@ Measures the two claims that matter for the serviette indexer:
 
 1. **Indexing speed** — wall-clock time to index a document collection end to
    end (parse → chunk → embed → write to the vector DB).
-2. **Flat memory** — the indexer's memory consumption does **not** grow with
-   the size of the input collection (`only_metadata` sources keep paths, not
-   bytes, in the pipeline). The output is a memory-over-time plot and the
-   physical peak memory (PSS: shared pages counted once, not per process).
+2. **Memory scaling** — document bytes flow through the pipeline, while
+   file-watch metadata grows with the number of files. The output is a
+   memory-over-time plot and sampled peak PSS (shared pages counted once).
 
 Everything runs locally and costs nothing: embeddings are computed by a local
 sentence-transformers model (`static-retrieval-mrl-en-v1`,
@@ -21,16 +20,18 @@ Three containers via docker-compose:
   incrementally on upsert (fast indexing), it is designed for concurrent
   search-while-writing, and the Pathway sink keys points internally (no user
   primary key), so writes parallelize across Pathway workers.
-- **indexer** — `serviette indexer` over the dataset (static mode: the run ends
-  when the collection is fully indexed, so wall-clock = indexing time).
+- **indexer** — `serviette indexer` in streaming mode. Completion uses the
+  existing chunk-count and CPU-idleness checks in `run_bench.py`; indexing
+  time is the time of the last observed chunk-count increase.
 - **server** — `serviette server`; used after indexing to replay the accuracy
   questions through `/api/v1/retrieve`.
 
-Memory is sampled from `/proc/1/status` inside the indexer container every
-few seconds: `VmRSS` and `Pss` for the time series (PSS divides pages shared
-between workers — e.g. the PyTorch libraries — proportionally, so its sum is
-the honest physical footprint), `VmHWM` (kernel-tracked high-water
-mark) for the exact peak — no sampling artifacts.
+Memory is sampled every three seconds across the indexer container's
+processes: RSS from `/proc/<pid>/status`, PSS and private-page counts from
+`/proc/<pid>/smaps_rollup`. Peak PSS is the maximum sampled sum. Shared pages
+are counted once through PSS. Summed `VmHWM` is retained in CSV as an upper
+bound on RSS, since different processes can peak at different times.
+Per-process samples include the Pathway worker rank, excluding the sampler.
 
 ## Dataset
 
@@ -48,13 +49,35 @@ themselves never touch the network.
 
 ```bash
 python prepare_dataset.py --size-mb 100     # also: 1000, 3000, 10000
-python run_bench.py --size 100mb
+BENCH_JEMALLOC_CONF=background_thread:true python run_bench.py --size 100mb
 ```
 
 Outputs land in `results/`: `<size>-memory.png` (memory over time),
 `<size>-memory.csv`, `<size>-summary.json` (duration, MB/min, chunk count,
-peak RSS/PSS, retrieval accuracy).
+peak RSS/PSS, retrieval accuracy). Each run also saves per-process samples,
+the process snapshot at peak PSS, a redacted resolved compose configuration,
+and compressed indexer logs.
 
-To make the flat-memory point, run the same benchmark at increasing sizes
-(100mb → 1gb → 3gb → 10gb) and compare `peak_rss_mb` across summaries: the
-corpus grows 100×, the peak stays in the same band.
+To regenerate the entire publication from a single series of runs:
+
+```bash
+export BENCH_DATA_ROOT=/path/on/a/large/disk/serviette-bench-datasets
+export BENCH_JEMALLOC_CONF=background_thread:true
+export BENCH_OMP_THREADS=12
+export COMPOSE_PROJECT_NAME=serviette-consistency-bench
+# PATHWAY_LICENSE_KEY must already be set. Build once for the full series.
+docker compose build
+python rerun_all.py
+```
+
+This runs 100mb → 1gb → 3gb → 10gb → 30gb → 50gb sequentially and then
+calls `plot_results.py --update-readme`. Run it under nohup or tmux for the
+multi-hour sizes. Datasets remain on the chosen disk after completion;
+remove only this run's datasets when they are no longer needed.
+
+`plot_results.py` reads all six CSVs and summaries, validates their agreement,
+and generates both README images and the table. It also saves `derived.json`
+with the fitted file-watch estimate and peak-memory ratio. The pie uses
+measured private/shared pages; file-watch attribution is explicitly labeled
+as an estimate from rank-0 excess, not a separate allocation measurement.
+See `results/README.md` for the recorded setup and attribution formula.

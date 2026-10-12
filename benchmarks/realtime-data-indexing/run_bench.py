@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Run the real-time indexing benchmark and produce the memory report.
 
-Flow: start Qdrant → start the serviette indexer (static run over the dataset)
-and the serviette server → sample the indexer's memory (VmRSS + kernel-tracked
-peak VmHWM from /proc/1/status inside the container) every few seconds until
-it finishes → replay the accuracy questions through the server's /api/v1
+Flow: start Qdrant → start the streaming serviette indexer
+and server → sample total RSS/PSS and per-process memory every few seconds
+until indexing is complete → replay accuracy questions through /api/v1
 retrieve endpoint → write a memory-over-time plot, a CSV, and a JSON summary
 into ./results.
 
@@ -15,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import subprocess
 import time
@@ -23,6 +23,30 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).parent
+
+# Observe the same processes as the aggregate sampler, with worker ranks so
+# chart components can be traced to measurements. Never record full environs
+# or command lines: they may contain credentials.
+PROC_SAMPLE = r'''
+import json, os
+from pathlib import Path
+rows = []
+for proc in Path('/proc').iterdir():
+    if not proc.name.isdigit() or int(proc.name) == os.getpid():
+        continue
+    try:
+        env = dict(item.split(b'=', 1) for item in (proc / 'environ').read_bytes().split(b'\0') if b'=' in item)
+        row = {'pid': int(proc.name), 'worker_rank': int(env[b'PATHWAY_PROCESS_ID']) if b'PATHWAY_PROCESS_ID' in env else None}
+        for filename in ('status', 'smaps_rollup'):
+            for line in (proc / filename).read_text().splitlines():
+                if line.startswith(('VmRSS:', 'VmHWM:', 'Pss:', 'Private_Clean:', 'Private_Dirty:')):
+                    key, value = line.split(':', 1)
+                    row[key] = int(value.split()[0])
+        rows.append(row)
+    except (OSError, ValueError):
+        continue
+print(json.dumps(rows))
+'''
 SAMPLE_INTERVAL = 3.0
 # Streaming never exits; indexing is "done" when BOTH hold for this long:
 # the chunk counter stopped growing AND the indexer's CPU dropped to idle.
@@ -59,7 +83,7 @@ def _container_id(size: str, service: str) -> str:
     return out
 
 
-def _proc_status(container: str) -> dict[str, int] | None:
+def _proc_status(container: str) -> dict | None:
     """VmRSS/VmHWM (kB) summed over ALL processes in the container.
 
     With ``indexer.workers`` > 1 the container holds the spawn parent plus N
@@ -70,8 +94,7 @@ def _proc_status(container: str) -> dict[str, int] | None:
     """
 
     proc = subprocess.run(
-        ["docker", "exec", container, "sh", "-c",
-         "cat /proc/[0-9]*/status /proc/[0-9]*/smaps_rollup 2>/dev/null"],
+        ["docker", "exec", container, "python", "-c", PROC_SAMPLE],
         capture_output=True,
         text=True,
     )
@@ -81,10 +104,11 @@ def _proc_status(container: str) -> dict[str, int] | None:
     # worker) proportionally, so its sum is the honest physical footprint;
     # the VmRSS sum counts each shared page once per process.
     values = {"VmRSS": 0, "VmHWM": 0, "Pss": 0}
-    for line in proc.stdout.splitlines():
-        if line.startswith(("VmRSS:", "VmHWM:", "Pss:")):
-            key, rest = line.split(":", 1)
-            values[key] += int(rest.strip().split()[0])
+    rows = json.loads(proc.stdout)
+    for row in rows:
+        for key in values:
+            values[key] += row.get(key, 0)
+    values["processes"] = rows
     return values
 
 
@@ -207,6 +231,16 @@ def main() -> None:
     questions = json.loads((dataset / "questions.json").read_text())
     results_dir = ROOT / "results"
     results_dir.mkdir(exist_ok=True)
+    # Save the resolved setup without the license secret.
+    compose_config = _compose("config", "--format", "json", size=args.size, capture=True)
+    if compose_config.returncode:
+        raise SystemExit(compose_config.stderr)
+    resolved = json.loads(compose_config.stdout)
+    for service in resolved["services"].values():
+        env = service.get("environment", {})
+        if "PATHWAY_LICENSE_KEY" in env:
+            env["PATHWAY_LICENSE_KEY"] = "<redacted>"
+    (results_dir / f"{args.size}-compose.json").write_text(json.dumps(resolved, indent=2))
 
     import os
 
@@ -266,6 +300,10 @@ def main() -> None:
     # The CSV is appended live, so an interrupted run keeps its memory curve.
     csv_path = results_dir / f"{args.size}-memory.csv"
     csv_path.write_text("elapsed_s,rss_mb,hwm_mb,pss_mb,chunks\n")
+    process_path = results_dir / f"{args.size}-processes.jsonl.gz"
+    peak_processes = []
+    peak_pss_kb = -1
+    process_log = gzip.open(process_path, "wt")
 
     samples: list[tuple[float, int, int, int, int]] = []  # (s, rss, hwm, pss, chunks)
     last_count = 0
@@ -299,6 +337,11 @@ def main() -> None:
             last_count,
         )
         samples.append(sample)
+        process_log.write(json.dumps({"elapsed_s": elapsed, "processes": status["processes"]}) + "\n")
+        process_log.flush()
+        if sample[3] > peak_pss_kb:
+            peak_pss_kb = sample[3]
+            peak_processes = status["processes"]
         with csv_path.open("a") as fh:
             fh.write(
                 f"{sample[0]:.1f},{sample[1] / 1024:.1f},{sample[2] / 1024:.1f},"
@@ -321,6 +364,7 @@ def main() -> None:
             break
         time.sleep(SAMPLE_INTERVAL)
     print()
+    process_log.close()
     duration = last_change - started
 
     # Vector-DB footprint: on-disk storage inside the qdrant container.
@@ -352,6 +396,10 @@ def main() -> None:
         "peak_rss_mb": round(peak_mb, 1),
         # Honest physical peak: shared pages divided among processes.
         "peak_pss_mb": round(peak_pss_mb, 1),
+        "peak_processes": peak_processes,
+        "peak_elapsed_s": max(samples, key=lambda s: s[3])[0],
+        "jemalloc_conf": os.environ.get("BENCH_JEMALLOC_CONF", ""),
+        "omp_threads": int(os.environ.get("BENCH_OMP_THREADS", "12")),
         "indexer_cpu_seconds": round(cpu_seconds, 1) if cpu_seconds else None,
         "avg_parallelism": round(cpu_seconds / duration, 1) if cpu_seconds else None,
         "vector_db_disk_mb": round(db_bytes / 1024 / 1024, 1) if db_bytes else None,
@@ -374,8 +422,8 @@ def main() -> None:
 
     fig, ax = plt.subplots(figsize=(9, 4.5))
     minutes = [s[0] / 60 for s in samples]
-    ax.plot(minutes, [s[1] / 1024 for s in samples], label="indexer RSS", linewidth=1.8)
-    ax.axhline(peak_mb, linestyle="--", linewidth=1, alpha=0.6, label=f"peak {peak_mb:.0f} MB")
+    ax.plot(minutes, [s[3] / 1024 for s in samples], label="indexer PSS", linewidth=1.8)
+    ax.axhline(peak_pss_mb, linestyle="--", linewidth=1, alpha=0.6, label=f"peak {peak_pss_mb:.0f} MB")
     ax.set_xlabel("minutes since start")
     ax.set_ylabel("memory, MB")
     ax.set_ylim(bottom=0)
@@ -394,6 +442,11 @@ def main() -> None:
 
     print(json.dumps(summary, indent=2))
     print(f"plot: {plot_path}\ncsv:  {csv_path}")
+
+    logs = _compose("logs", "--no-color", "indexer", size=args.size, capture=True)
+    with gzip.open(results_dir / f"{args.size}-indexer.txt.gz", "wt") as fh:
+        fh.write(logs.stdout)
+        fh.write(logs.stderr)
 
     if not args.keep_up:
         _compose("down", "-v", size=args.size)
