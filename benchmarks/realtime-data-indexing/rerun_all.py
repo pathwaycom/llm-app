@@ -7,10 +7,10 @@ import fcntl
 import gzip
 import json
 import os
-from pathlib import Path
 import platform
 import subprocess
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SIZES = [("100mb", 100), ("1gb", 1000), ("3gb", 3000),
@@ -58,7 +58,7 @@ def main():
             subprocess.run([sys.executable, str(ROOT / "run_bench.py"), "--size", size], check=True)
         except BaseException:
             logs = subprocess.run(["docker", "compose", "logs", "--no-color"],
-                                  cwd=ROOT, capture_output=True, text=True)
+                                  cwd=ROOT, capture_output=True, text=True, check=False)
             with gzip.open(results / f"{size}-failure.txt.gz", "wt") as fh:
                 fh.write(logs.stdout + logs.stderr)
             raise

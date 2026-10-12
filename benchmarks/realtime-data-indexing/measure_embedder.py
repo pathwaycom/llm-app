@@ -13,10 +13,10 @@ import argparse
 import gc
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 
 def snapshot():
@@ -30,10 +30,11 @@ def snapshot():
 
 def worker(rank, directory, config):
     # Match modules used by the actual indexer before constructing the model.
-    from serviette.indexer.graph import build_xpack_embedder
-    from serviette.config.schema import EmbedderConfig
-    from pathway.xpacks.llm import embedders  # noqa: F401
     import yaml
+    from pathway.xpacks.llm import embedders  # noqa: F401
+
+    from serviette.config.schema import EmbedderConfig
+    from serviette.indexer.graph import build_xpack_embedder
     cfg = EmbedderConfig(**yaml.safe_load(config.read_text())['embedder'])
     stages = ['baseline', 'runtime', 'model_warm', 'model_released']
     for stage in stages:

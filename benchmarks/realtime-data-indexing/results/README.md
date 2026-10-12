@@ -12,6 +12,7 @@ Completed:
 |---|---|---|---|---|---|---|
 | 100 MB | 12 969 | 53 651 | 44.0 s | 6.86 | 0.61 | 5/5 |
 | 1 GB | 240 516 | 604 299 | 293.6 s | 6.82 | 1.85 | 18/20 |
+| 3 GB | 841 890 | 1 888 846 | 921.9 s | 7.18 | 4.89 | 17/20 |
 
 The old 100 MB row reported 66,136 chunks, 39 s, 6.6 GB peak PSS and
 0.6 GB Qdrant storage. The file count is unchanged. The entire corpus was

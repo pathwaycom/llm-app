@@ -114,6 +114,7 @@ def _proc_status(container: str) -> dict | None:
         ["docker", "exec", container, "python", "-c", PROC_SAMPLE],
         capture_output=True,
         text=True,
+        check=False,
     )
     if proc.returncode != 0:
         return None
@@ -136,6 +137,7 @@ def _proc_cpu_seconds(container: str) -> float | None:
         ["docker", "exec", container, "sh", "-c", "cat /proc/[0-9]*/stat"],
         capture_output=True,
         text=True,
+        check=False,
     )
     if proc.returncode != 0:
         return None
@@ -320,68 +322,67 @@ def main() -> None:
     process_path = results_dir / f"{args.size}-processes.jsonl.gz"
     peak_processes = []
     peak_pss_kb = -1
-    process_log = gzip.open(process_path, "wt")
+    with gzip.open(process_path, "wt") as process_log:
 
-    samples: list[tuple[float, int, int, int, int]] = []  # (s, rss, hwm, pss, chunks)
-    last_count = 0
-    last_change = started
-    last_busy = started
-    prev_cpu: float | None = None
-    prev_time = started
-    cpu_seconds: float | None = None
-    while True:
-        status = _proc_status(indexer)
-        if status is None:
-            _compose("logs", "--tail", "50", "indexer", size=args.size)
-            raise SystemExit("indexer container exited unexpectedly")
-        now = time.monotonic()
-        count = _chunks()
-        if count > last_count:
-            last_count = count
-            last_change = now
-        cpu = _proc_cpu_seconds(indexer)
-        if cpu is not None:
-            if prev_cpu is not None and now > prev_time:
-                if (cpu - prev_cpu) / (now - prev_time) >= IDLE_CORES:
+        samples: list[tuple[float, int, int, int, int]] = []  # (s, rss, hwm, pss, chunks)
+        last_count = 0
+        last_change = started
+        last_busy = started
+        prev_cpu: float | None = None
+        prev_time = started
+        cpu_seconds: float | None = None
+        while True:
+            status = _proc_status(indexer)
+            if status is None:
+                _compose("logs", "--tail", "50", "indexer", size=args.size)
+                raise SystemExit("indexer container exited unexpectedly")
+            now = time.monotonic()
+            count = _chunks()
+            if count > last_count:
+                last_count = count
+                last_change = now
+            cpu = _proc_cpu_seconds(indexer)
+            if cpu is not None:
+                if (prev_cpu is not None and now > prev_time
+                        and (cpu - prev_cpu) / (now - prev_time) >= IDLE_CORES):
                     last_busy = now
-            prev_cpu, prev_time, cpu_seconds = cpu, now, cpu
-        elapsed = now - started
-        sample = (
-            elapsed,
-            status.get("VmRSS", 0),
-            status.get("VmHWM", 0),
-            status.get("Pss", 0),
-            last_count,
-        )
-        samples.append(sample)
-        process_log.write(json.dumps({"elapsed_s": elapsed, "processes": status["processes"]}) + "\n")
-        process_log.flush()
-        if sample[3] > peak_pss_kb:
-            peak_pss_kb = sample[3]
-            peak_processes = status["processes"]
-        with csv_path.open("a") as fh:
-            fh.write(
-                f"{sample[0]:.1f},{sample[1] / 1024:.1f},{sample[2] / 1024:.1f},"
-                f"{sample[3] / 1024:.1f},{sample[4]}\n"
+                prev_cpu, prev_time, cpu_seconds = cpu, now, cpu
+            elapsed = now - started
+            sample = (
+                elapsed,
+                status.get("VmRSS", 0),
+                status.get("VmHWM", 0),
+                status.get("Pss", 0),
+                last_count,
             )
-        print(
-            f"\r   t={elapsed:7.0f}s  rss={status.get('VmRSS', 0) / 1024:7.1f} MB  "
-            f"peak={status.get('VmHWM', 0) / 1024:7.1f} MB  chunks={last_count}",
-            end="",
-            flush=True,
-        )
-        if (
-            # Every document yields at least one chunk, so completion is
-            # impossible before the counter reaches the document count —
-            # this cleanly excludes the low-CPU initial-scan phase.
-            last_count >= docs_count
-            and now - last_change >= STABLE_WINDOW
-            and now - last_busy >= STABLE_WINDOW
-        ):
-            break
-        time.sleep(SAMPLE_INTERVAL)
-    print()
-    process_log.close()
+            samples.append(sample)
+            process_log.write(json.dumps({"elapsed_s": elapsed, "processes": status["processes"]}) + "\n")
+            process_log.flush()
+            if sample[3] > peak_pss_kb:
+                peak_pss_kb = sample[3]
+                peak_processes = status["processes"]
+            with csv_path.open("a") as fh:
+                fh.write(
+                    f"{sample[0]:.1f},{sample[1] / 1024:.1f},{sample[2] / 1024:.1f},"
+                    f"{sample[3] / 1024:.1f},{sample[4]}\n"
+                )
+            print(
+                f"\r   t={elapsed:7.0f}s  rss={status.get('VmRSS', 0) / 1024:7.1f} MB  "
+                f"peak={status.get('VmHWM', 0) / 1024:7.1f} MB  chunks={last_count}",
+                end="",
+                flush=True,
+            )
+            if (
+                # Every document yields at least one chunk, so completion is
+                # impossible before the counter reaches the document count —
+                # this cleanly excludes the low-CPU initial-scan phase.
+                last_count >= docs_count
+                and now - last_change >= STABLE_WINDOW
+                and now - last_busy >= STABLE_WINDOW
+            ):
+                break
+            time.sleep(SAMPLE_INTERVAL)
+        print()
     duration = last_change - started
 
     # Vector-DB footprint: on-disk storage inside the qdrant container.
@@ -390,6 +391,7 @@ def main() -> None:
         ["docker", "exec", qdrant, "du", "-sb", "/qdrant/storage"],
         capture_output=True,
         text=True,
+        check=False,
     )
     db_bytes = int(du.stdout.split()[0]) if du.returncode == 0 and du.stdout else None
 
