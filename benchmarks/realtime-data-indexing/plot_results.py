@@ -76,6 +76,9 @@ def embedder_breakdown(run, calibration):
     embedding_private = min(worker_embedder_private, c['workers_private_mb'] - baseline)
     embedding_shared = sum(max(0, p['mapping_groups']['embedding']['Pss'] -
         p['mapping_groups']['embedding']['private_kb']) for p in processes) / 1024
+    shared_increment = (sum(p['embedding_shared_kb'] for p in calibration['stages']['model_warm']) -
+                        sum(p['embedding_shared_kb'] for p in calibration['stages']['baseline'])) / 1024
+    embedding_shared = min(embedding_shared, max(0, shared_increment))
     metadata = c['connector_extra_mb_estimate']
     remaining_private = c['workers_private_mb'] + c['supervisors_private_mb'] - embedding_private
     other_shared = c['shared_pss_mb'] - embedding_shared
@@ -137,7 +140,7 @@ def main():
     calibration = json.loads((args.results / 'embedder-calibration.json').read_text())
     if (calibration['image'] != environment['image'] or calibration['workers'] != 8
             or calibration['jemalloc_conf'] != 'background_thread:true'
-            or calibration['omp_threads'] != '12'):
+            or calibration['omp_threads'] != '12' or 'baseline_includes' not in calibration):
         raise ValueError('Embedder diagnostic and indexing runs have different setups')
     c = embedder_breakdown(ten, calibration)
     files = np.array([r["summary"]["documents"] for r in runs], dtype=float)

@@ -25,6 +25,21 @@ def snapshot():
         if line.startswith(('Pss:', 'Private_Clean:', 'Private_Dirty:')):
             key, value = line.split(':', 1)
             result[key] = int(value.split()[0])
+    embedding_pss = embedding_private = 0
+    embedding = False
+    for line in Path('/proc/self/smaps').read_text().splitlines():
+        parts = line.split()
+        if parts and '-' in parts[0] and ':' not in parts[0]:
+            path = parts[-1] if len(parts) >= 6 else ''
+            embedding = any(part in path for part in
+                ('/torch/', '/nvidia/', '/triton/', '/sentence_transformers/',
+                 '/tokenizers/', '/safetensors/',
+                 '/models--sentence-transformers--static-retrieval-mrl-en-v1/'))
+        elif embedding and line.startswith('Pss:'):
+            embedding_pss += int(parts[1])
+        elif embedding and line.startswith(('Private_Clean:', 'Private_Dirty:')):
+            embedding_private += int(parts[1])
+    result['embedding_shared_kb'] = max(0, embedding_pss - embedding_private)
     return result
 
 
