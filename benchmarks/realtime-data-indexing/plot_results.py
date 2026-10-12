@@ -151,7 +151,7 @@ def main():
                          "final_components": r["final_components"]} for r in runs]}
     (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
     args.assets.mkdir(parents=True, exist_ok=True)
-    fig, (ax, right) = plt.subplots(1, 2, figsize=(15, 4.8))
+    fig, (ax, right) = plt.subplots(1, 2, figsize=(13.5, 4.8))
     for run in runs:
         s = run["summary"]
         ax.plot([row["elapsed_s"] / 3600 for row in run["samples"]],
@@ -163,7 +163,8 @@ def main():
     x = np.linspace(0, files.max() * 1.05, 100)
     right.plot(x / 1000, (intercept + slope * x) / 1024**2, "--", color="#10a34a", label=f"fit: fixed overhead + ~{slope:.0f} bytes × files")
     for run, xx, yy in zip(runs, files / 1000, extra):
-        right.annotate(run["label"], (xx, yy), xytext=(5, 0), textcoords="offset points", fontsize=9)
+        dy = {'100mb': -16, '1gb': 0, '3gb': 12}.get(run['size'], 0)
+        right.annotate(run["label"], (xx, yy), xytext=(5, dy), textcoords="offset points", fontsize=9)
     right.set(title="File-watch memory proxy", xlabel="watched files, thousands", ylabel="extra private memory, MiB")
     right.legend(fontsize=8)
     for axes in (ax, right):
@@ -177,15 +178,30 @@ def main():
         ten['summary']['peak_pss_mb'] - c['local_embedder_private_mb_estimate'] - c['local_embedder_shared_libraries_mb'])
     (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
     values = list(c.values())
-    labels = ["Local embedder private memory\n(calibrated estimate)",
-              "Local embedder shared libraries\n(measured PSS)",
+    labels = ["Local embedder: private memory\n(calibrated estimate)",
+              "Local embedder: shared libraries\n(measured PSS)",
               "File-watch memory\n(rank-0 excess estimate)",
-              "Remaining indexer private memory\n(engine + buffers + supervisors; estimate)",
+              "Indexer: engine, buffers, supervisors\n(private memory; estimate)",
               "Other shared pages\n(measured PSS)"]
     labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
-    fig, ax = plt.subplots(figsize=(11, 6))
-    ax.pie(values, labels=labels, autopct="%1.0f%%", colors=["#5145ef", "#a5b4fc", "#10a34a", "#64748b", "#cbd5e1"],
+    fig, ax = plt.subplots(figsize=(11.5, 6.5))
+    wedges, _, _ = ax.pie(values, autopct=lambda p: f'{p:.0f}%' if p >= 6 else '',
+           startangle=90, colors=["#5145ef", "#a5b4fc", "#10a34a", "#64748b", "#cbd5e1"],
            wedgeprops={"edgecolor": "white"})
+    # Space callouts independently of tiny wedge angles, so shared-page and
+    # metadata labels remain readable without overlapping.
+    anchors = [(np.cos(np.deg2rad((w.theta1 + w.theta2) / 2)),
+                np.sin(np.deg2rad((w.theta1 + w.theta2) / 2))) for w in wedges]
+    for side in [-1, 1]:
+        indexes = sorted([i for i, (x, y) in enumerate(anchors) if (1 if x >= 0 else -1) == side],
+                         key=lambda i: anchors[i][1])
+        positions = np.linspace(-1.0, 1.0, len(indexes)) if len(indexes) > 1 else [0]
+        for index, y in zip(indexes, positions):
+            ax.annotate(labels[index], xy=anchors[index], xytext=(side * 1.4, y),
+                        ha='left' if side > 0 else 'right', va='center', fontsize=12,
+                        arrowprops={'arrowstyle': '-', 'color': '#64748b',
+                                    'connectionstyle': 'angle3,angleA=0,angleB=90'})
+    ax.set_xlim(-1.85, 1.85)
     ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS\n"
                  f"Estimated indexer without local embedder: {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB")
     fig.tight_layout()

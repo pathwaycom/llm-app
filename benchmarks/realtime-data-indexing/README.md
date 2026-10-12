@@ -70,14 +70,19 @@ docker compose build
 python rerun_all.py
 ```
 
-This runs 100mb → 1gb → 3gb → 10gb → 30gb → 50gb sequentially and then
+This runs 100mb → 1gb → 3gb → 10gb → 30gb → 50gb sequentially, records
+an eight-process local-embedder initialization diagnostic, and then
 calls `plot_results.py --update-readme`. Run it under nohup or tmux for the
 multi-hour sizes. Datasets remain on the chosen disk after completion;
 remove only this run's datasets when they are no longer needed.
 
 `plot_results.py` reads all six CSVs and summaries, validates their agreement,
 and generates both README images and the table. It also saves `derived.json`
-with the fitted file-watch estimate and peak-memory ratio. The pie uses
-measured private/shared pages; file-watch attribution is explicitly labeled
-as an estimate from rank-0 excess, not a separate allocation measurement.
+with the fitted file-watch estimate and peak-memory ratio. The pie separates
+estimated local-embedder private memory, measured shared embedding-library
+PSS, estimated file-watch memory, remaining private memory and other shared
+pages. It estimates what remains in the indexer with an external embedder,
+excluding the embedding service itself. Anonymous-memory attribution uses
+the separate diagnostic and remains an estimate; shared library pages come
+from the main run's mappings.
 See `results/README.md` for the recorded setup and attribution formula.
