@@ -33,9 +33,17 @@ def worker(rank, directory, config):
     import yaml
     from pathway.xpacks.llm import embedders  # noqa: F401
 
-    from serviette.config.schema import EmbedderConfig
-    from serviette.indexer.graph import build_xpack_embedder
-    cfg = EmbedderConfig(**yaml.safe_load(config.read_text())['embedder'])
+    from serviette.config.schema import EmbedderConfig, SplitterConfig
+    from serviette.indexer.graph import ParserRegistry, build_xpack_embedder, build_xpack_splitter
+    settings = yaml.safe_load(config.read_text())
+    cfg = EmbedderConfig(**settings['embedder'])
+    # These remain necessary with a remote embedder. Include their lazy
+    # imports and tokenizer allocations in the pre-embedder baseline.
+    parser = ParserRegistry()
+    splitter = build_xpack_splitter(SplitterConfig(**settings['splitter']))
+    text = 'Wikipedia articles describe history, science and geography. ' * 70
+    parsed = parser.parse(text.encode(), '.txt')
+    assert splitter.chunk(parsed)
     stages = ['baseline', 'runtime', 'model_warm', 'model_released']
     for stage in stages:
         while not (directory / f'{stage}.go').exists():
@@ -44,7 +52,6 @@ def worker(rank, directory, config):
             import sentence_transformers  # noqa: F401
         elif stage == 'model_warm':
             embedder = build_xpack_embedder(cfg)
-            text = 'Wikipedia articles describe history, science and geography. ' * 70
             for _ in range(3):
                 vectors = embedder.__wrapped__([text] * cfg.batch_size)
                 assert len(vectors[0]) == 256
@@ -77,6 +84,7 @@ def main():
                                 env={**os.environ, 'PATHWAY_PROCESS_ID': str(rank)},
                                 stdout=sys.stderr) for rank in range(8)]
     result = {'description': __doc__, 'workers': 8,
+              'baseline_includes': 'graph imports, UTF-8 parser, initialized and warmed configured splitter',
               'jemalloc_conf': os.environ.get('_RJEM_MALLOC_CONF'),
               'omp_threads': os.environ.get('OMP_NUM_THREADS'), 'stages': {}}
     try:

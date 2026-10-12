@@ -242,6 +242,7 @@ The line is a least-squares fit with an intercept (~{slope:.0f} bytes per file;
 fixed overhead estimate {intercept / 1024**2:.1f} MiB).
 The pie attributes local-embedding private memory using an eight-process
 controlled diagnostic in the same image: graph imports before the embedder,
+UTF-8 parser and configured splitter initialized and warmed, embedding
 runtime imported, model loaded and warmed on three 2,048-text batches, then
 model released. `embedder-calibration.json` records all stages. The private
 increment after warming estimates the local stack's private cost across eight
