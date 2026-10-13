@@ -95,6 +95,9 @@ def load(results, sizes=SIZES):
     runs = []
     for size, label in sizes:
         summary = json.loads((results / f"{size}-summary.json").read_text())
+        target_mb = int(size[:-2]) * 1000 if size.endswith('gb') else int(size[:-2])
+        if summary['corpus_mb'] < target_mb - 0.1:
+            raise ValueError(f"{size}: prepared corpus is smaller than its published target")
         with (results / f"{size}-memory.csv").open() as fh:
             samples = [{k: float(v) for k, v in row.items()} for row in csv.DictReader(fh)]
         peak = max(s["pss_mb"] for s in samples)
