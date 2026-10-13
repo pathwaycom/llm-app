@@ -1,0 +1,17 @@
+{
+  "target_bytes": 52428800000,
+  "written_bytes": 52428765709,
+  "documents": 17083603,
+  "language_configs": [
+    "20231101.en",
+    "20231101.de",
+    "20231101.fr",
+    "20231101.es",
+    "20231101.it",
+    "20231101.pt",
+    "20231101.nl"
+  ],
+  "trimmed_trailing_documents": 20,
+  "trimmed_bytes": 35697,
+  "cutoff_reason": "Reconstruct the previous published corpus boundary: identical file count and approximate page count; full nominal target differs by only 20 trailing Dutch articles"
+}

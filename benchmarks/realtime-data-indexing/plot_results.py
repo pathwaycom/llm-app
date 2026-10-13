@@ -243,6 +243,20 @@ def main():
 
     published_table = table(runs)
     (args.results / "table.md").write_text(published_table + "\n")
+    cutoff_note = ''
+    preparation_path = args.results / '50gb-preparation.json'
+    if preparation_path.exists():
+        preparation = json.loads(preparation_path.read_text())
+        if preparation.get('trimmed_trailing_documents'):
+            cutoff_note = """The 50 GB input restores the historical Portuguese/Dutch continuation and
+matches the archived file count and approximate page count. Strictly filling
+the nominal byte target adds 20 trailing Dutch articles (35,697 bytes);
+these are preserved outside the input to reproduce the published cutoff.
+`50gb-preparation.json` and `50gb-preparation-full-target.json` record both
+boundaries. The earlier five-language run stopped at 45,323.8 MiB; it is
+preserved in `diagnostics/50gb-insufficient-corpus/` and excluded from this
+publication and direct performance comparisons.
+"""
     notes = f"""# Indexing benchmark results
 
 Measured from {environment['started_utc']}, on {environment['logical_cpus']} logical CPUs.
@@ -255,6 +269,7 @@ Indexing settings and completion criteria are unchanged from `run_bench.py`.
 Input labels retain the published nominal sizes: 1 GB means a target of
 1,000 MiB of text; 100 MB means 100 MiB. Memory and disk columns use GiB;
 CSV columns ending in `_mb` contain MiB. Pages use 2,000 bytes per page.
+{cutoff_note}
 Peaks are the maximum sampled total PSS, not kernel high-water marks.
 Sampling continues through the existing completion window.
 The chunk-count methodology is unchanged: the summary uses Qdrant's
