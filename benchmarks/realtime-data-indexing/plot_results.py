@@ -140,6 +140,30 @@ def load_calibration(results, environment):
     return calibration
 
 
+def draw_run(run, output_path):
+    """Regenerate each size's plot from the same validated CSV and summary."""
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    minutes = [s['elapsed_s'] / 60 for s in run['samples']]
+    peak_gib = run['summary']['peak_pss_mb'] / 1024
+    ax.plot(minutes, [s['pss_mb'] / 1024 for s in run['samples']],
+            label='indexer PSS', linewidth=1.8)
+    ax.axhline(peak_gib, linestyle='--', linewidth=1, alpha=0.6,
+               label=f'peak {peak_gib:.2f} GiB')
+    ax.set(xlabel='minutes since start', ylabel='memory (PSS), GiB', ylim=(0, None),
+           title=f"serviette indexer — {run['size']} corpus ({run['summary']['documents']} docs, streaming)")
+    chunks = ax.twinx()
+    chunks.plot(minutes, [s['chunks'] for s in run['samples']], color='tab:green',
+                alpha=0.6, linewidth=1.4, label='maximum observed chunks')
+    chunks.set(ylabel='maximum observed chunks', ylim=(0, None))
+    lines, labels = ax.get_legend_handles_labels()
+    other_lines, other_labels = chunks.get_legend_handles_labels()
+    ax.legend(lines + other_lines, labels + other_labels, loc='center right')
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=130)
+    plt.close(fig)
+
+
 def draw_breakdown(ten, c, remaining_mb, output_path):
     values = list(c.values())
     labels = ["Local embedder\nPrivate memory (estimate)",
@@ -199,6 +223,8 @@ def main():
     environment = json.loads((args.results / "run-environment.json").read_text())
     ten = next(r for r in runs if r["size"] == "10gb")
     calibration = load_calibration(args.results, environment)
+    for run in runs:
+        draw_run(run, args.results / f"{run['size']}-memory.png")
     c = embedder_breakdown(ten, calibration)
     files = np.array([r["summary"]["documents"] for r in runs], dtype=float)
     extra = np.array([r["final_components"]["connector_extra_mb_estimate"] for r in runs])
