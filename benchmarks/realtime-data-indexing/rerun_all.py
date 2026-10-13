@@ -8,6 +8,7 @@ import gzip
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +54,8 @@ def main():
         if not (size == "100mb" and (dataset / "questions.json").exists()):
             subprocess.run([sys.executable, str(ROOT / "prepare_dataset.py"),
                             "--size-mb", str(mb), "--out", str(dataset)], check=True)
+        if (dataset / 'preparation.json').exists():
+            shutil.copy2(dataset / 'preparation.json', results / f'{size}-preparation.json')
         print(f"Indexing {size}", flush=True)
         try:
             subprocess.run([sys.executable, str(ROOT / "run_bench.py"), "--size", size], check=True)

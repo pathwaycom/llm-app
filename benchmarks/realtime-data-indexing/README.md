@@ -39,6 +39,11 @@ Per-process samples include the Pathway worker rank, excluding the sampler.
 (public, fast CDN) and writes one `.txt` file per article until the target
 size is reached. It also samples distinctive articles into `questions.json`;
 each question must retrieve its own article (top-k accuracy sanity check).
+Sources continue in this order: English, German, French, Spanish, Italian,
+Portuguese, Dutch. The last two are needed to reach the published 50 GB
+target. Preparation records actual bytes and file count in `preparation.json`
+and fails if sources run out before the target; publication also checks the
+measured corpus size.
 
 ## Running
 
