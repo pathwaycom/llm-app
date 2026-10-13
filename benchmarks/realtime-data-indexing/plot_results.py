@@ -139,10 +139,10 @@ def load_calibration(results, environment):
 
 def draw_breakdown(ten, c, remaining_mb, output_path):
     values = list(c.values())
-    labels = ["Local embedder: private memory\n(calibrated estimate)",
-              "Local embedder: shared libraries\n(mapping/calibration estimate)",
+    labels = ["Local embedder\nPrivate memory (estimate)",
+              "Local embedder\nShared libraries (estimate)",
               "File-watch memory\n(rank-0 excess estimate)",
-              "Indexer: engine, buffers, supervisors\n(private memory; estimate)",
+              "Indexer: engine and buffers\nPrivate memory (estimate)",
               "Other shared pages\n(PSS residual)"]
     labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
     fig, ax = plt.subplots(figsize=(11.5, 6.5))
@@ -166,7 +166,7 @@ def draw_breakdown(ten, c, remaining_mb, output_path):
     ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS\n"
                  f"Estimated indexer without local embedder: {remaining_mb / 1024:.1f} GiB")
     fig.tight_layout()
-    fig.savefig(output_path, dpi=130)
+    fig.savefig(output_path, dpi=130, bbox_inches='tight')
     plt.close(fig)
 
 

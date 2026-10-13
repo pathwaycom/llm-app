@@ -14,6 +14,7 @@ Completed:
 | 1 GB | 240 516 | 604 299 | 293.6 s | 6.82 | 1.85 | 18/20 |
 | 3 GB | 841 890 | 1 888 846 | 921.9 s | 7.18 | 4.89 | 17/20 |
 | 10 GB | 3 423 359 | 6 761 214 | 3620.7 s | 8.16 | 16.07 | 17/20 |
+| 30 GB | 9 202 620 | 20 933 962 | 11028.8 s | 10.40 | 48.57 | 14/20 |
 
 The old 100 MB row reported 66,136 chunks, 39 s, 6.6 GB peak PSS and
 0.6 GB Qdrant storage. The file count is unchanged. The entire corpus was
@@ -43,8 +44,14 @@ These fields retain the existing benchmark methodology, and are not exact
 allocation or point-count audits.
 
 The local-embedder diagnostic (`embedder-calibration.json`) separately runs
-eight workers in the same image/environment, recording private and PSS
-before local embedding imports and after model warming. Private-page growth
-is about 5.24 GiB across eight workers. Its own graph has no live document
-processing, so attribution to a live indexing peak remains an estimate.
-Shared library PSS will be taken from the main 10 GB peak's mappings.
+eight workers in the same image/environment. The baseline includes warmed
+UTF-8 parsing and the configured splitter, which remain necessary with a
+remote embedder. Measurements were taken between the 30 GB and 50 GB sizes.
+The diagnostic's private-page increment is 5.17 GiB. Attribution at the
+actual 10 GB peak caps it at observed worker memory minus that baseline:
+4.60 GiB private embedding memory plus 0.28 GiB shared library PSS.
+The remaining indexer footprint is estimated at 3.27 GiB, excluding an
+external embedding service and unmeasured client/buffer changes. Other
+shared pages remain in the residual. The saved `10gb-breakdown.json` and
+`10gb-memory-breakdown.png` use the same measured 8.16 GiB peak; attribution
+is an estimate rather than an external-service benchmark.

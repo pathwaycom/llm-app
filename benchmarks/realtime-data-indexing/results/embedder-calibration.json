@@ -1,177 +1,211 @@
 {
   "description": "Diagnostic: eight workers, before/after local embedder initialization.\n\nRun between indexing sizes, in the same image and environment. This does\nnot replace the indexing benchmark. Anonymous local-embedding memory is\nestimated by the private-page increment; shared code comes from main-run\nmapping samples. Keep workers alive at each barrier to count shared pages\nproportionally across all eight rather than multiplying a single RSS value.\n",
   "workers": 8,
+  "baseline_includes": "graph imports, UTF-8 parser, initialized and warmed configured splitter",
   "jemalloc_conf": "background_thread:true",
   "omp_threads": "12",
   "stages": {
     "baseline": [
       {
-        "Pss": 121819,
-        "Private_Clean": 2936,
-        "Private_Dirty": 107036
+        "Pss": 168251,
+        "Private_Clean": 116,
+        "Private_Dirty": 155880,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 119002,
-        "Private_Clean": 464,
-        "Private_Dirty": 107044
+        "Pss": 168292,
+        "Private_Clean": 124,
+        "Private_Dirty": 155852,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 118853,
-        "Private_Clean": 40,
-        "Private_Dirty": 107072
+        "Pss": 175644,
+        "Private_Clean": 28,
+        "Private_Dirty": 163648,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 119120,
-        "Private_Clean": 316,
-        "Private_Dirty": 107012
+        "Pss": 168493,
+        "Private_Clean": 600,
+        "Private_Dirty": 155820,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 119129,
-        "Private_Clean": 104,
-        "Private_Dirty": 107096
+        "Pss": 176026,
+        "Private_Clean": 432,
+        "Private_Dirty": 163684,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 119451,
-        "Private_Clean": 260,
-        "Private_Dirty": 107068
+        "Pss": 179083,
+        "Private_Clean": 84,
+        "Private_Dirty": 166604,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 119407,
-        "Private_Clean": 676,
-        "Private_Dirty": 107052
+        "Pss": 178026,
+        "Private_Clean": 208,
+        "Private_Dirty": 165684,
+        "embedding_shared_kb": 0
       },
       {
-        "Pss": 118832,
-        "Private_Clean": 16,
-        "Private_Dirty": 106988
+        "Pss": 169489,
+        "Private_Clean": 192,
+        "Private_Dirty": 156724,
+        "embedding_shared_kb": 0
       }
     ],
     "runtime": [
       {
-        "Pss": 594428,
-        "Private_Clean": 3200,
-        "Private_Dirty": 539524
+        "Pss": 634314,
+        "Private_Clean": 152,
+        "Private_Dirty": 582752,
+        "embedding_shared_kb": 35649
       },
       {
-        "Pss": 592001,
-        "Private_Clean": 884,
-        "Private_Dirty": 539556
+        "Pss": 635180,
+        "Private_Clean": 244,
+        "Private_Dirty": 582880,
+        "embedding_shared_kb": 36014
       },
       {
-        "Pss": 591723,
-        "Private_Clean": 380,
-        "Private_Dirty": 539648
+        "Pss": 642793,
+        "Private_Clean": 364,
+        "Private_Dirty": 590808,
+        "embedding_shared_kb": 35983
       },
       {
-        "Pss": 591359,
-        "Private_Clean": 328,
-        "Private_Dirty": 539528
+        "Pss": 635196,
+        "Private_Clean": 1248,
+        "Private_Dirty": 582796,
+        "embedding_shared_kb": 35603
       },
       {
-        "Pss": 597426,
-        "Private_Clean": 6512,
-        "Private_Dirty": 539620
+        "Pss": 644433,
+        "Private_Clean": 1680,
+        "Private_Dirty": 590836,
+        "embedding_shared_kb": 36432
       },
       {
-        "Pss": 592319,
-        "Private_Clean": 872,
-        "Private_Dirty": 539696
+        "Pss": 648148,
+        "Private_Clean": 524,
+        "Private_Dirty": 594764,
+        "embedding_shared_kb": 36816
       },
       {
-        "Pss": 592118,
-        "Private_Clean": 960,
-        "Private_Dirty": 539656
+        "Pss": 644526,
+        "Private_Clean": 280,
+        "Private_Dirty": 592572,
+        "embedding_shared_kb": 35966
       },
       {
-        "Pss": 591283,
-        "Private_Clean": 304,
-        "Private_Dirty": 539420
+        "Pss": 636337,
+        "Private_Clean": 372,
+        "Private_Dirty": 584656,
+        "embedding_shared_kb": 35315
       }
     ],
     "model_warm": [
       {
-        "Pss": 849266,
-        "Private_Clean": 3208,
-        "Private_Dirty": 792976
+        "Pss": 887400,
+        "Private_Clean": 144,
+        "Private_Dirty": 834484,
+        "embedding_shared_kb": 36982
       },
       {
-        "Pss": 851213,
-        "Private_Clean": 916,
-        "Private_Dirty": 797352
+        "Pss": 896661,
+        "Private_Clean": 244,
+        "Private_Dirty": 843052,
+        "embedding_shared_kb": 37323
       },
       {
-        "Pss": 844150,
-        "Private_Clean": 396,
-        "Private_Dirty": 790672
+        "Pss": 883749,
+        "Private_Clean": 372,
+        "Private_Dirty": 830436,
+        "embedding_shared_kb": 37296
       },
       {
-        "Pss": 848505,
-        "Private_Clean": 328,
-        "Private_Dirty": 795308
+        "Pss": 886815,
+        "Private_Clean": 1272,
+        "Private_Dirty": 833000,
+        "embedding_shared_kb": 36972
       },
       {
-        "Pss": 854645,
-        "Private_Clean": 7532,
-        "Private_Dirty": 794584
+        "Pss": 901423,
+        "Private_Clean": 1688,
+        "Private_Dirty": 846448,
+        "embedding_shared_kb": 37781
       },
       {
-        "Pss": 844396,
-        "Private_Clean": 884,
-        "Private_Dirty": 790400
+        "Pss": 903614,
+        "Private_Clean": 536,
+        "Private_Dirty": 848828,
+        "embedding_shared_kb": 38201
       },
       {
-        "Pss": 845748,
-        "Private_Clean": 916,
-        "Private_Dirty": 791944
+        "Pss": 884094,
+        "Private_Clean": 280,
+        "Private_Dirty": 830808,
+        "embedding_shared_kb": 37275
       },
       {
-        "Pss": 839030,
-        "Private_Clean": 304,
-        "Private_Dirty": 785804
+        "Pss": 889771,
+        "Private_Clean": 412,
+        "Private_Dirty": 836676,
+        "embedding_shared_kb": 36653
       }
     ],
     "model_released": [
       {
-        "Pss": 849143,
-        "Private_Clean": 3204,
-        "Private_Dirty": 792976
+        "Pss": 887737,
+        "Private_Clean": 144,
+        "Private_Dirty": 834908,
+        "embedding_shared_kb": 36895
       },
       {
-        "Pss": 851053,
-        "Private_Clean": 884,
-        "Private_Dirty": 797352
+        "Pss": 895914,
+        "Private_Clean": 244,
+        "Private_Dirty": 842392,
+        "embedding_shared_kb": 37236
       },
       {
-        "Pss": 844034,
-        "Private_Clean": 384,
-        "Private_Dirty": 790672
+        "Pss": 883947,
+        "Private_Clean": 364,
+        "Private_Dirty": 830748,
+        "embedding_shared_kb": 37191
       },
       {
-        "Pss": 848389,
-        "Private_Clean": 328,
-        "Private_Dirty": 795308
+        "Pss": 887083,
+        "Private_Clean": 1248,
+        "Private_Dirty": 833428,
+        "embedding_shared_kb": 36836
       },
       {
-        "Pss": 854497,
-        "Private_Clean": 7516,
-        "Private_Dirty": 794584
+        "Pss": 901629,
+        "Private_Clean": 1624,
+        "Private_Dirty": 846836,
+        "embedding_shared_kb": 37663
       },
       {
-        "Pss": 844280,
-        "Private_Clean": 868,
-        "Private_Dirty": 790400
+        "Pss": 902465,
+        "Private_Clean": 528,
+        "Private_Dirty": 847832,
+        "embedding_shared_kb": 38057
       },
       {
-        "Pss": 845603,
-        "Private_Clean": 900,
-        "Private_Dirty": 791944
+        "Pss": 884231,
+        "Private_Clean": 280,
+        "Private_Dirty": 831032,
+        "embedding_shared_kb": 37188
       },
       {
-        "Pss": 838914,
-        "Private_Clean": 304,
-        "Private_Dirty": 785804
+        "Pss": 888996,
+        "Private_Clean": 408,
+        "Private_Dirty": 836000,
+        "embedding_shared_kb": 36559
       }
     ]
   },
-  "image": "sha256:84b80c81426ebd36d7a1b9635d536c1ed8d05df4079e199f9924d3dbe4839c81"
+  "image": "sha256:84b80c81426ebd36d7a1b9635d536c1ed8d05df4079e199f9924d3dbe4839c81",
+  "completed_utc": "2026-10-13T00:20:28.105584+00:00"
 }
