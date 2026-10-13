@@ -33,6 +33,21 @@ are counted once through PSS. Summed `VmHWM` is retained in CSV as an upper
 bound on RSS, since different processes can peak at different times.
 Per-process samples include the Pathway worker rank, excluding the sampler.
 
+The completion detector also requires successful parsing of every input
+file. A chunk-rich subset can exceed the total file count and remain quiet
+while the source is still being enumerated; this must not end sampling.
+For a frozen corpus, `--expected-chunks N` additionally requires an exact
+Qdrant count of N before accepting completion. This validates complete
+output; the published approximate counter, 180-second quiet window,
+30-core activity threshold and last-counter-increase time formula remain
+the same. The excluded early 50 GB measurements are retained under
+`results/diagnostics/50gb-premature-completion/`.
+
+`count_expected_chunks.py` independently counts the frozen `.txt` inputs
+using UTF-8 decoding and the product's configured 512-token splitter.
+Run it in the same immutable benchmark image, outside measured indexing,
+and save its `<size>-expected-output.json` files alongside the raw results.
+
 ## Dataset
 
 `prepare_dataset.py` downloads Wikipedia parquet shards from Hugging Face

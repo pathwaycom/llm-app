@@ -169,7 +169,7 @@ def draw_breakdown(ten, c, remaining_mb, output_path):
     labels = ["Local embedder\nPrivate memory (estimate)",
               "Local embedder\nShared libraries (estimate)",
               "File-watch memory\n(rank-0 excess estimate)",
-              "Indexer: engine and buffers\nPrivate memory (estimate)",
+              "Other private memory\nEngine, buffers, supervisors (estimate)",
               "Other shared pages\n(PSS residual)"]
     labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
     fig, ax = plt.subplots(figsize=(11.5, 6.5))
@@ -367,12 +367,12 @@ Parsed-text cache, persistence snapshots and stored embeddings live on disk.
 Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS**.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory.png" alt="Measured indexer PSS over time for all six corpora; legends use the same peaks as the table. Right: estimated file-watch memory versus file count, fitted at approximately {slope:.0f} bytes per file." width="100%">
+  <img src="docs/assets/bench-memory.png" alt="Measured indexer PSS over time for all six corpora; legends use the same peaks as the table. Right: estimated file-watch memory versus file count, fitted at approximately {slope:.0f} bytes per file." width="100%">
 </p>
 <p align="center"><em>All curves and table values come from the same runs with allocator background purging enabled. File-watch memory is estimated from rank-0 private-memory excess over the median of the other workers.</em></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
+  <img src="docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
 </p>
 <p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.2f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
 
