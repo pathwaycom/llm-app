@@ -122,12 +122,12 @@ def load(results, sizes=SIZES):
 
 
 def table(runs):
-    lines = ["| corpus target | ≈ pages | files | chunks | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |",
+    lines = ["| corpus target | ≈ pages | files | chunks (approx.) | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |",
              "|---|---|---|---|---|---|---|"]
     for run in runs:
         s = run["summary"]
         ints = [f"{s[k]:,}".replace(",", " ") for k in ("approx_text_pages", "documents", "chunks")]
-        lines.append(f"| {run['label']} | {' | '.join(ints)} | {duration(s['indexing_seconds'])} | {s['peak_pss_mb'] / 1024:.1f} | {s['vector_db_disk_mb'] / 1024:.1f} |")
+        lines.append(f"| {run['label']} | {' | '.join(ints)} | {duration(s['indexing_seconds'])} | {s['peak_pss_mb'] / 1024:.2f} | {s['vector_db_disk_mb'] / 1024:.2f} |")
     return "\n".join(lines)
 
 
@@ -190,8 +190,8 @@ def draw_breakdown(ten, c, remaining_mb, output_path):
                         arrowprops={'arrowstyle': '-', 'color': '#64748b',
                                     'connectionstyle': 'angle3,angleA=0,angleB=90'})
     ax.set_xlim(-1.85, 1.85)
-    ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS\n"
-                 f"Estimated indexer without local embedder: {remaining_mb / 1024:.1f} GiB")
+    ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS\n"
+                 f"Estimated indexer without local embedder: {remaining_mb / 1024:.2f} GiB")
     fig.tight_layout()
     fig.savefig(output_path, dpi=130, bbox_inches='tight')
     plt.close(fig)
@@ -243,7 +243,7 @@ def main():
         s = run["summary"]
         ax.plot([row["elapsed_s"] / 3600 for row in run["samples"]],
                 [row["pss_mb"] / 1024 for row in run["samples"]],
-                label=f"{run['label']} (peak {s['peak_pss_mb'] / 1024:.1f} GiB)")
+                label=f"{run['label']} (peak {s['peak_pss_mb'] / 1024:.2f} GiB)")
     ax.set(title="Indexer PSS over time", xlabel="hours", ylabel="PSS, GiB", ylim=(0, None))
     ax.legend(fontsize=9)
     right.scatter(files / 1000, extra, color="#5145ef", label="rank-0 private-memory excess (estimate)")
@@ -350,6 +350,8 @@ memory samples, per-process snapshots and resolved configurations are in
 [results](benchmarks/realtime-data-indexing/results/README.md).
 Memory and disk sizes use GiB; input labels are nominal targets
 (1 GB = 1,000 MiB of extracted text). A page is approximately 2,000 bytes.
+Chunks are Qdrant's approximate count at completion; the per-size curves
+retain the maximum observed count used by the completion detector.
 
 Documents flow through the pipeline rather than accumulating in it.
 The file-watch index retains metadata per watched file to detect edits and
@@ -370,9 +372,9 @@ Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS
 <p align="center"><em>All curves and table values come from the same runs with allocator background purging enabled. File-watch memory is estimated from rank-0 private-memory excess over the median of the other workers.</em></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.1f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
+  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
 </p>
-<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.1f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
+<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.2f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
 
 Setup: {environment['logical_cpus']}-logical-CPU host (see the saved CPU model),
 streaming mode, 8 worker processes with 12 OpenMP threads each,
