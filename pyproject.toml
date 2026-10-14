@@ -1,65 +1,161 @@
-[tool.poetry]
-name = "llm-app"
-version = "0.3.6"
-description = "LLM-App is a library for creating responsive AI applications leveraging OpenAI/Hugging Face APIs to provide responses to user queries based on live data sources. Build your own LLM application in 30 lines of code, no vector database required."
-authors = [
-    "Jan Chorowski <janek@pathway.com>",
-    "Kamil Piechowiak <kamil@pathway.com>",
-    "Jakub Kowalski <kuba@pathway.com>",
-    "Michał Bartoszkiewicz <embe@pathway.com>",
-    "Mohamed Malhou <mohamed@pathway.com>",
-    "Sergey Kulik <sergey@pathway.com>",
-    "Adrian Kosowski <adrian@pathway.com>",
-    "Mateusz Lewandowski <mateusz@pathway.com>",
-    "Olivier Ruas <olivier@pathway.com>",
-]
-license = "MIT"
-readme = "README.md"
-keywords = ["Pathway", "LLM"]
-package-mode = false
-
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "License :: OSI Approved :: MIT License",
-]
-
-[tool.poetry.urls]
-"Homepage" = "https://github.com/pathwaycom/llm-app"
-"Source Code" = "https://github.com/pathwaycom/llm-app"
-
-[tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-pathway = "^0.12.0"
-
-[tool.poetry.group.linters]
-optional = true
-
-[tool.poetry.group.linters.dependencies]
-black = "^24.2.0"
-isort = "^5.13.2"
-mypy = "~1.10.0"
-flake8 = "~7.0.0"
-pytest = "^8.0.2"
-types-requests = "^2.31.0"
-types-PyYAML = "^6.0.0"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.black]
-target-version = ["py310", "py311"]
+[project]
+name = "serviette"
+version = "0.1.7"
+description = "A universal, no-code RAG server for any vector database, built on the Pathway Live Data Framework."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "serviette contributors" }]
+keywords = ["rag", "pathway", "vector-database", "retrieval", "llm", "embeddings"]
+# Pathway requires CPython >= 3.10.
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    # >=0.32.1: the first release with the vector-store output connectors
+    # (duckdb, schema-driven qdrant, pinecone, ...) and lazy xpack imports.
+    # Heavy document parsers (docling, unstructured) are opt-in via the
+    # serviette extras below.
+    "pathway[xpack-llm]>=0.32.1",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    # The default zero-setup vector backend (embedded, pure-wheel).
+    "duckdb>=1.0",
+    # Explicit, not via pathway[xpack-llm]'s transitive pin: the OpenAI
+    # client powers the default /rag LLM and the OpenAI embedder (~6 MB).
+    "openai>=1.0",
+    # The popular formats must work in a bare `pip install serviette`:
+    # pypdf for PDF (tiny, pure-python; the docling extra upgrades it to
+    # layout-aware parsing), unstructured for the office family (DOCX, PPTX,
+    # XLSX, HTML, EML). Same version pathway's xpack-llm-docs extra pins, so
+    # adding serviette[docling] later never conflicts. Heavy stacks stay
+    # opt-in: docling (layout/tables), ocr (scans), API keys (audio/video).
+    "pypdf>=4.0",
+    "unstructured[docx,pptx,xlsx]~=0.18.1",
+    # Resolver guard, not a real dependency of ours: unstructured requires
+    # an unpinned `numba`, and on py3.12 a clean resolve can backtrack to
+    # numba 0.53 whose llvmlite predates py3.10 and fails to build. 0.59 is
+    # the first numba with py3.12 wheels.
+    "numba>=0.59",
+    # Resolver guards for pathway[xpack-llm]: its google-generativeai pin needs
+    # protobuf<6, while pathway's unbounded google-cloud-pubsub / google-api-core
+    # resolve to releases that need protobuf>=6.33.5. Without these caps pip
+    # 25.1-25.3 backtracks through ~30 pubsub releases and dies with
+    # resolution-too-deep; older pip wanders for hours.
+    "protobuf<6",
+    "google-cloud-pubsub<2.40",
+    "google-api-core<2.34; python_version < '3.14'",
+    # google-api-core>=2.26 on 3.14 wants grpcio-status>=1.75.1, which the
+    # xpack-llm extra forbids (<1.72).
+    "google-api-core<2.26; python_version >= '3.14'",
+]
 
-[tool.isort]
-profile = "black"
+[project.optional-dependencies]
+gdrive = ["google-api-python-client>=2.0", "google-auth>=2.0"]
+# The S3 source reads object bytes through a boto3 client. pathway >= 0.33
+# no longer depends on boto3 itself, so it is an explicit extra here.
+s3 = ["boto3>=1.26"]
+sharepoint = ["Office365-REST-Python-Client>=2.5"]
+# FTP/SFTP/WebDAV/ZIP and more via the PyFilesystem2 library.
+# setuptools<81: PyFilesystem2 imports pkg_resources at runtime; modern venvs
+# don't ship it, and setuptools>=81 removed it entirely.
+pyfilesystem = ["fs>=2.4", "setuptools<81"]
+# Local, free multimodal parsing (the keyless defaults of the parser: section
+# pick these up automatically when installed).
+docling = ["pathway[xpack-llm-docs]"]  # layout-aware PDF, DOCX via unstructured
+# paddlepaddle pinned below 3.3: its PIR+oneDNN executor crashes on some
+# CPUs (ConvertPirAttribute2RuntimeAttribute); 3.0.x is solid.
+# pdf2image: the xpack's PaddleOCRParser imports it unconditionally (it
+# renders PDF/PPTX input to page images); without it the parser is
+# "unavailable" and every scan is skipped. Pure Python on top of Pillow;
+# the poppler binaries it drives are only needed for PDF input.
+ocr = ["paddleocr>=2.7", "paddlepaddle>=2.6,<3.3", "paddlex[ocr]>=3.0", "pdf2image>=1.17"]
+# One extra per vector-DB backend — install only what you use.
+pgvector = ["asyncpg>=0.29"]
+milvus = ["pymilvus>=2.4"]
+qdrant = ["qdrant-client>=1.10"]
+chroma = ["chromadb-client>=0.5"]
+weaviate = ["weaviate-client>=4.7"]
+# <10: pinecone 10 rewrites create_index(dimension=...) into the new
+# schema-based request body, which pinecone-local (and our prepare step) do
+# not speak yet.
+pinecone = ["pinecone>=5.0,<10"]
+mongodb = ["pymongo>=4.9"]
+# Local, credential-free embeddings (indexer and server side).
+local = ["sentence-transformers>=3.0"]
+gemini = ["google-generativeai>=0.8"]
+# Server-side Bedrock query embedder (the indexer side uses the xpack's
+# aioboto3, which pathway[xpack-llm] brings along).
+bedrock = ["boto3>=1.26"]
+all = [
+    "serviette[gdrive,s3,bedrock,pgvector,milvus,qdrant,chroma,weaviate,pinecone,mongodb]",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.16,<0.17",
+    "mypy>=1.8",
+    # Clients for the per-backend integration tests (each test skips when
+    # Docker or its client is unavailable).
+    "asyncpg>=0.29",
+    "pymilvus>=2.4",
+    "qdrant-client>=1.10",
+    "chromadb-client>=0.5",
+    "weaviate-client>=4.7",
+    # Fixture builders for the multimodal parser tests (tiny, pure-python).
+    "fpdf2>=2.7",
+    "python-docx>=1.1",
+    # asyncio support is built into pinecone since 9.x (the old [asyncio]
+    # extra is gone and only produces resolver warnings).
+    "pinecone>=9.0,<10",
+    "pymongo>=4.9",
+    # Bedrock server-embedder unit tests and the S3 integration test.
+    "boto3>=1.26",
+    # Embedded Milvus engine for the Milvus integration test (the pgvector
+    # integration test instead spins up a Docker container — see docs).
+    "milvus-lite>=2.4",
+]
 
-[tool.mypy]
-python_version = "3.10"
-exclude = ["templates/adaptive_rag", "templates/private_rag", "templates/document_indexing", "templates/multimodal_rag", "templates/question_answering_rag", "templates/video_rag_twelvelabs"]
-ignore_missing_imports = true
-check_untyped_defs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-strict_equality = true
+[project.scripts]
+serviette = "serviette.cli:main"
+
+[project.urls]
+Homepage = "https://pathway.com"
+Documentation = "https://github.com/pathwaycom/serviette"
+
+[tool.setuptools.packages.find]
+include = ["serviette*"]
+
+[tool.setuptools.package-data]
+"serviette.frontend" = ["static/*"]
+"serviette.demo" = ["corpus/*.md"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "slow: end-to-end tests that spin up a Pathway runtime per pass",
+    "integration: tests that require Docker (real database containers)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint.per-file-ignores]
+# Integration tests import after pytest.importorskip by design.
+"tests/test_integration_*.py" = ["E402"]

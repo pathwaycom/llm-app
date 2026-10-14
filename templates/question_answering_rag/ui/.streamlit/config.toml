@@ -1,8 +1,0 @@
-[client]
-toolbarMode = "minimal"
-
-[server]
-enableStaticServing = true
-
-[theme]
-base = "light"

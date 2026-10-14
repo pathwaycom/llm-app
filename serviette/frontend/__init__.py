@@ -1,0 +1,1 @@
+"""Web chat frontend package."""

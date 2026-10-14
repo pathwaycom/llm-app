@@ -1,0 +1,198 @@
+"""Shared scenario driver for the per-backend integration tests.
+
+Every backend runs the same story through **production code paths**:
+
+1. index two documents (real indexer subprocess, mock embedder, static mode);
+2. retrieve through the backend's production accessor — the exact-text query
+   must rank its document first with a cosine score of ~1.0;
+3. delete one file, re-run the indexer, and verify its vectors are gone from
+   the store (snapshot semantics), again through the accessor.
+
+Backends differ only in their ``vector_db`` config section and any target
+pre-creation (collection/index), which each test file provides.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import subprocess
+import sys
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
+import pytest
+import yaml
+
+from serviette.server.accessors.abstract import AsyncVectorAccessor
+from serviette.testing import fake_embedding
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+ALPHA = "alpha document about cats and the streaming engine"
+BETA = "beta report concerning dogs and the framework"
+
+
+def write_config(tmp_path: Path, docs: Path, vector_db: dict[str, Any]) -> Path:
+    config = {
+        "sources": [{"type": "fs", "path": str(docs), "glob": "**/*", "mode": "static"}],
+        "vector_db": vector_db,
+        "embedder": {"type": "mock"},
+        "splitter": {"type": "token_count", "chunk_size": 512, "chunk_overlap": 50},
+        "workdir_path": str(tmp_path / "workdir"),
+        "persistence": {"enabled": True, "backend": "filesystem"},
+    }
+    path = tmp_path / "config.yaml"
+    path.write_text(yaml.safe_dump(config))
+    return path
+
+
+def run_indexer(cfg: Path, _legacy_cache_dir: Path | None = None) -> None:
+    env = dict(os.environ)
+    proc = subprocess.run(
+        [sys.executable, "-m", "serviette.cli", "indexer", "--config", str(cfg)],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=240,
+        check=False,
+    )
+    assert proc.returncode == 0, f"indexer failed:\n{proc.stderr[-3000:]}"
+
+
+def _retrieve(make_accessor: Callable[[], AsyncVectorAccessor], text: str, k: int):
+    async def go():
+        accessor = make_accessor()
+        try:
+            return await accessor.retrieve(fake_embedding(text), k)
+        finally:
+            await accessor.close()
+
+    return asyncio.run(go())
+
+
+def _retrieve_ex(
+    make_accessor: Callable[[], AsyncVectorAccessor],
+    text: str,
+    k: int,
+    **kwargs,
+):
+    async def go():
+        accessor = make_accessor()
+        try:
+            return await accessor.retrieve_ex(fake_embedding(text), k, **kwargs)
+        finally:
+            await accessor.close()
+
+    return asyncio.run(go())
+
+
+def _catalog(make_accessor: Callable[[], AsyncVectorAccessor]):
+    """``(list_documents(), document_chunks(<a.txt>))`` — the rag.documents
+    catalog operations, or ``None`` when the backend has no catalog."""
+
+    async def go():
+        accessor = make_accessor()
+        try:
+            if not accessor.supports_catalog:
+                return None
+            documents = await accessor.list_documents()
+            a_txt = next(d for d in documents if d["id"].endswith("a.txt"))
+            chunks = await accessor.document_chunks(a_txt["id"], with_embeddings=True)
+            return documents, chunks
+        finally:
+            await accessor.close()
+
+    return asyncio.run(go())
+
+
+def paths_of(results: list[dict[str, Any]]) -> set[str]:
+    return {Path(r["metadata"]["path"]).name for r in results if r.get("metadata")}
+
+
+def run_backend_scenario(
+    tmp_path: Path,
+    vector_db: dict[str, Any],
+    make_accessor: Callable[[], AsyncVectorAccessor],
+    *,
+    after_index: Callable[[], None] | None = None,
+    score_abs: float = 1e-4,
+    make_hybrid_accessor: Callable[[], AsyncVectorAccessor] | None = None,
+) -> None:
+    """Run the full index → retrieve → delete → verify scenario.
+
+    ``after_index`` runs after each indexing pass — for backends that need a
+    post-index step before querying (e.g. MongoDB search-index readiness).
+
+    Every backend is also checked for MMR-readiness — ``retrieve_ex`` with
+    ``with_embeddings=True`` must return the stored vectors. When
+    ``make_hybrid_accessor`` is given (a factory building the accessor with
+    ``hybrid=True``), the in-process BM25 hybrid path is exercised too: the
+    keyword leg must build from the stored texts and rank ``a.txt`` first for
+    its own terms.
+    """
+
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "a.txt").write_text(ALPHA)
+    (docs / "b.txt").write_text(BETA)
+    cfg = write_config(tmp_path, docs, vector_db)
+
+    # -- pass 1: both documents land and are retrievable ----------------------
+    run_indexer(cfg, tmp_path / "cache")
+    if after_index is not None:
+        after_index()
+
+    results = _retrieve(make_accessor, ALPHA, k=2)
+    assert len(results) == 2
+    assert results[0]["text"] == ALPHA
+    assert results[0]["score"] == pytest.approx(1.0, abs=score_abs)
+    assert results[0]["metadata"]["path"].endswith("a.txt")
+    assert paths_of(results) == {"a.txt", "b.txt"}
+
+    # -- MMR readiness: retrieve_ex must return hit embeddings ----------------
+    with_emb = _retrieve_ex(make_accessor, ALPHA, k=2, with_embeddings=True)
+    assert len(with_emb) == 2
+    assert all(
+        isinstance(h.get("embedding"), list) and h["embedding"] for h in with_emb
+    ), "with_embeddings=True must return the stored vector for MMR"
+
+    # -- in-process BM25 hybrid (when the backend supports it) ----------------
+    if make_hybrid_accessor is not None:
+        fused = _retrieve_ex(make_hybrid_accessor, ALPHA, k=2, query_text=ALPHA)
+        assert paths_of(fused) == {"a.txt", "b.txt"}
+        assert fused[0]["metadata"]["path"].endswith("a.txt")
+        # hybrid + MMR: the BM25 corpus is scanned with vectors (chromadb
+        # hands them back as numpy arrays — truthiness checks must not trip).
+        fused_emb = _retrieve_ex(
+            make_hybrid_accessor, ALPHA, k=2, query_text=ALPHA, with_embeddings=True
+        )
+        assert paths_of(fused_emb) == {"a.txt", "b.txt"}
+        assert all(
+            isinstance(h.get("embedding"), list) and h["embedding"] for h in fused_emb
+        ), "hybrid with_embeddings=True must carry the stored vectors"
+
+    # -- document catalog (rag.documents) --------------------------------------
+    catalog = _catalog(make_accessor)
+    if catalog is not None:
+        documents, chunks = catalog
+        assert {Path(d["id"]).name for d in documents} == {"a.txt", "b.txt"}
+        assert all(d["chunks"] == 1 and d["metadata"]["path"] for d in documents)
+        assert [c["text"] for c in chunks] == [ALPHA]
+        assert isinstance(chunks[0].get("embedding"), list) and chunks[0]["embedding"]
+
+    # -- pass 2: deleting b.txt removes its vectors (snapshot semantics) ------
+    (docs / "b.txt").unlink()
+    run_indexer(cfg, tmp_path / "cache")
+    if after_index is not None:
+        after_index()
+
+    results = _retrieve(make_accessor, BETA, k=5)
+    assert paths_of(results) == {"a.txt"}, "b.txt vectors must be deleted"
+    catalog = _catalog(make_accessor)
+    if catalog is not None:
+        assert {Path(d["id"]).name for d in catalog[0]} == {"a.txt"}, (
+            "the document catalog must follow deletions"
+        )

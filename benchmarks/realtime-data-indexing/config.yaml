@@ -1,0 +1,55 @@
+# Benchmark config: LOCAL embeddings only (sentence-transformers, no API
+# calls, zero cost), Qdrant as the vector store.
+#
+# Qdrant is chosen deliberately for this scenario: HNSW builds incrementally
+# on upsert (fast indexing), it is built for concurrent search-while-writing,
+# and the Pathway sink keys points internally (no user primary key), so
+# writes parallelize across Pathway workers.
+
+pathway_license_key: ${PATHWAY_LICENSE_KEY}
+
+sources:
+  - type: fs
+    path: /data/docs
+    glob: "**/*.txt"
+    mode: streaming       # the product mode: continuous watch, incremental
+                          # commits; the bench detects completion by the chunk
+                          # counter going stable
+
+vector_db:
+  type: qdrant
+  host: qdrant            # docker-compose service name
+  rest_port: 6333
+  grpc_port: 6334
+  collection: bench_embeddings
+
+embedder:
+  type: sentence_transformer            # LOCAL — no external API, free
+  # Static token embeddings (no transformer forward pass): ~100x faster on
+  # CPU than MiniLM while staying real semantic vectors — right trade-off for
+  # a throughput benchmark. Matryoshka-truncated to 256 dims.
+  model: sentence-transformers/static-retrieval-mrl-en-v1
+  truncate_dim: 256
+  batch_size: 2048
+
+splitter:
+  type: token_count
+  chunk_size: 512
+
+indexer:
+  workers: 8              # Pathway worker PROCESSES (via `pathway spawn`)
+  # Spill the non-deterministic UDF memo (parsed texts) to disk: in the
+  # container /tmp is overlayfs (real disk), not tmpfs.
+  udf_cache_directory: /tmp/udf-cache
+
+# Product default: persistence on. Lives inside the container (fresh each
+# run, since run_bench recreates containers), so runs stay cold-start honest
+# while exercising the same code path users get — including the disk-backed
+# parse cache under <workdir>/persistence/runtime_calls.
+workdir_path: /tmp/serviette-workdir
+persistence:
+  enabled: true
+
+server:
+  host: 0.0.0.0
+  port: 8000

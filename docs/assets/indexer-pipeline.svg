@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 400" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="978" height="398" rx="14" fill="#f8f9fb" stroke="#e3e6ea"/>
+  <text x="490" y="42" text-anchor="middle" font-size="14" font-weight="650" fill="#4338ca">serviette indexer — the Pathway dataflow</text>
+
+  <!-- stage boxes -->
+  <g font-size="12.5" text-anchor="middle" fill="#1f2328">
+    <!-- read -->
+    <rect x="30" y="80" width="170" height="86" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+    <text x="115" y="106" font-weight="650">read</text>
+    <text x="115" y="126" font-size="11" fill="#57606a">only_metadata:</text>
+    <text x="115" y="142" font-size="11" fill="#57606a">paths + metadata,</text>
+    <text x="115" y="158" font-size="11" fill="#57606a">never file bytes</text>
+
+    <!-- parse -->
+    <rect x="250" y="80" width="180" height="86" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+    <text x="340" y="106" font-weight="650">parse UDF</text>
+    <text x="340" y="126" font-size="11" fill="#57606a">fetch bytes on demand;</text>
+    <text x="340" y="142" font-size="11" fill="#57606a">parser: routing —</text>
+    <text x="340" y="158" font-size="11" fill="#57606a">docling / OCR / whisper / …</text>
+
+    <!-- split -->
+    <rect x="480" y="80" width="150" height="86" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+    <text x="555" y="106" font-weight="650">split</text>
+    <text x="555" y="126" font-size="11" fill="#57606a">token_count /</text>
+    <text x="555" y="142" font-size="11" fill="#57606a">recursive chunks</text>
+
+    <!-- embed -->
+    <rect x="680" y="80" width="150" height="86" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+    <text x="755" y="106" font-weight="650">embed</text>
+    <text x="755" y="126" font-size="11" fill="#57606a">6 embedder</text>
+    <text x="755" y="142" font-size="11" fill="#57606a">families, incl.</text>
+    <text x="755" y="158" font-size="11" fill="#57606a">local &amp; free</text>
+  </g>
+
+  <!-- stage arrows -->
+  <line x1="200" y1="123" x2="248" y2="123" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arr)"/>
+  <line x1="430" y1="123" x2="478" y2="123" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arr)"/>
+  <line x1="630" y1="123" x2="678" y2="123" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- sources feeding read -->
+  <text x="115" y="66" text-anchor="middle" font-size="11" fill="#57606a">fs · gdrive · s3 · sharepoint · pyfilesystem</text>
+
+  <!-- parse cache (disk) -->
+  <g text-anchor="middle">
+    <path d="M 270 232 a 70 12 0 0 0 140 0 v 44 a 70 12 0 0 1 -140 0 z" fill="#ffffff" stroke="#d9dce1"/>
+    <ellipse cx="340" cy="232" rx="70" ry="12" fill="#ffffff" stroke="#d9dce1"/>
+    <text x="340" y="256" font-size="11" fill="#57606a">parse cache on disk</text>
+    <text x="340" y="271" font-size="11" fill="#57606a">DefaultCache · LRU</text>
+  </g>
+  <line x1="340" y1="166" x2="340" y2="218" stroke="#6b7280" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arr)" marker-start="url(#arr)"/>
+  <text x="352" y="196" font-size="10.5" fill="#57606a">&lt;persistence&gt;/runtime_calls</text>
+
+  <!-- sink -->
+  <rect x="680" y="216" width="270" height="76" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+  <text x="815" y="242" text-anchor="middle" font-size="12.5" font-weight="650" fill="#1f2328">snapshot sink (native connector)</text>
+  <text x="815" y="262" text-anchor="middle" font-size="11" fill="#57606a">upserts / deletes keyed by chunk_id</text>
+  <text x="815" y="278" text-anchor="middle" font-size="11" fill="#57606a">→ your vector database</text>
+  <line x1="755" y1="166" x2="800" y2="214" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- deletion footnote -->
+  <text x="490" y="340" text-anchor="middle" font-size="11.5" fill="#57606a" font-style="italic">A deleted file never needs re-reading: the engine replays the memoized parse output negated,</text>
+  <text x="490" y="358" text-anchor="middle" font-size="11.5" fill="#57606a" font-style="italic">the retraction flows through split and embed, and the sink deletes exactly the matching vectors.</text>
+</svg>

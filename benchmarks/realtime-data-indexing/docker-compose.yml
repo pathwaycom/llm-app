@@ -1,0 +1,59 @@
+# Self-contained benchmark: Qdrant + serviette indexer + serviette server.
+#
+# The serviette image is built from the repo checkout (build context ../..)
+# with the released Pathway from PyPI — no external mounts or prebuilt
+# artifacts; `docker compose build` (or the first `up`) is all the setup.
+#
+# Parametrized by env vars:
+#   BENCH_SIZE         dataset folder under ./datasets (default 100mb)
+#   BENCH_SERVER_PORT  host port for the serviette server API (default 8300)
+#   BENCH_QDRANT_PORT  host port for Qdrant REST (readiness probes, default 8301)
+#   BENCH_HF_CACHE     host Hugging Face cache dir (default ~/.cache/huggingface)
+
+x-serviette: &serviette
+  build:
+    context: ../..
+    dockerfile: benchmarks/realtime-data-indexing/Dockerfile
+  image: serviette-bench
+  environment: &serviette-env
+    PATHWAY_LICENSE_KEY: ${PATHWAY_LICENSE_KEY:-}
+    HF_HOME: /hf-cache
+    # Model cache is pre-warmed by run_bench on the host; containers never
+    # touch the network (8 workers probing HF concurrently hit rate limits).
+    HF_HUB_OFFLINE: "1"
+    # Hard guarantee that nothing can spend OpenAI quota.
+    OPENAI_API_KEY: x
+    # Allocator experiment knobs (empty = library defaults).
+    _RJEM_MALLOC_CONF: ${BENCH_JEMALLOC_CONF:-}
+    MALLOC_ARENA_MAX: ${BENCH_MALLOC_ARENA_MAX:-}
+  volumes:
+    - ${BENCH_HF_CACHE:-~/.cache/huggingface}:/hf-cache:ro
+    - ${BENCH_DATA_ROOT:-./datasets}/${BENCH_SIZE:-100mb}/docs:/data/docs:ro
+    - ./config.yaml:/bench/config.yaml:ro
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "127.0.0.1:${BENCH_QDRANT_PORT:-8301}:6333"
+
+  indexer:
+    <<: *serviette
+    # Worker processes come from `indexer.workers` in config.yaml (the
+    # entrypoint re-executes itself through `pathway spawn --processes N`).
+    command: ["python", "-m", "serviette.cli", "indexer", "--config", "/bench/config.yaml"]
+    environment:
+      <<: *serviette-env
+      # torch threads PER WORKER; without this each worker grabs all cores
+      # and 8 workers thrash (cores / workers is a good default).
+      OMP_NUM_THREADS: ${BENCH_OMP_THREADS:-12}
+    depends_on:
+      - qdrant
+
+  server:
+    <<: *serviette
+    command: ["python", "-m", "serviette.cli", "server", "--config", "/bench/config.yaml"]
+    ports:
+      - "127.0.0.1:${BENCH_SERVER_PORT:-8300}:8000"
+    depends_on:
+      - qdrant

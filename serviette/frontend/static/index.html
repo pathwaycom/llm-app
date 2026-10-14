@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__APP_TITLE__</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f7f7f8;
+    --panel: #ffffff;
+    --text: #1f2023;
+    --text-soft: #6b7280;
+    --border: #e6e6e9;
+    --user-bubble: #1f2023;
+    --user-text: #ffffff;
+    --assistant-bubble: #f4f4f6;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --danger: #dc2626;
+    --shadow: 0 10px 30px rgba(0,0,0,.08);
+    --radius: 22px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0f12; --bg-soft: #15171c; --panel: #15171c; --text: #ececf1;
+      --text-soft: #9aa0ab; --border: #2a2d34; --user-bubble: #4f46e5;
+      --user-text: #ffffff; --assistant-bubble: #1c1f26; --shadow: 0 10px 30px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex; flex-direction: column; height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+  header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 20px;
+    border-bottom: 1px solid var(--border); background: var(--bg); flex: 0 0 auto;
+  }
+  header .logo {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  }
+  header .title { font-weight: 650; font-size: 15px; letter-spacing: .2px; }
+  header .api { margin-left: auto; font-size: 12px; color: var(--text-soft); }
+  header .gear {
+    margin-left: 6px; width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg-soft); color: var(--text-soft); cursor: pointer; font-size: 15px; line-height: 1;
+  }
+  header .gear:hover { color: var(--text); }
+  header .docs-btn { width: auto; padding: 0 10px; font-size: 13px; }
+  /* Documents: a search panel over the catalog. Nothing is fetched until a
+     search is submitted — an index may hold tens of thousands of files. */
+  .docs-panel { position: absolute; top: 56px; right: 20px; z-index: 10; width: min(560px, calc(100vw - 40px));
+    max-height: calc(100vh - 90px); display: flex; flex-direction: column; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--bg); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .docs-panel[hidden] { display: none; }
+  .docs-panel h3 { margin: 0 0 10px; font-size: 13px; font-weight: 650; }
+  .docs-panel form { display: flex; gap: 8px; align-items: center; }
+  .docs-panel input[type=search] { flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg-soft); color: var(--text); font-size: 13px; }
+  .docs-panel button.go { padding: 6px 12px; border: none; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; font-size: 13px; }
+  .docs-panel .opts { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: var(--text-soft); }
+  .docs-panel .status { margin-top: 10px; font-size: 12px; color: var(--text-soft); }
+  .docs-panel .list { margin-top: 8px; overflow: auto; border-top: 1px solid var(--border); }
+  .docs-panel .doc { padding: 8px 4px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .docs-panel .doc .name { font-weight: 600; }
+  .docs-panel .doc .meta { font-size: 12px; color: var(--text-soft); word-break: break-all; }
+  /* Settings: a small panel under the gear, closed by default — the knobs
+     here are for the person who set serviette up, not for every reader. */
+  .settings { position: absolute; top: 56px; right: 20px; z-index: 10; width: 320px; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--bg); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .settings[hidden] { display: none; }
+  .settings h3 { margin: 0 0 10px; font-size: 13px; font-weight: 650; }
+  .settings label { display: block; font-size: 13px; }
+  .settings .row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .settings input[type=number] { width: 70px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg-soft); color: var(--text); font-size: 13px; }
+  .settings .help { margin-top: 6px; font-size: 12px; color: var(--text-soft); line-height: 1.45; }
+  .settings .reset { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; }
+
+  main { flex: 1 1 auto; overflow-y: auto; scroll-behavior: smooth; }
+  .thread { max-width: 760px; margin: 0 auto; padding: 28px 20px 40px; }
+
+  .empty {
+    height: 100%; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; color: var(--text-soft); gap: 12px;
+    min-height: 60vh;
+  }
+  .empty h1 { color: var(--text); font-size: 26px; margin: 0; font-weight: 650; }
+  .empty p { margin: 0; font-size: 15px; }
+
+  .msg { display: flex; margin: 18px 0; gap: 12px; }
+  .msg .avatar {
+    flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 2px;
+  }
+  .msg.user { flex-direction: row-reverse; }
+  .msg.user .avatar { background: var(--user-bubble); color: var(--user-text); }
+  .msg.assistant .avatar { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff; }
+  .bubble {
+    max-width: 78%; padding: 12px 16px; border-radius: 18px; line-height: 1.6;
+    font-size: 15px; white-space: pre-wrap; word-wrap: break-word;
+  }
+  .msg.user .bubble { background: var(--user-bubble); color: var(--user-text); border-bottom-right-radius: 6px; }
+  .msg.assistant .bubble { background: var(--assistant-bubble); color: var(--text); border-bottom-left-radius: 6px; }
+  .bubble .h { font-weight: 600; font-size: 16px; }
+  .bubble code { background: rgba(127,127,127,.18); padding: 1px 5px; border-radius: 5px; font-size: 13px; }
+  .bubble pre { background: rgba(127,127,127,.14); padding: 12px; border-radius: 12px; overflow-x: auto; }
+  .bubble pre code { background: none; padding: 0; }
+  .bubble.error { background: rgba(220,38,38,.1); color: var(--danger); }
+
+  .sources { margin: 8px 0 0 42px; max-width: 78%; }
+  .sources details { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-soft); }
+  .sources summary { cursor: pointer; padding: 8px 12px; font-size: 13px; color: var(--text-soft); user-select: none; }
+  .sources .src { padding: 10px 12px; border-top: 1px solid var(--border); font-size: 13px; }
+  .sources .src .meta { color: var(--text-soft); font-size: 12px; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .sources .src .snippet { color: var(--text); white-space: pre-wrap; max-height: 120px; overflow: hidden; }
+  .notice { margin: 6px 0 0 42px; max-width: 78%; font-size: 12px; color: var(--text-soft); }
+
+  .dots { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-soft); animation: blink 1.4s infinite both; }
+  .dots span:nth-child(2) { animation-delay: .2s; }
+  .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+  footer { flex: 0 0 auto; padding: 12px 20px 22px; background: linear-gradient(to top, var(--bg) 60%, transparent); }
+  .composer {
+    max-width: 760px; margin: 0 auto; display: flex; align-items: flex-end; gap: 8px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 8px 8px 18px; box-shadow: var(--shadow);
+  }
+  .composer textarea {
+    flex: 1 1 auto; border: none; outline: none; resize: none; background: transparent;
+    color: var(--text); font: inherit; font-size: 15px; line-height: 1.5; max-height: 200px; padding: 8px 0;
+  }
+  .composer button {
+    flex: 0 0 auto; width: 38px; height: 38px; border: none; border-radius: 50%;
+    background: var(--accent); color: #fff; cursor: pointer; display: grid; place-items: center;
+    transition: background .15s, transform .1s;
+  }
+  .composer button:hover:not(:disabled) { background: var(--accent-hover); }
+  .composer button:active:not(:disabled) { transform: scale(.94); }
+  .composer button:disabled { opacity: .4; cursor: not-allowed; }
+  .hint { max-width: 760px; margin: 8px auto 0; text-align: center; font-size: 12px; color: var(--text-soft); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo"></div>
+    <div class="title">__APP_TITLE__</div>
+    <div class="api" id="statsLabel" title="live index statistics"></div>
+    <div class="api" id="apiLabel"></div>
+    <button class="gear docs-btn" id="docsBtn" type="button" title="Indexed documents" aria-expanded="false">Documents</button>
+    <button class="gear" id="gear" type="button" title="Settings" aria-label="Settings" aria-expanded="false">⚙</button>
+  </header>
+  <div class="docs-panel" id="docsPanel" hidden>
+    <h3>Indexed documents</h3>
+    <form id="docsForm">
+      <input type="search" id="docsQuery" placeholder="Part of a file name or path" autocomplete="off">
+      <button class="go" type="submit">Search</button>
+    </form>
+    <div class="opts"><input type="checkbox" id="docsCase"><label for="docsCase">Match case</label></div>
+    <div class="status" id="docsStatus">Type part of a name and press Search. Leave it empty to list everything (when the index is small enough to show).</div>
+    <div class="list" id="docsList"></div>
+  </div>
+  <div class="settings" id="settings" hidden>
+    <h3>Settings</h3>
+    <label for="kInput">Document fragments per answer</label>
+    <div class="row">
+      <input type="number" id="kInput" min="1" max="50" step="1">
+      <button class="reset" id="kReset" type="button">reset to 5</button>
+    </div>
+    <div class="help">How many of the best-matching passages the assistant reads before answering a question.
+      More fragments give it more to work with on broad questions, at the cost of a slower answer.
+      Questions about a whole document or a comparison of documents read the files themselves and ignore this.</div>
+  </div>
+
+  <main id="main">
+    <div class="thread" id="thread">
+      <div class="empty" id="empty">
+        <h1>Ask anything about your documents</h1>
+        <p>Answers are grounded in your indexed knowledge base. Each question is answered on its own, without memory of earlier ones.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <form class="composer" id="composer">
+      <textarea id="input" rows="1" placeholder="Message…" autofocus></textarea>
+      <button type="submit" id="send" title="Send" aria-label="Send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path>
+        </svg>
+      </button>
+    </form>
+    <div class="hint">Enter to send · Shift+Enter for a new line · Each question is answered on its own — earlier messages are not taken into account</div>
+  </footer>
+
+<script>
+(function () {
+  const thread = document.getElementById("thread");
+  const empty = document.getElementById("empty");
+  const form = document.getElementById("composer");
+  const input = document.getElementById("input");
+  const send = document.getElementById("send");
+  const main = document.getElementById("main");
+
+  // Settings: how many passages a question retrieves (the API's ``k``).
+  // Remembered per browser; the server never sees a default of its own.
+  const K_DEFAULT = 5, K_KEY = "serviette.k";
+  const settings = document.getElementById("settings");
+  const gear = document.getElementById("gear");
+  const kInput = document.getElementById("kInput");
+  function currentK() {
+    let k = K_DEFAULT;
+    try { k = parseInt(localStorage.getItem(K_KEY) || "", 10) || K_DEFAULT; } catch (e) { /* storage unavailable */ }
+    return Math.min(50, Math.max(1, k));
+  }
+  function storeK(k) {
+    try { localStorage.setItem(K_KEY, String(k)); } catch (e) { /* storage unavailable */ }
+  }
+  kInput.value = currentK();
+  kInput.addEventListener("change", function () {
+    const k = Math.min(50, Math.max(1, parseInt(kInput.value, 10) || K_DEFAULT));
+    kInput.value = k; storeK(k);
+  });
+  document.getElementById("kReset").addEventListener("click", function () { kInput.value = K_DEFAULT; storeK(K_DEFAULT); });
+  // Documents panel: opened on demand, and it talks to the API only when a
+  // search is submitted.
+  const docsPanel = document.getElementById("docsPanel");
+  const docsBtn = document.getElementById("docsBtn");
+  const docsForm = document.getElementById("docsForm");
+  const docsQuery = document.getElementById("docsQuery");
+  const docsCase = document.getElementById("docsCase");
+  const docsStatus = document.getElementById("docsStatus");
+  const docsList = document.getElementById("docsList");
+  function closePanels() {
+    settings.hidden = true; gear.setAttribute("aria-expanded", "false");
+    docsPanel.hidden = true; docsBtn.setAttribute("aria-expanded", "false");
+  }
+  gear.addEventListener("click", function () {
+    const open = settings.hidden; closePanels();
+    settings.hidden = !open; gear.setAttribute("aria-expanded", String(open));
+  });
+  docsBtn.addEventListener("click", function () {
+    const open = docsPanel.hidden; closePanels();
+    docsPanel.hidden = !open; docsBtn.setAttribute("aria-expanded", String(open));
+    if (open) docsQuery.focus();
+  });
+  document.addEventListener("click", function (e) {
+    const inside = settings.contains(e.target) || docsPanel.contains(e.target) || e.target === gear || e.target === docsBtn;
+    if (!inside) closePanels();
+  });
+  function fmtDate(seconds) {
+    const n = Number(seconds);
+    if (!n) return "";
+    return new Date(n * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+  }
+  docsForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    docsList.innerHTML = "";
+    docsStatus.textContent = "Searching…";
+    const params = new URLSearchParams({ q: docsQuery.value, case_sensitive: String(docsCase.checked), limit: "100" });
+    try {
+      const res = await fetch("/api/v1/documents?" + params.toString());
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { docsStatus.textContent = (data && data.detail) || ("Request failed (" + res.status + ")"); return; }
+      if (data.truncated) {
+        docsStatus.textContent = data.matched + " of " + data.total + " indexed documents match — too many to show, narrow the search.";
+        return;
+      }
+      docsStatus.textContent = data.matched + " of " + data.total + " indexed documents" + (docsQuery.value ? " match" : "") + ".";
+      data.documents.forEach((d) => {
+        const div = document.createElement("div");
+        div.className = "doc";
+        const when = fmtDate(d.metadata && d.metadata.modified_at);
+        const meta = [d.id !== d.name ? d.id : "", when ? "modified " + when : "", d.chunks + " part" + (d.chunks === 1 ? "" : "s")].filter(Boolean);
+        div.innerHTML = '<div class="name">' + escapeHtml(d.name) + '</div><div class="meta">' + escapeHtml(meta.join(" · ")) + "</div>";
+        docsList.appendChild(div);
+      });
+    } catch (err) {
+      docsStatus.textContent = "Network error: could not reach the server.";
+    }
+  });
+  let busy = false;
+
+  // Show which API this page talks to (informational; empty = same origin).
+  fetch("/api/v1/config").then(r => r.json()).then(c => {
+    if (c && c.api_url) document.getElementById("apiLabel").textContent = "API · " + c.api_url;
+  }).catch(() => {});
+
+  // Live observability strip: backend, index size, freshness, last latency.
+  let lastAnswerMs = null;
+  function age(unixSeconds) {
+    const s = Math.max(0, Math.round(Date.now() / 1000 - unixSeconds));
+    if (s < 60) return s + "s";
+    if (s < 3600) return Math.round(s / 60) + "m";
+    return Math.round(s / 3600) + "h";
+  }
+  async function refreshStats() {
+    try {
+      const r = await fetch("/api/v1/stats");
+      if (!r.ok) return;
+      const s = await r.json();
+      if (s.stats_available === false) {
+        // The store could not be read just now (the indexer is starting or
+        // mid-write): say so instead of blanking the label.
+        document.getElementById("statsLabel").textContent = "index updating…";
+        return;
+      }
+      const parts = [];
+      if (s.backend) parts.push(s.backend);
+      if (typeof s.chunks === "number") parts.push(s.chunks + " chunks");
+      if (typeof s.documents === "number") parts.push(s.documents + " docs");
+      if (s.last_indexed_at) parts.push("indexed " + age(s.last_indexed_at) + " ago");
+      if (lastAnswerMs !== null) parts.push("last answer " + (lastAnswerMs / 1000).toFixed(1) + "s");
+      document.getElementById("statsLabel").textContent = parts.join(" · ");
+    } catch (e) { /* stats are advisory */ }
+  }
+  refreshStats();
+  setInterval(refreshStats, 5000);
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  // Minimal, safe markdown: escape first, then code blocks / inline code / bold / italic.
+  function renderMarkdown(text) {
+    let out = escapeHtml(text);
+    out = out.replace(/```([\s\S]*?)```/g, (_, c) => "<pre><code>" + c.trim() + "</code></pre>");
+    out = out.replace(/`([^`]+)`/g, "<code>$1</code>");
+    // Headings ("## Title") and bullets ("- item", "* item") — the bubble is
+    // pre-wrapped text, so a line-level rewrite is all they need. Bullets go
+    // before emphasis so a leading "* " is not read as an opening asterisk.
+    out = out.replace(/^[ \t]{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*$/gm, '<span class="h">$1</span>');
+    out = out.replace(/^([ \t]*)[-*][ \t]+/gm, "$1• ");
+    out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    out = out.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
+    return out;
+  }
+
+  function scrollDown() { main.scrollTop = main.scrollHeight; }
+
+  function addMessage(role, contentHtml) {
+    if (empty) empty.remove();
+    const msg = document.createElement("div");
+    msg.className = "msg " + role;
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = role === "user" ? "You" : "AI";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = contentHtml;
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    thread.appendChild(msg);
+    scrollDown();
+    return { msg, bubble };
+  }
+
+  function renderSources(sources) {
+    if (!sources || !sources.length) return;
+    const wrap = document.createElement("div");
+    wrap.className = "sources";
+    const det = document.createElement("details");
+    const sum = document.createElement("summary");
+    sum.textContent = sources.length + " source" + (sources.length > 1 ? "s" : "");
+    det.appendChild(sum);
+    sources.forEach((s, i) => {
+      const div = document.createElement("div");
+      div.className = "src";
+      const path = (s.metadata && (s.metadata.path || s.metadata.name)) || ("source " + (i + 1));
+      const score = typeof s.score === "number" ? s.score.toFixed(3) : "";
+      div.innerHTML =
+        '<div class="meta"><span>' + escapeHtml(String(path)) + "</span><span>" + score + "</span></div>" +
+        '<div class="snippet">' + escapeHtml((s.text || "").slice(0, 400)) + "</div>";
+      det.appendChild(div);
+    });
+    wrap.appendChild(det);
+    thread.appendChild(wrap);
+    scrollDown();
+  }
+
+  // What the answer was based on, as reported by the server (rag.documents):
+  // the documents it was scoped to and any remark on coverage.
+  function renderNotice(data) {
+    const parts = [];
+    if (data.documents && data.documents.length) parts.push("Answered from: " + data.documents.join(", "));
+    if (data.notice && data.mode !== "unresolved") parts.push(data.notice);
+    if (!parts.length) return;
+    const div = document.createElement("div");
+    div.className = "notice";
+    div.textContent = parts.join(" · ");
+    thread.appendChild(div);
+    scrollDown();
+  }
+
+  function setBusy(state) {
+    busy = state;
+    send.disabled = state;
+    input.disabled = state;
+  }
+
+  function autoGrow() {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 200) + "px";
+  }
+  input.addEventListener("input", autoGrow);
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const query = input.value.trim();
+    if (!query || busy) return;
+
+    addMessage("user", escapeHtml(query));
+    input.value = "";
+    autoGrow();
+    setBusy(true);
+
+    const typing = addMessage("assistant", '<div class="dots"><span></span><span></span><span></span></div>');
+
+    try {
+      const startedAt = performance.now();
+      const res = await fetch("/api/v1/rag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: query, k: currentK() }),
+      });
+      lastAnswerMs = performance.now() - startedAt;
+      refreshStats();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = (data && data.detail) ? data.detail : ("Request failed (" + res.status + ")");
+        typing.bubble.classList.add("error");
+        typing.bubble.textContent = detail;
+      } else {
+        typing.bubble.innerHTML = renderMarkdown(data.answer || "(empty answer)");
+        renderNotice(data);
+        renderSources(data.sources);
+      }
+    } catch (err) {
+      typing.bubble.classList.add("error");
+      typing.bubble.textContent = "Network error: could not reach the server.";
+    } finally {
+      setBusy(false);
+      input.focus();
+      scrollDown();
+    }
+  });
+})();
+</script>
+</body>
+</html>
