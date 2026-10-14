@@ -98,6 +98,24 @@ def load(results, sizes=SIZES):
         target_mb = int(size[:-2]) * 1000 if size.endswith('gb') else int(size[:-2])
         if summary['corpus_mb'] < target_mb - 0.1:
             raise ValueError(f"{size}: prepared corpus is smaller than its published target")
+        expected_path = results / f"{size}-expected-output.json"
+        if expected_path.exists():
+            expected = json.loads(expected_path.read_text())
+            if expected['documents'] != summary['documents']:
+                raise ValueError(f"{size}: frozen-corpus file count differs")
+            if size == '50gb':
+                if (summary.get('parsed_documents') != expected['documents']
+                        or summary.get('verified_exact_chunks') != expected['exact_chunks']):
+                    raise ValueError('50gb: full input/output completion was not verified')
+            elif expected['exact_chunks'] != summary['chunks']:
+                raise ValueError(f"{size}: output differs from independent splitter count")
+        elif size in {'100mb', '1gb'}:
+            comparison = json.loads((results / f'{size}-splitter-comparison.json').read_text())
+            if (comparison['files'] != summary['documents']
+                    or comparison['current_chunks'] != summary['chunks']):
+                raise ValueError(f"{size}: output differs from independent splitter count")
+        else:
+            raise ValueError(f"{size}: missing independent output-completeness proof")
         with (results / f"{size}-memory.csv").open() as fh:
             samples = [{k: float(v) for k, v in row.items()} for row in csv.DictReader(fh)]
         peak = max(s["pss_mb"] for s in samples)
@@ -288,7 +306,13 @@ publication and direct performance comparisons.
 Measured from {environment['started_utc']}, on {environment['logical_cpus']} logical CPUs.
 Exact CPU description, RAM, kernel, image ID and installed package versions:
 `run-environment.json`. Resolved compose configurations redact the license key.
-Indexing settings and completion criteria are unchanged from `run_bench.py`.
+The workload, 180-second quiet window, 30-core activity threshold and
+last-counter-increase time formula are retained. Completion also requires
+all input files to be parsed; the repeated 50 GB run verifies its exact
+output against the frozen-corpus count. Earlier measurements that stopped
+prematurely are preserved under `diagnostics/50gb-premature-completion/`
+and excluded. Independent splitter counts confirm complete output for
+the other five sizes.
 
 {published_table}
 
