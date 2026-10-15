@@ -103,11 +103,14 @@ def load(results, sizes=SIZES):
             expected = json.loads(expected_path.read_text())
             if expected['documents'] != summary['documents']:
                 raise ValueError(f"{size}: frozen-corpus file count differs")
+            if ('corpus_bytes' in expected
+                    and abs(expected['corpus_bytes'] / 1024**2 - summary['corpus_mb']) > 0.11):
+                raise ValueError(f"{size}: frozen-corpus byte count differs")
             if size == '50gb':
                 if (summary.get('parsed_documents') != expected['documents']
                         or summary.get('verified_exact_chunks') != expected['exact_chunks']):
                     raise ValueError('50gb: full input/output completion was not verified')
-            elif expected['exact_chunks'] != summary['chunks']:
+            elif expected['exact_chunks'] != summary.get('verified_exact_chunks', summary['chunks']):
                 raise ValueError(f"{size}: output differs from independent splitter count")
         else:
             raise ValueError(f"{size}: missing independent output-completeness proof")
@@ -278,6 +281,7 @@ these are preserved outside the input to reproduce the published cutoff.
 `50gb-preparation.json` records the final boundary and the trimmed bytes
 and document count.
 """
+    fifty_expected = json.loads((args.results / '50gb-expected-output.json').read_text())
     notes = f"""# Indexing benchmark results
 
 Measured from {environment['started_utc']}, on {environment['logical_cpus']} logical CPUs.
@@ -287,8 +291,12 @@ The workload, 180-second quiet window, 30-core activity threshold and
 last-counter-increase time formula are retained. Completion also requires
 all input files to be parsed; the repeated 50 GB run verifies its exact
 output against the frozen-corpus count. Only complete final runs are included.
-Independent splitter counts confirm complete output for
-the other five sizes.
+Independent splitter counts confirm complete output for all six sizes.
+The separate 50 GB audit scanned {fifty_expected['documents']:,} frozen input files ({fifty_expected['corpus_bytes']:,}
+bytes) in the original immutable benchmark image and produced exactly
+{fifty_expected['exact_chunks']:,} chunks, matching the saved run and exact Qdrant count.
+It ran outside the measured indexing workload; memory and timing results
+are unchanged. `50gb-expected-output.json` records this independent audit.
 
 {published_table}
 

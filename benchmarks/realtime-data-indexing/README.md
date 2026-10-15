@@ -95,6 +95,12 @@ an eight-process local-embedder initialization diagnostic, and then
 calls `plot_results.py --update-readme`. Run it under nohup or tmux for the
 multi-hour sizes. Datasets remain on the chosen disk after completion;
 remove only this run's datasets when they are no longer needed.
+Completed datasets (with `questions.json`) are reused, preserving historical
+corpus boundaries. Missing datasets are prepared to the full nominal target;
+nonempty incomplete datasets are rejected. Before each measured run, the driver
+independently counts chunks in that corpus using the recorded image and passes
+`--expected-chunks` to require an exact Qdrant count at completion. The audit
+may download tokenizer data; it does not embed text or call an embedding API.
 
 `plot_results.py` reads all six CSVs and summaries, validates their agreement,
 and generates both README images and the table. It also saves `derived.json`

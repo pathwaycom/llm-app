@@ -25,11 +25,14 @@ def main():
         raise SystemExit("Set BENCH_JEMALLOC_CONF=background_thread:true")
     results = ROOT / "results"
     results.mkdir(exist_ok=True)
-    lock = (results / ".rerun.lock").open("w")
-    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     data_root = Path(os.environ["BENCH_DATA_ROOT"])
     data_root.mkdir(parents=True, exist_ok=True)
+    with (results / ".rerun.lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        _run(results, data_root)
 
+
+def _run(results, data_root):
     def output(cmd):
         return subprocess.check_output(cmd, text=True).strip()
 
@@ -51,14 +54,31 @@ def main():
     for size, mb in SIZES:
         print(f"Preparing {size}", flush=True)
         dataset = data_root / size
-        if not (size == "100mb" and (dataset / "questions.json").exists()):
+        if not (dataset / "questions.json").exists():
+            if (dataset / "docs").exists() and any((dataset / "docs").iterdir()):
+                raise RuntimeError(f"Incomplete dataset at {dataset}; use a fresh BENCH_DATA_ROOT")
             subprocess.run([sys.executable, str(ROOT / "prepare_dataset.py"),
                             "--size-mb", str(mb), "--out", str(dataset)], check=True)
         if (dataset / 'preparation.json').exists():
             shutil.copy2(dataset / 'preparation.json', results / f'{size}-preparation.json')
         print(f"Indexing {size}", flush=True)
+        # Count the actual frozen corpus, including its chosen byte boundary,
+        # outside the measured run and using the same immutable product image.
+        subprocess.run([
+            "docker", "run", "--rm",
+            "-e", "HF_HUB_OFFLINE=1", "-e", "OMP_NUM_THREADS=1",
+            "-v", f"{data_root.resolve()}:/datasets:ro",
+            "-v", f"{ROOT / 'count_expected_chunks.py'}:/bench/count_expected_chunks.py:ro",
+            "-v", f"{results}:/results", metadata["image"],
+            "python", "/bench/count_expected_chunks.py", "--data-root", "/datasets",
+            "--results", "/results", "--sizes", size,
+        ], check=True)
+        expected = json.loads((results / f"{size}-expected-output.json").read_text())
+        expected["image"] = metadata["image"]
+        (results / f"{size}-expected-output.json").write_text(json.dumps(expected, indent=2) + "\n")
         try:
-            subprocess.run([sys.executable, str(ROOT / "run_bench.py"), "--size", size], check=True)
+            subprocess.run([sys.executable, str(ROOT / "run_bench.py"), "--size", size,
+                            "--expected-chunks", str(expected["exact_chunks"])], check=True)
         except BaseException:
             logs = subprocess.run(["docker", "compose", "logs", "--no-color"],
                                   cwd=ROOT, capture_output=True, text=True, check=False)

@@ -458,6 +458,8 @@ def main() -> None:
                         last_busy = time.monotonic()
                         time.sleep(SAMPLE_INTERVAL)
                         continue
+                    (results_dir / f"{args.size}-postrun-qdrant.json").write_text(
+                        json.dumps({"exact_count": response.json()}, indent=2) + "\n")
                 break
             time.sleep(SAMPLE_INTERVAL)
         print()

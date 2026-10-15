@@ -7,8 +7,12 @@ The workload, 180-second quiet window, 30-core activity threshold and
 last-counter-increase time formula are retained. Completion also requires
 all input files to be parsed; the repeated 50 GB run verifies its exact
 output against the frozen-corpus count. Only complete final runs are included.
-Independent splitter counts confirm complete output for
-the other five sizes.
+Independent splitter counts confirm complete output for all six sizes.
+The separate 50 GB audit scanned 17,083,603 frozen input files (52,428,765,709
+bytes) in the original immutable benchmark image and produced exactly
+37,472,786 chunks, matching the saved run and exact Qdrant count.
+It ran outside the measured indexing workload; memory and timing results
+are unchanged. `50gb-expected-output.json` records this independent audit.
 
 | corpus target | ≈ pages | files | chunks (approx.) | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |
 |---|---|---|---|---|---|---|
