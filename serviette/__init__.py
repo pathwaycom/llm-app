@@ -1,7 +1,6 @@
-"""serviette — a universal, no-code RAG server built on the Pathway Live Data Framework.
+"""A no-code RAG server that keeps answers in sync with your documents.
 
-The project name is intentionally kept in a single constant so a rename only
-requires a find-and-replace across files plus updating ``APP_NAME`` here.
+Works with 8 vector databases. Built on Pathway.
 """
 
 APP_NAME = "serviette"
