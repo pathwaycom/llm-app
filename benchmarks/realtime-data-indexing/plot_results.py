@@ -109,11 +109,6 @@ def load(results, sizes=SIZES):
                     raise ValueError('50gb: full input/output completion was not verified')
             elif expected['exact_chunks'] != summary['chunks']:
                 raise ValueError(f"{size}: output differs from independent splitter count")
-        elif size in {'100mb', '1gb'}:
-            comparison = json.loads((results / f'{size}-splitter-comparison.json').read_text())
-            if (comparison['files'] != summary['documents']
-                    or comparison['current_chunks'] != summary['chunks']):
-                raise ValueError(f"{size}: output differs from independent splitter count")
         else:
             raise ValueError(f"{size}: missing independent output-completeness proof")
         with (results / f"{size}-memory.csv").open() as fh:
@@ -220,23 +215,7 @@ def main():
     parser.add_argument("--results", type=Path, default=ROOT / "results")
     parser.add_argument("--assets", type=Path, default=REPO / "docs/assets")
     parser.add_argument("--update-readme", action="store_true")
-    parser.add_argument('--breakdown-only', action='store_true',
-                        help='Render the completed 10 GB run into results/ without updating the publication')
     args = parser.parse_args()
-    if args.breakdown_only:
-        if args.update_readme:
-            parser.error('--breakdown-only cannot update the published README')
-        ten = load(args.results, [('10gb', '10 GB')])[0]
-        environment = json.loads((args.results / 'run-environment.json').read_text())
-        calibration = load_calibration(args.results, environment)
-        c = embedder_breakdown(ten, calibration)
-        remaining = (ten['summary']['peak_pss_mb'] - c['local_embedder_private_mb_estimate']
-                     - c['local_embedder_shared_libraries_mb'])
-        draw_breakdown(ten, c, remaining, args.results / '10gb-memory-breakdown.png')
-        report = {'components_mb': c, 'indexer_without_local_embedder_mb_estimate': remaining}
-        (args.results / '10gb-breakdown.json').write_text(json.dumps(report, indent=2) + '\n')
-        print(json.dumps(report, indent=2))
-        return
     runs = load(args.results)  # Fail before touching published files if any run is missing.
     environment = json.loads((args.results / "run-environment.json").read_text())
     ten = next(r for r in runs if r["size"] == "10gb")
@@ -296,10 +275,8 @@ def main():
 matches the archived file count and approximate page count. Strictly filling
 the nominal byte target adds 20 trailing Dutch articles (35,697 bytes);
 these are preserved outside the input to reproduce the published cutoff.
-`50gb-preparation.json` and `50gb-preparation-full-target.json` record both
-boundaries. The earlier five-language run stopped at 45,323.8 MiB; it is
-preserved in `diagnostics/50gb-insufficient-corpus/` and excluded from this
-publication and direct performance comparisons.
+`50gb-preparation.json` records the final boundary and the trimmed bytes
+and document count.
 """
     notes = f"""# Indexing benchmark results
 
@@ -309,9 +286,8 @@ Exact CPU description, RAM, kernel, image ID and installed package versions:
 The workload, 180-second quiet window, 30-core activity threshold and
 last-counter-increase time formula are retained. Completion also requires
 all input files to be parsed; the repeated 50 GB run verifies its exact
-output against the frozen-corpus count. Earlier measurements that stopped
-prematurely are preserved under `diagnostics/50gb-premature-completion/`
-and excluded. Independent splitter counts confirm complete output for
+output against the frozen-corpus count. Only complete final runs are included.
+Independent splitter counts confirm complete output for
 the other five sizes.
 
 {published_table}

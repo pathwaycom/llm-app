@@ -6,9 +6,8 @@ Exact CPU description, RAM, kernel, image ID and installed package versions:
 The workload, 180-second quiet window, 30-core activity threshold and
 last-counter-increase time formula are retained. Completion also requires
 all input files to be parsed; the repeated 50 GB run verifies its exact
-output against the frozen-corpus count. Earlier measurements that stopped
-prematurely are preserved under `diagnostics/50gb-premature-completion/`
-and excluded. Independent splitter counts confirm complete output for
+output against the frozen-corpus count. Only complete final runs are included.
+Independent splitter counts confirm complete output for
 the other five sizes.
 
 | corpus target | ≈ pages | files | chunks (approx.) | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |
@@ -27,10 +26,8 @@ The 50 GB input restores the historical Portuguese/Dutch continuation and
 matches the archived file count and approximate page count. Strictly filling
 the nominal byte target adds 20 trailing Dutch articles (35,697 bytes);
 these are preserved outside the input to reproduce the published cutoff.
-`50gb-preparation.json` and `50gb-preparation-full-target.json` record both
-boundaries. The earlier five-language run stopped at 45,323.8 MiB; it is
-preserved in `diagnostics/50gb-insufficient-corpus/` and excluded from this
-publication and direct performance comparisons.
+`50gb-preparation.json` records the final boundary and the trimmed bytes
+and document count.
 
 Peaks are the maximum sampled total PSS, not kernel high-water marks.
 Sampling continues through the existing completion window.

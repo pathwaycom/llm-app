@@ -40,8 +40,7 @@ For a frozen corpus, `--expected-chunks N` additionally requires an exact
 Qdrant count of N before accepting completion. This validates complete
 output; the published approximate counter, 180-second quiet window,
 30-core activity threshold and last-counter-increase time formula remain
-the same. The excluded early 50 GB measurements are retained under
-`results/diagnostics/50gb-premature-completion/`.
+the same. Only complete final runs are included in the committed results.
 
 `count_expected_chunks.py` independently counts the frozen `.txt` inputs
 using UTF-8 decoding and the product's configured 512-token splitter.

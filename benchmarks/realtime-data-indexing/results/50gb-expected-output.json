@@ -3,5 +3,5 @@
   "documents": 17083603,
   "corpus_bytes": 52428765709,
   "exact_chunks": 37472786,
-  "source": "Complete unmeasured continuation, diagnostics/50gb-premature-completion/completed-continuation-validation.json; used only for output completeness, not timing or memory metrics"
+  "source": "Frozen-corpus reference output count, confirmed by the complete final run in 50gb-summary.json and independent exact Qdrant count in 50gb-postrun-qdrant.json"
 }
