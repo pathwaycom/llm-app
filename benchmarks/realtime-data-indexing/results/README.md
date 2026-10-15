@@ -1,57 +1,73 @@
-# Indexing benchmark rerun — in progress
+# Indexing benchmark results
 
-Started 2026-10-12. All six sizes run sequentially with the published
-configuration: streaming, eight workers, 12 OpenMP threads per worker,
-local static embeddings truncated to 256 dimensions, 512-token chunks,
-Qdrant and jemalloc background purging. Exact host and package versions
-are recorded in `run-environment.json`. Resolved compose files redact secrets.
+Measured from 2026-10-12T19:00:22.529304+00:00, on 96 logical CPUs.
+Exact CPU description, RAM, kernel, image ID and installed package versions:
+`run-environment.json`. Resolved compose configurations redact the license key.
+The workload, 180-second quiet window, 30-core activity threshold and
+last-counter-increase time formula are retained. Completion also requires
+all input files to be parsed; the repeated 50 GB run verifies its exact
+output against the frozen-corpus count. Earlier measurements that stopped
+prematurely are preserved under `diagnostics/50gb-premature-completion/`
+and excluded. Independent splitter counts confirm complete output for
+the other five sizes.
 
-Completed:
-
-| corpus | files | chunks | indexing time | peak PSS (GiB) | Qdrant disk (GiB) | retrieval |
+| corpus target | ≈ pages | files | chunks (approx.) | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |
 |---|---|---|---|---|---|---|
-| 100 MB | 12 969 | 53 651 | 44.0 s | 6.86 | 0.61 | 5/5 |
-| 1 GB | 240 516 | 604 299 | 293.6 s | 6.82 | 1.85 | 18/20 |
-| 3 GB | 841 890 | 1 888 846 | 921.9 s | 7.18 | 4.89 | 17/20 |
-| 10 GB | 3 423 359 | 6 761 214 | 3620.7 s | 8.16 | 16.07 | 17/20 |
-| 30 GB | 9 202 620 | 20 933 962 | 11028.8 s | 10.40 | 48.57 | 14/20 |
+| 100 MB | 52 431 | 12 969 | 53 651 | 44 s | 6.86 | 0.61 |
+| 1 GB | 524 288 | 240 516 | 604 299 | 4.9 min | 6.82 | 1.85 |
+| 3 GB | 1 572 864 | 841 890 | 1 888 846 | 15.4 min | 7.18 | 4.89 |
+| 10 GB | 5 242 884 | 3 423 359 | 6 761 214 | 1.0 h | 8.16 | 16.07 |
+| 30 GB | 15 728 646 | 9 202 620 | 20 933 962 | 3.1 h | 10.40 | 48.57 |
+| 50 GB | 26 214 382 | 17 083 603 | 37 472 786 | 6.0 h | 14.65 | 84.45 |
 
-The old 100 MB row reported 66,136 chunks, 39 s, 6.6 GB peak PSS and
-0.6 GB Qdrant storage. The file count is unchanged. The entire corpus was
-also split offline using stock `TokenCountSplitter(max_tokens=512)`:
-66,136 chunks, of which 12,485 are trailing fragments below 100 characters
-with a preceding chunk. The current serviette splitter merges those tails;
-66,136 − 12,485 = 53,651 exactly. Saved as `100mb-splitter-comparison.json`.
-This is a product change introduced in commit `3750fef`, not a benchmark
-configuration change. No source documents are missing.
+Input labels retain the published nominal sizes: 1 GB means a target of
+1,000 MiB of text; 100 MB means 100 MiB. Memory and disk columns use GiB;
+CSV columns ending in `_mb` contain MiB. Pages use 2,000 bytes per page.
+The 50 GB input restores the historical Portuguese/Dutch continuation and
+matches the archived file count and approximate page count. Strictly filling
+the nominal byte target adds 20 trailing Dutch articles (35,697 bytes);
+these are preserved outside the input to reproduce the published cutoff.
+`50gb-preparation.json` and `50gb-preparation-full-target.json` record both
+boundaries. The earlier five-language run stopped at 45,323.8 MiB; it is
+preserved in `diagnostics/50gb-insufficient-corpus/` and excluded from this
+publication and direct performance comparisons.
 
-Each completed size saves aggregate CSV, summary JSON, per-size PSS PNG,
-compressed per-process JSONL, redacted compose JSON and compressed indexer
-logs. The CSV is written during execution. Peak PSS is the maximum sampled
-container sum; data collection continues during the existing completion
-window. `_mb` fields contain MiB. Input targets are nominally labeled:
-100 MB means 100 MiB and 1 GB means 1,000 MiB of text.
+Peaks are the maximum sampled total PSS, not kernel high-water marks.
+Sampling continues through the existing completion window.
+The chunk-count methodology is unchanged: the summary uses Qdrant's
+approximate count at completion, while CSV `chunks` retains the maximum
+observed count used by the completion detector. Segment optimization can
+reduce approximate counts, so these two fields need not be identical;
+`max_observed_chunks` records the CSV's value in the summary explicitly.
 
-The publication will be regenerated only after all six sizes complete and
-the plotting script validates the summaries against their CSVs and process
-snapshots. Its final result notes will replace this progress page.
+`*-memory.csv` and `*-processes.jsonl.gz` record aggregate and per-process
+measurements at the same times; `*-summary.json` includes the process snapshot
+at peak PSS. `*-indexer.txt.gz` contains the container log.
 
-Qdrant approximate counts can fall during segment optimization. CSV `chunks`
-records the completion detector's maximum observed count, and summary
-`max_observed_chunks` preserves it explicitly; summary `chunks` is the
-approximate count at completion. On 1 GB these are 604,598 and 604,299.
-These fields retain the existing benchmark methodology, and are not exact
-allocation or point-count audits.
+The right panel estimates file-watch memory as rank 0's private-page excess
+over the median of the seven other workers at the final sample. It includes
+any other unequal worker allocations; it is not an allocation-level measurement.
+The line is a least-squares fit with an intercept (~361 bytes per file;
+fixed overhead estimate 45.9 MiB).
+The pie attributes local-embedding private memory using an eight-process
+controlled diagnostic in the same image: graph imports before the embedder,
+UTF-8 parser and configured splitter initialized and warmed, embedding
+runtime imported, model loaded and warmed on three 2,048-text batches, then
+model released. `embedder-calibration.json` records all stages. The private
+increment after warming estimates the local stack's private cost across eight
+workers. This is capped at the observed non-file-watch worker private memory
+minus the calibrated pre-embedder baseline, since live and diagnostic buffers
+have different lifetimes. Supervisor private pages are left in the residual;
+any embedding allocations there are not subtracted speculatively.
+Shared embedding-library PSS starts from mapping samples at the 10 GB peak
+and is capped by the diagnostic's shared-library increment, so libraries
+already needed by the parser are retained in the residual. Other shared
+pages are separated. Anonymous attribution
+and the indexer-without-local-embedder figure are estimates, not an actual
+external-service benchmark; client overhead and changes in working buffers
+are not measured. The embedding service's own memory is outside that figure.
+Derived values are saved in `derived.json`.
 
-The local-embedder diagnostic (`embedder-calibration.json`) separately runs
-eight workers in the same image/environment. The baseline includes warmed
-UTF-8 parsing and the configured splitter, which remain necessary with a
-remote embedder. Measurements were taken between the 30 GB and 50 GB sizes.
-The diagnostic's private-page increment is 5.17 GiB. Attribution at the
-actual 10 GB peak caps it at observed worker memory minus that baseline:
-4.60 GiB private embedding memory plus 0.28 GiB shared library PSS.
-The remaining indexer footprint is estimated at 3.27 GiB, excluding an
-external embedding service and unmeasured client/buffer changes. Other
-shared pages remain in the residual. The saved `10gb-breakdown.json` and
-`10gb-memory-breakdown.png` use the same measured 8.16 GiB peak; attribution
-is an estimate rather than an external-service benchmark.
+Regenerate with `python plot_results.py --update-readme`.
+The script checks CSV peaks, chunk counts and process snapshots against summaries
+and requires all six sizes before updating the publication.

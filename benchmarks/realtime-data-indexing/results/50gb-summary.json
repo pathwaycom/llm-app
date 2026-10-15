@@ -1,0 +1,297 @@
+{
+  "dataset": "50gb",
+  "corpus_mb": 50000.0,
+  "documents": 17083603,
+  "parsed_documents": 17083603,
+  "expected_chunks": 37472786,
+  "verified_exact_chunks": 37472786,
+  "chunks": 37472786,
+  "max_observed_chunks": 37538908,
+  "chunk_count_metric": "Qdrant approximate count at completion; CSV chunks is the maximum observed count",
+  "indexing_seconds": 21696.7,
+  "throughput_mb_per_min": 138.27,
+  "peak_rss_mb": 19329.3,
+  "peak_pss_mb": 15005.0,
+  "peak_processes": [
+    {
+      "pid": 1,
+      "worker_rank": null,
+      "VmHWM": 1026128,
+      "VmRSS": 1026128,
+      "Pss": 661645,
+      "Private_Clean": 192,
+      "Private_Dirty": 619144,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 49862,
+          "private_kb": 19860
+        },
+        "other": {
+          "Pss": 611273,
+          "private_kb": 599476
+        }
+      }
+    },
+    {
+      "pid": 131,
+      "worker_rank": null,
+      "VmHWM": 203192,
+      "VmRSS": 203192,
+      "Pss": 127389,
+      "Private_Clean": 212,
+      "Private_Dirty": 118460,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 0,
+          "private_kb": 0
+        },
+        "other": {
+          "Pss": 127180,
+          "private_kb": 118672
+        }
+      }
+    },
+    {
+      "pid": 146,
+      "worker_rank": 0,
+      "VmHWM": 10140564,
+      "VmRSS": 8319676,
+      "Pss": 7821336,
+      "Private_Clean": 756,
+      "Private_Dirty": 7757932,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64443,
+          "private_kb": 19900
+        },
+        "other": {
+          "Pss": 7756377,
+          "private_kb": 7738788
+        }
+      }
+    },
+    {
+      "pid": 147,
+      "worker_rank": 1,
+      "VmHWM": 1482860,
+      "VmRSS": 1455256,
+      "Pss": 960982,
+      "Private_Clean": 1212,
+      "Private_Dirty": 894580,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 68050,
+          "private_kb": 20632
+        },
+        "other": {
+          "Pss": 892414,
+          "private_kb": 875160
+        }
+      }
+    },
+    {
+      "pid": 148,
+      "worker_rank": 2,
+      "VmHWM": 1505668,
+      "VmRSS": 1484532,
+      "Pss": 985338,
+      "Private_Clean": 340,
+      "Private_Dirty": 922124,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64921,
+          "private_kb": 19944
+        },
+        "other": {
+          "Pss": 919900,
+          "private_kb": 902520
+        }
+      }
+    },
+    {
+      "pid": 149,
+      "worker_rank": 3,
+      "VmHWM": 1481272,
+      "VmRSS": 1463444,
+      "Pss": 962441,
+      "Private_Clean": 88,
+      "Private_Dirty": 900628,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64511,
+          "private_kb": 19868
+        },
+        "other": {
+          "Pss": 897418,
+          "private_kb": 880848
+        }
+      }
+    },
+    {
+      "pid": 150,
+      "worker_rank": 4,
+      "VmHWM": 1486244,
+      "VmRSS": 1465708,
+      "Pss": 965231,
+      "Private_Clean": 216,
+      "Private_Dirty": 903224,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64582,
+          "private_kb": 19900
+        },
+        "other": {
+          "Pss": 900136,
+          "private_kb": 883540
+        }
+      }
+    },
+    {
+      "pid": 151,
+      "worker_rank": 5,
+      "VmHWM": 1479416,
+      "VmRSS": 1460408,
+      "Pss": 963530,
+      "Private_Clean": 1676,
+      "Private_Dirty": 896860,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 67509,
+          "private_kb": 20060
+        },
+        "other": {
+          "Pss": 895499,
+          "private_kb": 878476
+        }
+      }
+    },
+    {
+      "pid": 152,
+      "worker_rank": 6,
+      "VmHWM": 1492516,
+      "VmRSS": 1472604,
+      "Pss": 975371,
+      "Private_Clean": 1864,
+      "Private_Dirty": 911452,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64378,
+          "private_kb": 19868
+        },
+        "other": {
+          "Pss": 910482,
+          "private_kb": 893448
+        }
+      }
+    },
+    {
+      "pid": 153,
+      "worker_rank": 7,
+      "VmHWM": 1476656,
+      "VmRSS": 1442236,
+      "Pss": 941850,
+      "Private_Clean": 208,
+      "Private_Dirty": 879580,
+      "mapping_groups": {
+        "embedding": {
+          "Pss": 64450,
+          "private_kb": 19844
+        },
+        "other": {
+          "Pss": 876887,
+          "private_kb": 859944
+        }
+      }
+    }
+  ],
+  "peak_elapsed_s": 21837.5939020887,
+  "jemalloc_conf": "background_thread:true",
+  "omp_threads": 12,
+  "indexer_cpu_seconds": 194611.7,
+  "avg_parallelism": 9.0,
+  "vector_db_disk_mb": 86481.0,
+  "qdrant_image_id": "sha256:0ad2e23181e5646b286253c04cea23f07040ca313cc377d9fa7b21db184b6406",
+  "vector_db_mb_per_corpus_mb": 1.73,
+  "retrieval_accuracy": "13/20",
+  "embedder": "sentence-transformers/static-retrieval-mrl-en-v1 (local, 256 dims)",
+  "approx_text_pages": 26214382,
+  "accuracy_misses": [
+    {
+      "expected": "0000/6000-Tom-Tango.txt",
+      "query": "Tom Tango: Tom Tango and \"TangoTiger\" are aliases used online by a baseball sabermetrics and ice hockey statistics analy",
+      "got": [
+        "0546/9191-Tango-music.txt",
+        "0543/5737-Tango.txt",
+        "0598/4990-History-of-the-tango.txt",
+        "0546/9191-Tango-music.txt",
+        "0295/8960-Histoire-du-Tango.txt"
+      ]
+    },
+    {
+      "expected": "0001/6000-Ricky-Fuji.txt",
+      "query": "Ricky Fuji: (born September 27, 1965) better known under his ring name  is a Japanese professional wrestler currently si",
+      "got": [
+        "0592/7826-Kazuyuki-Fujita.txt",
+        "0369/6383-Sho-wrestler.txt",
+        "0592/1210-Tatsumi-Fujinami.txt",
+        "0454/6595-Daiki-Inaba.txt",
+        "0321/0463-Jeff-Cobb.txt"
+      ]
+    },
+    {
+      "expected": "0003/2000-Theroigne-de-Mericourt.txt",
+      "query": "Theroigne de Mericourt: Anne-Jos\u00e8phe Th\u00e9roigne de M\u00e9ricourt (born Anne-Jos\u00e8phe Terwagne; 13 August 1762 \u2013 8 June 1817) w",
+      "got": [
+        "0966/4911-Coalition-d-Auvergne.txt",
+        "0023/8794-Jean-Baptiste-Jacques-Augustin.txt",
+        "0541/4392-List-of-French-language-authors.txt",
+        "1439/0373-Parlamento-di-Provenza.txt",
+        "0918/6788-Liste-des-membres-de-l-exp-dition-de-La-P-rouse.txt"
+      ]
+    },
+    {
+      "expected": "0003/6000-Black-capped-fruit-bat.txt",
+      "query": "Black-capped fruit bat: The black-capped fruit bat (Chironax melanocephalus) is a species of megabat in the monotypic ge",
+      "got": [
+        "0551/7828-Leaf-nosed-bat.txt",
+        "0033/2843-Black-winged-little-yellow-bat.txt",
+        "0046/2629-Antillean-fruit-eating-bat.txt",
+        "0100/5548-List-of-bats.txt",
+        "0585/7845-Jamaican-fruit-bat.txt"
+      ]
+    },
+    {
+      "expected": "0005/0000-Clockers-film.txt",
+      "query": "Clockers (film): Clockers is a 1995 American crime drama film directed by Spike Lee.",
+      "got": [
+        "0143/2934-Clocker.txt",
+        "0734/5709-Clock.txt",
+        "0577/8055-The-Big-Clock-film.txt",
+        "0012/9555-The-Big-Clock.txt",
+        "0233/9531-Sidewalk-clock-on-Jamaica-Avenue.txt"
+      ]
+    },
+    {
+      "expected": "0005/6000-Jamie-Mueller.txt",
+      "query": "Jamie Mueller: Jamie F.",
+      "got": [
+        "0285/7552-Jamie-disambiguation.txt",
+        "0000/6975-Jamie.txt",
+        "0000/6975-Jamie.txt",
+        "0623/5680-Jamie-Oliver.txt",
+        "0000/6975-Jamie.txt"
+      ]
+    },
+    {
+      "expected": "0005/8000-Ruhleben-internment-camp.txt",
+      "query": "Ruhleben internment camp: Ruhleben internment camp was a civilian detention camp in Germany during World War I.",
+      "got": [
+        "1390/4284-Ngamiland-Delta.txt",
+        "0700/8955-Ruhleben-Begriffskl-rung.txt",
+        "0793/4665-D-hlener-Wetterschacht.txt",
+        "0624/8269-Ruhleben.txt",
+        "0674/3640-Friedrich-G-nther-Schwarzburg-Rudolstadt.txt"
+      ]
+    }
+  ]
+}
