@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "serviette"
-version = "0.1.7"
+version = "0.1.8"
 description = "A no-code RAG server that keeps answers in sync with your documents. Works with 8 vector databases. Built on Pathway."
 readme = "README.md"
 license = { file = "LICENSE" }

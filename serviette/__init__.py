@@ -4,6 +4,6 @@ Works with 8 vector databases. Built on Pathway.
 """
 
 APP_NAME = "serviette"
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 __all__ = ["APP_NAME", "__version__"]
