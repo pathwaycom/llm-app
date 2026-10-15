@@ -71,3 +71,6 @@ Derived values are saved in `derived.json`.
 Regenerate with `python plot_results.py --update-readme`.
 The script checks CSV peaks, chunk counts and process snapshots against summaries
 and requires all six sizes before updating the publication.
+Run `python verify_results.py` after regeneration to audit every process sample,
+all published tables and the pie sum; `consistency-check.json` records the
+result and hashes of both published figures.

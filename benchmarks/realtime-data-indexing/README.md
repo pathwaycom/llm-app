@@ -106,3 +106,9 @@ excluding the embedding service itself. Anonymous-memory attribution uses
 the separate diagnostic and remains an estimate; shared library pages come
 from the main run's mappings.
 See `results/README.md` for the recorded setup and attribution formula.
+
+After rebuilding, run `python verify_results.py` to independently check
+every aggregate sample against its per-process snapshot, recompute peaks
+and indexing times, compare all published tables, and verify the pie sum
+and complete 50 GB output. The saved `results/consistency-check.json`
+records the checks and hashes of both published figures.
