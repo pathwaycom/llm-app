@@ -1,3 +1,0 @@
-pathway[all]
-python-dotenv~=1.0
-twelvelabs>=1.2.8

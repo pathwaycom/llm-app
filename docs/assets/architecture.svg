@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 600" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <!-- canvas -->
+  <rect x="1" y="1" width="978" height="598" rx="14" fill="#f8f9fb" stroke="#e3e6ea"/>
+
+  <!-- path labels -->
+  <text x="425" y="52" text-anchor="middle" font-size="11" letter-spacing="2.5" fill="#8b93a1" font-weight="600">WRITE PATH</text>
+  <text x="610" y="392" text-anchor="middle" font-size="11" letter-spacing="2.5" fill="#8b93a1" font-weight="600">READ PATH</text>
+
+  <!-- ============ sources ============ -->
+  <rect x="30" y="70" width="190" height="210" rx="10" fill="#ffffff" stroke="#d9dce1"/>
+  <text x="125" y="98" text-anchor="middle" font-size="15" font-weight="650" fill="#1f2328">Sources</text>
+  <g font-size="12" fill="#1f2328" text-anchor="middle">
+    <rect x="50" y="108" width="150" height="25" rx="6" fill="#eef0f4"/>
+    <text x="125" y="125">Filesystem</text>
+    <rect x="50" y="139" width="150" height="25" rx="6" fill="#eef0f4"/>
+    <text x="125" y="156">Google Drive</text>
+    <rect x="50" y="170" width="150" height="25" rx="6" fill="#eef0f4"/>
+    <text x="125" y="187">S3 / MinIO</text>
+    <rect x="50" y="201" width="150" height="25" rx="6" fill="#eef0f4"/>
+    <text x="125" y="218">SharePoint</text>
+    <rect x="50" y="232" width="150" height="25" rx="6" fill="#eef0f4"/>
+    <text x="125" y="249">FTP / WebDAV / ZIP</text>
+  </g>
+  <text x="125" y="266" text-anchor="middle" font-size="11" fill="#57606a">watched · mixed freely</text>
+
+  <!-- sources -> indexer -->
+  <line x1="220" y1="175" x2="268" y2="175" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- ============ indexer ============ -->
+  <rect x="270" y="70" width="310" height="210" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+  <text x="425" y="98" text-anchor="middle" font-size="15" font-weight="650" fill="#4338ca">serviette indexer · Pathway</text>
+  <g font-size="12" fill="#1f2328" text-anchor="middle">
+    <rect x="288" y="114" width="60" height="26" rx="6" fill="#eef0f4"/>
+    <text x="318" y="131">watch</text>
+    <text x="356" y="131" fill="#8b93a1">→</text>
+    <rect x="364" y="114" width="60" height="26" rx="6" fill="#eef0f4"/>
+    <text x="394" y="131">parse</text>
+    <text x="432" y="131" fill="#8b93a1">→</text>
+    <rect x="440" y="114" width="60" height="26" rx="6" fill="#eef0f4"/>
+    <text x="470" y="131">split</text>
+    <text x="508" y="131" fill="#8b93a1">→</text>
+    <rect x="516" y="114" width="60" height="26" rx="6" fill="#eef0f4"/>
+    <text x="546" y="131">embed</text>
+  </g>
+  <g font-size="11.5" fill="#57606a">
+    <text x="290" y="166">• watches metadata only: paths, never file bytes</text>
+    <text x="290" y="188">• persistence: unchanged docs never re-embedded</text>
+    <text x="290" y="210">• parse/split/embed via the Pathway LLM xpack</text>
+    <text x="290" y="232">• edits &amp; deletions flow as native retractions</text>
+  </g>
+  <text x="425" y="264" text-anchor="middle" font-size="11" fill="#57606a">separate process — write path only</text>
+
+  <!-- indexer -> db -->
+  <line x1="580" y1="175" x2="678" y2="175" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text x="629" y="152" text-anchor="middle" font-size="10.5" fill="#57606a">Pathway native</text>
+  <text x="629" y="165" text-anchor="middle" font-size="10.5" fill="#57606a">connectors</text>
+  <text x="629" y="196" text-anchor="middle" font-size="10.5" fill="#57606a">upserts &amp;</text>
+  <text x="629" y="209" text-anchor="middle" font-size="10.5" fill="#57606a">deletes</text>
+
+  <!-- ============ vector database ============ -->
+  <rect x="680" y="70" width="270" height="210" rx="10" fill="#ffffff" stroke="#d9dce1"/>
+  <text x="815" y="98" text-anchor="middle" font-size="15" font-weight="650" fill="#1f2328">Vector database</text>
+  <g font-size="12" text-anchor="middle">
+    <rect x="698" y="112" width="112" height="26" rx="6" fill="#e4e6fb"/>
+    <text x="754" y="129" fill="#3730a3" font-weight="600">DuckDB · default</text>
+    <rect x="820" y="112" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="876" y="129" fill="#1f2328">pgvector</text>
+    <rect x="698" y="146" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="754" y="163" fill="#1f2328">Qdrant</text>
+    <rect x="820" y="146" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="876" y="163" fill="#1f2328">Milvus</text>
+    <rect x="698" y="180" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="754" y="197" fill="#1f2328">ChromaDB</text>
+    <rect x="820" y="180" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="876" y="197" fill="#1f2328">Weaviate</text>
+    <rect x="698" y="214" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="754" y="231" fill="#1f2328">Pinecone</text>
+    <rect x="820" y="214" width="112" height="26" rx="6" fill="#eef0f4"/>
+    <text x="876" y="231" fill="#1f2328">MongoDB Atlas</text>
+  </g>
+  <text x="815" y="266" text-anchor="middle" font-size="11" fill="#57606a">your store · plain schema · the only shared state</text>
+
+  <!-- db <- server (query) -->
+  <line x1="815" y1="410" x2="815" y2="284" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text x="827" y="330" font-size="10.5" fill="#57606a">top-k</text>
+  <text x="827" y="343" font-size="10.5" fill="#57606a">vector search</text>
+
+  <!-- ============ server ============ -->
+  <rect x="400" y="412" width="550" height="130" rx="10" fill="#ffffff" stroke="#c3c8f0"/>
+  <text x="675" y="440" text-anchor="middle" font-size="15" font-weight="650" fill="#4338ca">serviette server</text>
+  <g font-size="12" fill="#1f2328" text-anchor="middle">
+    <rect x="425" y="456" width="150" height="27" rx="6" fill="#eef0f4"/>
+    <text x="500" y="474">chat UI on “/”</text>
+    <rect x="590" y="456" width="170" height="27" rx="6" fill="#eef0f4"/>
+    <text x="675" y="474">REST API · /api/v1/*</text>
+    <rect x="775" y="456" width="155" height="27" rx="6" fill="#eef0f4"/>
+    <text x="852" y="474">/retrieve · /rag</text>
+  </g>
+  <text x="675" y="516" text-anchor="middle" font-size="11.5" fill="#57606a">stateless · async · embeds queries · scales horizontally — read path only</text>
+
+  <!-- clients -->
+  <g font-size="12.5" fill="#1f2328" text-anchor="middle">
+    <rect x="60" y="430" width="160" height="30" rx="15" fill="#eef0f4" stroke="#d9dce1"/>
+    <text x="140" y="449">browser</text>
+    <rect x="60" y="482" width="160" height="30" rx="15" fill="#eef0f4" stroke="#d9dce1"/>
+    <text x="140" y="501">your app · curl</text>
+  </g>
+  <line x1="220" y1="445" x2="398" y2="460" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="220" y1="497" x2="398" y2="490" stroke="#6b7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- decoupling footnote -->
+  <text x="490" y="576" text-anchor="middle" font-size="12" fill="#57606a" font-style="italic">The indexer and the server never talk to each other — the vector database is the only contract between the write and read paths.</text>
+</svg>

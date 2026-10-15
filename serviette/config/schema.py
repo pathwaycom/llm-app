@@ -1,0 +1,1001 @@
+"""Shared configuration schema for serviette (Pydantic v2).
+
+A single YAML file can hold both indexer and server configuration (a *universal*
+config), or the user can split it into an indexer-only and a server-only file.
+Most top-level sections are therefore optional at the schema level; each
+component validates the subset it needs via :func:`require` at startup.
+
+String values support ``${ENV_VAR}`` interpolation, resolved while the YAML is
+loaded (see :func:`load_config`). This keeps credentials out of the config file
+itself, satisfying the "no hardcoded credentials" principle.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+from pathlib import Path
+from typing import Annotated, Any, ClassVar, Literal
+
+import yaml
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
+
+from serviette import APP_NAME
+
+# ---------------------------------------------------------------------------
+# Sources
+# ---------------------------------------------------------------------------
+
+
+class FsSource(BaseModel):
+    """A filesystem source watched by the indexer.
+
+    ``type`` is the discriminator across source types. Only sources with an
+    ``only_metadata`` read mode are supported (see ``GDriveSource``).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["fs"] = "fs"
+    # A directory; ``~`` is expanded. Must exist when the indexer starts —
+    # see :func:`require_source_dirs` (a typo must not silently become an
+    # empty index).
+    path: str
+    glob: str = "**/*"
+    # "streaming" watches the path continuously (default); "static" reads the
+    # current contents once and lets the graph terminate (used for one-shot
+    # indexing and tests).
+    mode: Literal["streaming", "static"] = "streaming"
+    # Bound on entries the connector keeps in flight before downstream
+    # processing catches up. Backpressure keeps the indexer's memory flat
+    # during bulk backfills and makes sink commits arrive steadily instead of
+    # in one giant batch. None disables the bound.
+    max_backlog_size: int | None = 1000
+
+    @field_validator("path")
+    @classmethod
+    def _expand_user(cls, value: str) -> str:
+        # ``~/docs`` is what people type; the fs connector takes it literally.
+        return os.path.expanduser(value)
+
+
+class GDriveSource(BaseModel):
+    """A Google Drive source (folder or file) read in ``only_metadata`` mode.
+
+    Like the filesystem source, the graph holds only metadata; file bytes are
+    downloaded on demand by id during parsing. Requires a Google service-account
+    credentials file (see the Google Drive connector docs).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["gdrive"] = "gdrive"
+    object_id: str
+    service_user_credentials_file: str
+    # Glob (or list of globs) on file names, e.g. "*.pdf". None = no filtering.
+    file_name_pattern: str | list[str] | None = None
+    object_size_limit: int | None = None
+    mode: Literal["streaming", "static"] = "streaming"
+    # See FsSource.max_backlog_size.
+    max_backlog_size: int | None = 1000
+
+
+class S3Source(BaseModel):
+    """An S3 bucket (or any S3-compatible store: MinIO, DigitalOcean, Wasabi)
+    read in ``only_metadata`` mode: the graph tracks object metadata only, and
+    object bytes are downloaded on demand during parsing. Credentials fall
+    back to the standard AWS chain when omitted.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["s3"] = "s3"
+    bucket: str
+    # Key or key prefix to index ("" = the whole bucket).
+    path: str = ""
+    access_key: str | None = None
+    secret_access_key: str | None = None
+    region: str | None = None
+    # Custom endpoint for self-hosted / S3-compatible storage (e.g. MinIO);
+    # such setups usually also need path-style addressing.
+    endpoint: str | None = None
+    with_path_style: bool = False
+    mode: Literal["streaming", "static"] = "streaming"
+    # See FsSource.max_backlog_size.
+    max_backlog_size: int | None = 1000
+
+    @model_validator(mode="after")
+    def _custom_endpoint_needs_region(self) -> S3Source:
+        # Without a region the AWS signature's credential scope is malformed
+        # and S3-compatible stores reject requests with an opaque
+        # AuthorizationQueryParametersError. MinIO's default is us-east-1.
+        if self.endpoint and not self.region:
+            raise ValueError(
+                "s3 source: 'region' is required when 'endpoint' is set "
+                "(use 'us-east-1' for a default MinIO installation)"
+            )
+        return self
+
+
+class SharePointSource(BaseModel):
+    """A Microsoft SharePoint directory/file read in ``only_metadata`` mode.
+
+    Uses certificate authentication (an app registration with a certificate;
+    see the Pathway SharePoint connector docs). Requires a Pathway Scale
+    license and the ``serviette[sharepoint]`` extra.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["sharepoint"] = "sharepoint"
+    url: str  # e.g. https://company.sharepoint.com/sites/MySite
+    tenant: str
+    client_id: str
+    cert_path: str
+    thumbprint: str
+    root_path: str
+    recursive: bool = True
+    object_size_limit: int | None = None
+    refresh_interval: int = 30
+    mode: Literal["streaming", "static"] = "streaming"
+
+
+class PyFilesystemSource(BaseModel):
+    """Any filesystem PyFilesystem can open, watched in ``only_metadata``
+    mode: FTP, SFTP/SSH, WebDAV, ZIP/TAR archives, in-memory and more —
+    the ``fs_url`` (e.g. ``"ftp://user:pass@host/dir"``, ``"zip://docs.zip"``)
+    selects the driver. Requires the ``serviette[pyfilesystem]`` extra; some
+    protocols need their own driver package (``fs.sshfs``, ``fs.webdavfs``).
+    Credentials belong in the URL via ``${ENV_VAR}`` interpolation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["pyfilesystem"] = "pyfilesystem"
+    fs_url: str
+    # Path inside the opened filesystem ("" = its root), scanned recursively.
+    path: str = ""
+    mode: Literal["streaming", "static"] = "streaming"
+    # Seconds between scans in streaming mode.
+    refresh_interval: float = 30.0
+    # See FsSource.max_backlog_size.
+    max_backlog_size: int | None = 1000
+
+
+class ParserRule(BaseModel):
+    """One routing rule of the ``parser:`` section: files whose name *or*
+    path (as the source reports it — absolute for ``fs``, the object key for
+    ``s3``, the server-relative URL for ``sharepoint``) matches any of the
+    ``match`` globs are parsed by ``type``; ``*`` also matches ``/``, so
+    ``*/scans/*.png`` selects a folder. Rules are checked in order, first
+    match wins; built-in keyless-first defaults cover whatever the user
+    rules don't. ``options`` are forwarded to the parser constructor
+    (e.g. ``prompt`` for twelvelabs_video, ``model``/``api_key`` for
+    whisper); ``${ENV_VAR}`` interpolation applies as everywhere."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    match: list[str] = Field(min_length=1)
+    type: Literal[
+        "utf8",
+        "pypdf",
+        "docling",
+        "unstructured",
+        "paddle_ocr",
+        "vision_image",
+        "vision_slide",
+        "whisper",
+        "twelvelabs_video",
+        "skip",
+    ]
+    options: dict[str, Any] = Field(default_factory=dict)
+
+
+Source = Annotated[
+    FsSource | GDriveSource | S3Source | SharePointSource | PyFilesystemSource,
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------------------------------------------------------
+# Vector databases
+# ---------------------------------------------------------------------------
+
+
+class _HybridCapableConfig(BaseModel):
+    """Mixed into every backend whose accessor can run in-process BM25 hybrid.
+
+    ``hybrid`` fuses vector search with a BM25 keyword index built in-process
+    from the backend's stored texts (rebuilt on change, see
+    ``hybrid_refresh_seconds``) via
+    reciprocal-rank fusion — it helps entity-heavy queries (names, dates, IDs)
+    that embedding distance ranks poorly. In-process BM25 targets corpora up to
+    a few million chunks; above ``hybrid_max_chunks`` the keyword leg is skipped
+    with a warning and retrieval stays pure-vector. Native server-side keyword
+    search is the planned replacement at larger scale.
+    """
+
+    hybrid: bool = False
+    hybrid_max_chunks: int = Field(default=5_000_000, ge=1)
+    # Upper bound on how stale the in-process BM25 index may get. The index
+    # is rebuilt at once when the backend reports a change (row count; on
+    # DuckDB/pgvector also the newest ``seen_at``, which catches in-place
+    # edits), and additionally refreshed in the background once this many
+    # seconds have passed since the last build — the safety net for changes
+    # the backend's cheap signal cannot see. null disables the timed refresh.
+    hybrid_refresh_seconds: float | None = Field(default=30.0, ge=0)
+
+
+class PgVectorConfig(_HybridCapableConfig):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["pgvector"] = "pgvector"
+    connection_string: str
+    table: str = "serviette_embeddings"
+    # Dimension of the embedding column. Used when the indexer auto-creates the
+    # table. If omitted, it is inferred from the embedder at indexer startup.
+    embedding_dimension: int | None = None
+
+
+class MilvusConfig(_HybridCapableConfig):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["milvus"] = "milvus"
+    # Either a full URI (e.g. "http://localhost:19530" or "./milvus.db" for
+    # Milvus Lite) or host + port. ``uri`` takes precedence when provided.
+    uri: str | None = None
+    host: str = "localhost"
+    port: int = 19530
+    collection: str = "serviette_embeddings"
+    token: str | None = None
+    embedding_dimension: int | None = None
+
+    def resolved_uri(self) -> str:
+        if self.uri:
+            return self.uri
+        return f"http://{self.host}:{self.port}"
+
+    def is_lite(self) -> bool:
+        """Milvus Lite: ``uri`` is a local file (``./milvus.db``), not a URL.
+        Lite runs embedded in the process that opens the file and locks it,
+        so only one process can use it at a time."""
+
+        return bool(self.uri) and "://" not in self.uri
+
+
+class DuckDbConfig(_HybridCapableConfig):
+    """Embedded vector store backed by a local DuckDB database file.
+
+    Zero-setup: no external service. The indexer writes through Pathway's native
+    ``pw.io.duckdb`` connector in *snapshot* mode (real upserts/deletes keyed by
+    chunk id); embeddings land as native ``DOUBLE[]`` lists and retrieval runs
+    **inside DuckDB** with ``list_cosine_similarity`` — a vectorized, columnar
+    scan, not a Python loop.
+
+    Concurrency: the sink writes with ``detach_between_batches`` (Pathway
+    ≥ 0.32.1), releasing the single-writer file lock between minibatches, so
+    the server's retrying read-only connections query the same file while a
+    streaming indexer runs. On older Pathway builds serviette warns and falls
+    back to hold-the-lock behavior (use ``mode: static`` there).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["duckdb"] = "duckdb"
+    path: str
+    table: str = "serviette_embeddings"
+
+
+class QdrantConfig(_HybridCapableConfig):
+    """Qdrant backend. The indexer writes via ``pw.io.qdrant`` (gRPC); the
+    server queries via the REST/HTTP API. The collection is auto-created on
+    first write (cosine metric) if it does not exist."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["qdrant"] = "qdrant"
+    host: str = "localhost"
+    rest_port: int = 6333
+    grpc_port: int = 6334
+    https: bool = False
+    api_key: str | None = None
+    collection: str = "serviette_embeddings"
+
+    def rest_url(self) -> str:
+        scheme = "https" if self.https else "http"
+        return f"{scheme}://{self.host}:{self.rest_port}"
+
+    def grpc_url(self) -> str:
+        scheme = "https" if self.https else "http"
+        return f"{scheme}://{self.host}:{self.grpc_port}"
+
+
+class ChromaConfig(_HybridCapableConfig):
+    """ChromaDB backend (HTTP client/server mode). The **collection must
+    already exist** (created with the cosine ``hnsw:space``); the connector
+    never creates it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chroma"] = "chroma"
+    host: str = "localhost"
+    port: int = 8000
+    ssl: bool = False
+    headers: dict[str, str] | None = None
+    tenant: str = "default_tenant"
+    database: str = "default_database"
+    collection: str = "serviette_embeddings"
+
+
+class WeaviateConfig(_HybridCapableConfig):
+    """Weaviate backend. The **collection must already exist**. The indexer
+    writes over HTTP; the server's v4 client also needs the gRPC port."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["weaviate"] = "weaviate"
+    http_host: str = "localhost"
+    http_port: int = 8080
+    http_secure: bool = False
+    grpc_host: str | None = None  # defaults to http_host
+    grpc_port: int = 50051
+    grpc_secure: bool = False
+    api_key: str | None = None
+    collection: str = "ServietteEmbeddings"
+
+
+class PineconeConfig(BaseModel):
+    """Pinecone backend. The **index must already exist** with a dimension
+    matching the embedder (cosine metric recommended). ``host`` is only needed
+    for Pinecone Local; the managed service resolves it from the API key."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["pinecone"] = "pinecone"
+    index_name: str
+    api_key: str | None = None  # falls back to PINECONE_API_KEY
+    host: str | None = None
+    namespace: str = ""
+    # Used when the indexer auto-creates a missing index.
+    embedding_dimension: int | None = None
+    cloud: str = "aws"
+    region: str = "us-east-1"
+    # In-process BM25 hybrid is NOT available on Pinecone: it has no
+    # scan-all-vectors API, so the keyword corpus cannot be built server-side.
+    # Setting this raises a clear error at startup. Native hybrid needs a
+    # second (sparse) index fed by the indexer — planned.
+    hybrid: bool = False
+
+
+class MongoDbConfig(_HybridCapableConfig):
+    """MongoDB Atlas Vector Search backend. The indexer writes documents in
+    snapshot mode via ``pw.io.mongodb``; create an Atlas ``vectorSearch`` index
+    (named ``vector_index`` by default) on the ``embedding`` path with
+    ``numDimensions`` matching the embedder."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["mongodb"] = "mongodb"
+    connection_string: str
+    database: str
+    collection: str = "serviette_embeddings"
+    vector_index: str = "vector_index"
+    # Used when the indexer auto-creates a missing vectorSearch index.
+    embedding_dimension: int | None = None
+
+
+VectorDBConfig = Annotated[
+    DuckDbConfig | PgVectorConfig | MilvusConfig | QdrantConfig | ChromaConfig | WeaviateConfig | PineconeConfig | MongoDbConfig,
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------------------------------------------------------
+# Embedder / splitter / LLM
+# ---------------------------------------------------------------------------
+
+
+class EmbedderConfig(BaseModel):
+    """Embedder configuration.
+
+    ``type`` selects an embedder family that maps onto a
+    ``pathway.xpacks.llm.embedders`` class on the indexer side and onto an async
+    client on the server side. Any extra keys are forwarded to the underlying
+    embedder constructor / client, so provider-specific options need no schema
+    change.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    type: str = "openai"
+    model: str | None = None
+    api_key: str | None = None
+    # Asymmetric-retrieval prefixes (e5, bge & co): prepended to the text
+    # right before embedding — ``document_prefix`` on the indexer side,
+    # ``query_prefix`` on the server side. Stored chunk text stays clean.
+    # Leave empty for symmetric models.
+    query_prefix: str = ""
+    document_prefix: str = ""
+
+
+class RerankerConfig(BaseModel):
+    """Optional second-stage reranker for retrieval.
+
+    When configured, the server fetches ``candidates`` nearest chunks from the
+    vector index, scores each (query, chunk) pair, and returns the top ``k``
+    by that score. Two scorers are available:
+
+    - ``cross_encoder`` (default): a local sentence-transformers cross-encoder
+      reads the query and the chunk *together*, so it catches matches that
+      embedding distance ranks poorly — at the cost of one model call per
+      candidate, which is why it runs on a shortlist and not on the whole
+      index. The default model is local, free and keyless.
+    - ``llm``: pointwise LLM scoring (each chunk rated 0–5 for relevance to
+      the query, in the spirit of ``pathway.xpacks.llm.rerankers.LLMReranker``).
+      Costs one cheap LLM call per candidate; ``model``/``api_key`` default to
+      the top-level ``llm`` section.
+
+    Note: pointwise rerankers optimize per-chunk relevance to the *whole*
+    question and can push out chunks needed for other hops of a multi-hop
+    question — for those, prefer ``rag.decompose`` / ``rag.mmr``.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    type: str = "cross_encoder"
+    model: str | None = None  # cross_encoder: ms-marco-MiniLM-L-6-v2; llm: llm section's
+    api_key: str | None = None  # llm type only; defaults to the llm section's
+    candidates: int = Field(default=30, ge=1)
+
+
+class SplitterConfig(BaseModel):
+    """Chunking strategy: ``token_count`` (default), ``recursive``, or
+    ``null`` — no splitting, the whole document is one chunk (short,
+    self-contained documents: FAQ entries, product cards). Extra keys are
+    forwarded to the xpack splitter constructor."""
+
+    model_config = ConfigDict(extra="allow")
+
+    type: str = "token_count"
+    chunk_size: int = 512
+    chunk_overlap: int = 50
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def _yaml_null_means_no_splitter(cls, value: Any) -> Any:
+        # ``type: null`` is the natural way to write it in YAML, and the
+        # YAML parser hands it over as None; treat that as the "null"
+        # splitter rather than failing validation with "expected a string".
+        return "null" if value is None else value
+
+
+class LLMConfig(BaseModel):
+    """Optional LLM configuration for the ``/rag`` endpoint."""
+
+    model_config = ConfigDict(extra="allow")
+
+    type: str = "openai"
+    model: str | None = None
+    api_key: str | None = None
+    # Sampling temperature for completions. None = provider default. Set 0 for
+    # reproducible benchmark runs; leave unset for reasoning models that
+    # reject non-default temperatures.
+    temperature: float | None = None
+    # Reasoning effort for reasoning models (gpt-5*, o*): "minimal" | "low" |
+    # "medium" | "high". None = provider default. Lower efforts cut latency
+    # and output-token cost; non-reasoning models reject the parameter, so
+    # leave unset for them.
+    reasoning_effort: str | None = None
+    # System prompt for /rag answers. None = the built-in strictly-grounded
+    # default ("answer only from the provided context") — right for private
+    # corpora where hallucinated outside knowledge is unacceptable. Override
+    # to allow blending the model's own knowledge with the context (e.g. for
+    # public-domain corpora the model has largely memorized). Adaptive RAG
+    # keeps this policy and appends its own no-answer instruction (the
+    # marker that tells it to fetch more context) — note that a policy which
+    # lets the model answer from its own knowledge rarely triggers that
+    # marker, so the context then rarely grows.
+    system_prompt: str | None = None
+
+
+class AdaptiveRagConfig(BaseModel):
+    """Adaptive RAG (Pathway research; cf. ``AdaptiveRAGQuestionAnswerer``).
+
+    ``/rag`` first answers from the requested ``k`` chunks; when the LLM
+    replies that the context is insufficient (detected via
+    ``no_answer_string``), the context is grown by ``factor`` and the question
+    re-asked, up to ``max_iterations`` attempts total. Simple questions stay
+    cheap; hard multi-hop ones get a larger context only when needed.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    factor: int = Field(default=2, ge=2)
+    max_iterations: int = Field(default=4, ge=1)
+    # The exact marker the LLM is instructed to reply with when the context
+    # does not contain the answer. Detected as a substring of the reply.
+    no_answer_string: str = "No information found"
+
+
+class DecomposeConfig(BaseModel):
+    """Multi-query retrieval for multi-hop questions.
+
+    One LLM call splits the question into standalone sub-queries ("mother of
+    the 15th first lady?", "second assassinated president?"); retrieval runs
+    for the original question and every sub-query, and the result lists are
+    fused with reciprocal-rank fusion. This keeps chunks of *different* hops
+    from competing for the same top-k slots. Requires the ``llm`` section.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    max_subqueries: int = Field(default=4, ge=2, le=10)
+
+
+class MmrConfig(BaseModel):
+    """Maximal-marginal-relevance diversification of retrieval results.
+
+    The server fetches ``candidates`` chunks and greedily selects ``k`` of
+    them, trading relevance against similarity to the already-selected set:
+    ``diversity`` is the weight of the redundancy penalty (0 = plain top-k,
+    1 = ignore relevance). Needs hit embeddings, so the backend must support
+    returning them (DuckDB for now).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    candidates: int = Field(default=20, ge=1)
+    diversity: float = Field(default=0.3, ge=0.0, le=1.0)
+
+
+class DocumentsConfig(BaseModel):
+    """Document-level questions on ``/rag``: how many documents there are,
+    which ones exist, what a named file says, how two files differ.
+
+    On by default (unlike the other ``rag`` strategies) — these are the first
+    questions people ask, and chunk retrieval cannot answer them. A question
+    that names a file (with its extension) is answered from that file
+    directly. Any other question goes through the ordinary search first;
+    only when the LLM reports no answer does one short extra call decide
+    between searching wider (``rag.adaptive``) and answering from the
+    document catalog or from whole documents. Every step is bounded by
+    ``max_context_chars`` and the whole request by ``max_request_chars``,
+    whatever the size of the documents.
+
+    While enabled, the ``/rag`` system prompt carries the no-answer
+    instruction ``rag.adaptive`` uses (that reply is what triggers the extra
+    call), with ``corpus_card`` one line stating the document count, and with
+    ``source_labels`` each context chunk is prefixed with its file name.
+    Ignored on backends that cannot enumerate documents (Pinecone).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = True
+    # State the number of indexed documents in the /rag system prompt, so
+    # "how many documents do you have" is answered on the first attempt.
+    corpus_card: bool = True
+    # Prefix every retrieved chunk in the /rag context with the name of its
+    # file, so the model can attribute statements and tell apart documents
+    # that disagree (e.g. two versions of one file).
+    source_labels: bool = True
+    # Upper bound, in characters, on the document material one answering
+    # call sees (a whole document, a comparison, or the catalog listing).
+    max_context_chars: int = Field(default=24_000, ge=1_000)
+    # Upper bound, in characters, on everything one /rag request sends to
+    # the LLM across all of its calls (search attempts incl. the adaptive
+    # loop, routing, the answer). A call that does not fit is cut down to
+    # what is left; when nothing useful fits, no further call is made and
+    # the response says so in ``notice``. About 4 characters per token.
+    max_request_chars: int = Field(default=100_000, ge=2_000)
+    # How many document names the routing call is shown.
+    max_listed_documents: int = Field(default=200, ge=1)
+
+
+class RagConfig(BaseModel):
+    """Optional retrieval-quality strategies for ``/retrieve`` and ``/rag``.
+
+    ``decompose`` widens *what* is retrieved, ``mmr`` diversifies *which*
+    candidates survive, ``adaptive`` retries with a larger context when the
+    answer is not found (``/rag`` only; ``decompose`` and ``mmr`` also apply
+    to ``/retrieve``, though ``decompose`` needs an ``llm`` section either
+    way). These three are opt-in and composable; ``documents`` (``/rag``
+    only) is on unless disabled.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    adaptive: AdaptiveRagConfig | None = None
+    decompose: DecomposeConfig | None = None
+    mmr: MmrConfig | None = None
+    documents: DocumentsConfig = Field(default_factory=DocumentsConfig)
+
+
+# ---------------------------------------------------------------------------
+# Persistence / server
+# ---------------------------------------------------------------------------
+
+
+class IndexerConfig(BaseModel):
+    """Indexer runtime options."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Number of Pathway worker PROCESSES. When > 1, `serviette indexer` re-executes
+    # itself through `pathway spawn --processes N` (one worker thread each);
+    # sinks that key rows internally (e.g. qdrant) write in parallel.
+    workers: int = Field(default=1, ge=1)
+    # Retries of a document's byte fetch before it is given up on (indexed as
+    # empty, ERROR-logged, retried on the next restart). Exponential backoff
+    # from 1s. Remote sources fail transiently under bulk backfills — rate
+    # limits, connection resets — so 0 is only for tests.
+    fetch_retries: int = Field(default=3, ge=0)
+    # Advanced. Disk budget for the parse cache (pw.udfs.DefaultCache, stored
+    # under <workdir>/persistence/runtime_calls, LRU-evicted). Size it at least to
+    # the extracted-text volume of the corpus to avoid re-parse churn.
+    parse_cache_size_gb: int = Field(default=8, ge=1)
+    # Advanced. If set, the engine keeps the memoization cache of
+    # non-deterministic UDFs (parsed texts) in files in this directory
+    # instead of RAM (requires a Pathway build with pw.run's
+    # udf_cache_directory). Point it at a real disk, not tmpfs.
+    udf_cache_directory: str | None = None
+    # Advanced. First port of the inter-worker communication range used by
+    # ``pathway spawn`` when workers > 1 (each worker binds first_port + index).
+    # Shift it when several Pathway applications share a host — the default
+    # range collides and workers hang retrying "connection refused".
+    spawn_first_port: int = Field(default=10000, ge=1024, le=65000)
+    # Advanced. Base port of the Pathway engine's built-in monitoring HTTP
+    # server: every worker process serves GET /status (JSON snapshot) and
+    # GET /metrics (Prometheus) on 127.0.0.1:(port + worker index).
+    # None disables the server.
+    monitoring_http_port: int | None = Field(default=None, ge=1, le=65535)
+
+
+class PersistenceConfig(BaseModel):
+    """On-disk persistence — the silent default (the wizard does not ask).
+
+    Carries three things: incremental state across restarts (no re-embedding
+    of unchanged documents), correct retraction of files deleted while the
+    indexer was down, and the parse cache (``runtime_calls``). Advanced users
+    disable it by editing the config directly; disabling also disables the
+    parse cache.
+
+    The state lives in the ``persistence`` subdirectory of the working
+    directory (``workdir_path``, see :meth:`ServietteConfig.persistence_dir`);
+    there is no separate path to configure.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = True
+    backend: Literal["filesystem"] = "filesystem"
+
+    @model_validator(mode="before")
+    @classmethod
+    def _no_path_here(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "path" in data:
+            raise ValueError(
+                "persistence.path is not a setting: the persistence state lives "
+                "in the working directory — set the top-level workdir_path instead."
+            )
+        return data
+
+
+class ServerConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # Loopback by default: the server has no built-in auth (that is the
+    # perimeter's job — see the Security section of the docs), so listening
+    # on all interfaces must be an explicit decision ("0.0.0.0"), not a
+    # surprise on a laptop in a cafe.
+    host: str = "127.0.0.1"
+    # An uncommon default port: 8000/8080 collide with half the dev tools.
+    port: int = 8989
+    # Opt-in CORS allowlist for third-party browser frontends that call this
+    # API directly from another origin. Empty (the default) = no CORS
+    # headers at all — which is itself a protection: it stops web pages from
+    # reading responses of localhost instances (drive-by exfiltration).
+    # serviette's own UIs never need this (same origin / server-side proxy).
+    # Enable only if you know what you are doing; prefer exact origins over "*".
+    cors_origins: list[str] = Field(default_factory=list)
+    # Serve the chat UI on "/" from the same process/port (same-origin, no
+    # CORS). Disable for a pure-API deployment; the standalone
+    # `serviette frontend` command covers split UI/API deployments.
+    serve_frontend: bool = True
+
+
+class UpConfig(BaseModel):
+    """``serviette up`` supervisor options."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Seconds ``up`` holds the server back waiting for the first indexed
+    # chunks. Normally the wait ends within seconds; it never ends when the
+    # source folder holds only documents that yield no text (scans without
+    # the OCR extra, audio without its API key, files whose parser fails),
+    # so after this long the server starts over the empty index with a
+    # warning and documents keep being indexed live. null = wait forever.
+    index_wait_timeout: float | None = Field(default=120.0, ge=0)
+
+
+class FrontendConfig(BaseModel):
+    """Web chat UI. Decoupled from the API: it only needs the API's address.
+
+    The frontend serves the page and *proxies* requests to ``api_url`` server-side
+    (no CORS, the API address never reaches the browser), so indexing, API and
+    frontend can each run on a different worker/host.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    host: str = "127.0.0.1"  # loopback by default, same reasoning as ServerConfig
+    port: int = 3000
+    # Base URL of the serviette server API this frontend talks to.
+    api_url: str = "http://localhost:8989"
+    title: str = APP_NAME
+
+
+# ---------------------------------------------------------------------------
+# Root config
+# ---------------------------------------------------------------------------
+
+
+class ServietteConfig(BaseModel):
+    """Top-level universal configuration.
+
+    Sections are optional so the same model validates indexer-only and
+    server-only files. Use :meth:`for_indexer` / :meth:`for_server` to assert the
+    fields a given component requires.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    pathway_license_key: str | None = None
+
+    sources: list[Source] = Field(default_factory=list)
+    vector_db: VectorDBConfig | None = None
+    embedder: EmbedderConfig | None = None
+    splitter: SplitterConfig = Field(default_factory=SplitterConfig)
+    # Optional parser routing rules (see ParserRule). None: built-in defaults
+    # cover every modality, preferring keyless local parsers (best available:
+    # docling > pypdf for PDF, PaddleOCR for images) and skipping modalities
+    # whose only parser needs an absent API key (audio, video) with a warning.
+    parser: list[ParserRule] | None = None
+    indexer: IndexerConfig = Field(default_factory=IndexerConfig)
+
+    # serviette's working directory: everything it keeps on disk between
+    # runs goes under here, each concern in its own subdirectory — the
+    # Pathway persistence state (``persistence/``, together with the parse
+    # cache), and the configuration fingerprint at the top level. Relative
+    # paths resolve against the process's working directory, like every other
+    # path in the config. Silent default — the wizard does not ask.
+    workdir_path: str = "./serviette-workdir"
+    persistence: PersistenceConfig = Field(default_factory=PersistenceConfig)
+    server: ServerConfig = Field(default_factory=ServerConfig)
+    up: UpConfig = Field(default_factory=UpConfig)
+    llm: LLMConfig | None = None
+    reranker: RerankerConfig | None = None
+    rag: RagConfig | None = None
+    frontend: FrontendConfig | None = None
+
+    # -- working directory layout ---------------------------------------------
+
+    PERSISTENCE_SUBDIR: ClassVar[str] = "persistence"
+
+    def workdir(self) -> Path:
+        return Path(self.workdir_path)
+
+    def persistence_dir(self) -> Path:
+        """The directory handed to the Pathway persistence backend.
+
+        A subdirectory of its own because the engine treats every entry of the
+        directory it is given as persisted state and logs an ERROR for
+        anything it did not write.
+        """
+
+        return self.workdir() / self.PERSISTENCE_SUBDIR
+
+    # -- per-component requirements -------------------------------------------
+
+    def require(self, *fields: str) -> None:
+        missing = [f for f in fields if not getattr(self, f)]
+        if missing:
+            raise ValueError(
+                "Missing required config section(s) for this command: "
+                + ", ".join(missing)
+            )
+
+    def for_indexer(self) -> ServietteConfig:
+        self.require("sources", "vector_db", "embedder")
+        return self
+
+    def for_server(self) -> ServietteConfig:
+        self.require("vector_db", "embedder")
+        return self
+
+    def for_frontend(self) -> ServietteConfig:
+        self.require("frontend")
+        return self
+
+    def missing_source_dirs(self) -> list[str]:
+        """Paths of ``fs`` sources that are not existing directories."""
+
+        return [
+            src.path
+            for src in self.sources
+            if src.type == "fs" and not Path(src.path).is_dir()
+        ]
+
+
+def require_source_dirs(config: ServietteConfig) -> None:
+    """Abort with a plain message when an ``fs`` source directory is missing.
+
+    Called by the engine-facing commands (``indexer``, ``up``) before any
+    work starts. Without this, a mistyped path is indistinguishable from an
+    empty folder: the connector watches nothing, ``up`` serves an empty
+    index, and the user only sees "no relevant context" answers.
+    """
+
+    missing = config.missing_source_dirs()
+    if not missing:
+        return
+    listed = "\n".join(f"  - {path}" for path in missing)
+    raise SystemExit(
+        "Source directory not found:\n"
+        f"{listed}\n"
+        "Check the 'path' of the fs source(s) in your config (relative paths "
+        "resolve against the current working directory; '~' is expanded), "
+        "or create the directory first — documents dropped into an existing "
+        "folder are indexed live."
+    )
+
+
+def require_multi_process_backend(config: ServietteConfig) -> None:
+    """Abort when the backend cannot serve the indexer and the server at once.
+
+    ``serviette up`` runs them as two processes against one store. Milvus
+    Lite is an embedded, single-process database: whichever process opens
+    the file first holds its lock, and the other fails with
+    ``DataDirLockedError`` — in practice ``up``'s readiness probe wins and
+    the indexer dies before indexing anything. Lite still works for the
+    one-process-at-a-time flow (``serviette indexer`` with static sources,
+    then ``serviette server``).
+    """
+
+    vdb = config.vector_db
+    if isinstance(vdb, MilvusConfig) and vdb.is_lite():
+        raise SystemExit(
+            f"Milvus Lite ({vdb.uri!r}) cannot be used with 'serviette up': it is "
+            "an embedded single-process database, and 'up' runs the indexer and "
+            "the server as two processes against the same file.\n"
+            "Use a Milvus server instead (vector_db.uri: http://host:19530 — "
+            "e.g. the 'milvus run standalone' docker image), or run the two "
+            "commands one after the other: 'serviette indexer' with "
+            "'mode: static' sources, then 'serviette server'."
+        )
+
+
+def missing_openai_credentials(config: ServietteConfig, *, roles: tuple[str, ...]) -> list[str]:
+    """The ``openai``-typed sections among ``roles`` (``"embedder"``, ``"llm"``)
+    that have no ``api_key`` and cannot fall back on ``OPENAI_API_KEY``."""
+
+    if os.environ.get("OPENAI_API_KEY"):
+        return []
+    missing = []
+    for role in roles:
+        section = getattr(config, role, None)
+        if section is not None and section.type == "openai" and not section.api_key:
+            missing.append(role)
+    return missing
+
+
+def require_openai_credentials(config: ServietteConfig, *, roles: tuple[str, ...]) -> None:
+    """Abort with a plain message when an OpenAI section has no key to use.
+
+    Without this the key is first needed deep inside a child process: the
+    indexer dies on the SDK's ``Missing credentials`` traceback after
+    ``up`` has already announced "indexing in progress", and the server
+    answers its first ``/rag`` with a 500. Checked by the engine-facing
+    commands before any work starts; ``roles`` says which sections the
+    command actually uses (the indexer embeds, the server embeds and chats).
+    """
+
+    missing = missing_openai_credentials(config, roles=roles)
+    if not missing:
+        return
+    listed = ", ".join(f"{role} (type: openai)" for role in missing)
+    raise SystemExit(
+        f"OpenAI API key missing for: {listed}.\n"
+        "Export it before starting (`export OPENAI_API_KEY=sk-...`) or set "
+        "`api_key` in those config sections. To run without OpenAI, switch the "
+        "embedder to `sentence_transformer` (free, local) and drop or change "
+        "the `llm` section."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Loading + ${ENV_VAR} interpolation
+# ---------------------------------------------------------------------------
+
+_ENV_PATTERN = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+class MissingEnvVarError(ValueError):
+    """A ``${VAR}`` reference in the config names an environment variable
+    that is not set."""
+
+
+def interpolate_env(value: Any, *, strict: bool = True) -> Any:
+    """Recursively replace ``${VAR}`` occurrences in strings with env values.
+
+    A reference to an unset variable is an error (:class:`MissingEnvVarError`,
+    naming every such variable and where it is used): resolving it to an
+    empty string used to send ``api_key: ""`` to the provider, whose 401
+    ("incorrect API key") hid the actual cause. ``strict=False`` keeps the
+    empty-string behavior for callers validating the *shape* of a config
+    that is meant to run elsewhere (the wizard's tests).
+    """
+
+    missing: list[tuple[str, str]] = []
+
+    def visit(node: Any, where: str) -> Any:
+        if isinstance(node, str):
+
+            def substitute(match: re.Match[str]) -> str:
+                name = match.group(1)
+                if name not in os.environ:
+                    missing.append((name, where))
+                    return ""
+                return os.environ[name]
+
+            return _ENV_PATTERN.sub(substitute, node)
+        if isinstance(node, dict):
+            return {k: visit(v, f"{where}.{k}" if where else str(k)) for k, v in node.items()}
+        if isinstance(node, list):
+            return [visit(v, f"{where}[{i}]") for i, v in enumerate(node)]
+        return node
+
+    result = visit(value, "")
+    if missing and strict:
+        listed = "\n".join(
+            f"  - ${{{name}}} (used in {where or 'the value'})" for name, where in missing
+        )
+        raise MissingEnvVarError(
+            "The config references environment variable(s) that are not set:\n"
+            f"{listed}\n"
+            "Export them before starting (e.g. `export OPENAI_API_KEY=sk-...`) "
+            "or replace the reference in the config."
+        )
+    return result
+
+
+def load_config(path: str | Path) -> ServietteConfig:
+    """Load, env-interpolate and validate a YAML config file."""
+
+    raw = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    if not isinstance(raw, dict):
+        raise TypeError(f"Config root must be a mapping, got {type(raw).__name__}")
+    try:
+        interpolated = interpolate_env(raw)
+    except MissingEnvVarError as exc:
+        raise MissingEnvVarError(f"Invalid configuration in {path}:\n{exc}") from None
+    try:
+        return ServietteConfig.model_validate(interpolated)
+    except ValidationError as exc:  # pragma: no cover - re-raised with context
+        raise ValueError(f"Invalid configuration in {path}:\n{exc}") from exc
+
+
+def load_config_dict(data: dict[str, Any], *, strict_env: bool = True) -> ServietteConfig:
+    """Validate an already-parsed config dict.
+
+    ``strict_env=False`` tolerates ``${VAR}`` references to unset variables —
+    for validating the shape of a generated config that will run elsewhere.
+    """
+
+    return ServietteConfig.model_validate(interpolate_env(data, strict=strict_env))

@@ -1,2 +1,0 @@
-python-dotenv~=1.0
-psycopg~=3.1

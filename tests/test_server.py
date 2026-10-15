@@ -1,0 +1,582 @@
+"""Tests for the FastAPI server (uses the DuckDB accessor + mock embedder)."""
+
+from __future__ import annotations
+
+import contextlib
+import subprocess
+import sys
+import time
+
+import pytest
+from fastapi.testclient import TestClient
+
+from serviette.config.schema import DuckDbConfig, EmbedderConfig, ServietteConfig
+from serviette.server.accessors.duckdb import DuckDbAccessor
+from serviette.server.main import create_app
+from tests.conftest import fake_embedding, write_duckdb_rows
+
+DOCS = ["alpha document about cats", "beta report on dogs", "gamma notes on birds"]
+
+
+@pytest.fixture
+def store_path(tmp_path):
+    path = tmp_path / "store.duckdb"
+    rows = [
+        {
+            "id": str(i),
+            "text": text,
+            "metadata": {"path": f"/docs/{i}.txt", "idx": i},
+            "embedding": fake_embedding(text),
+        }
+        for i, text in enumerate(DOCS)
+    ]
+    write_duckdb_rows(path, rows)
+    return path
+
+
+def _client(store_path, embedder, llm=None):
+    config = ServietteConfig(
+        vector_db=DuckDbConfig(type="duckdb", path=str(store_path)),
+        embedder=EmbedderConfig(type="openai"),
+    )
+    accessor = DuckDbAccessor(config.vector_db)
+    app = create_app(config, embedder=embedder, accessor=accessor, llm=llm)
+    return TestClient(app)
+
+
+def test_retrieve_top_k(store_path, mock_server_embedder):
+    with _client(store_path, mock_server_embedder) as client:
+        resp = client.post("/api/v1/retrieve", json={"query": DOCS[0], "k": 2})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert len(results) == 2
+    # Exact-text query embeds to the same vector -> top hit is that document.
+    assert results[0]["text"] == DOCS[0]
+    assert results[0]["score"] == pytest.approx(1.0, abs=1e-6)
+    assert results[0]["metadata"]["idx"] == 0
+
+
+def test_results_ordered_by_score_desc(store_path, mock_server_embedder):
+    with _client(store_path, mock_server_embedder) as client:
+        resp = client.post("/api/v1/retrieve", json={"query": DOCS[1], "k": 3})
+    scores = [r["score"] for r in resp.json()["results"]]
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_rag_returns_answer(store_path, mock_server_embedder, mock_llm):
+    with _client(store_path, mock_server_embedder, llm=mock_llm) as client:
+        resp = client.post("/api/v1/rag", json={"query": "tell me about cats", "k": 2})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["answer"], str) and body["answer"]
+    assert len(body["sources"]) == 2
+
+
+def test_rag_disabled_without_llm(store_path, mock_server_embedder):
+    with _client(store_path, mock_server_embedder) as client:
+        resp = client.post("/api/v1/rag", json={"query": "x", "k": 1})
+    assert resp.status_code == 501
+
+
+def test_litellm_routes_through_litellm_not_openai_client(store_path, mock_server_embedder):
+    """A litellm-typed llm section must call litellm.acompletion, not the OpenAI client.
+
+    Regression: build_llm mapped ``type: litellm`` onto ``OpenAIChat``, which
+    built ``AsyncOpenAI`` with no base_url and sent the OpenRouter key to
+    api.openai.com (401). The /rag call in the traceback came from exactly
+    this path.
+    """
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, patch
+
+    from serviette.config.schema import LLMConfig
+    from serviette.server.llm import LiteLLMChat, build_llm
+
+    llm = build_llm(
+        LLMConfig(
+            type="litellm",
+            model="openrouter/moonshotai/kimi-k3",
+            api_key="sk-test-openrouter-key",
+        )
+    )
+    assert isinstance(llm, LiteLLMChat), "type: litellm must not build OpenAIChat"
+
+    captured: dict = {}
+
+    async def fake_acompletion(**kwargs):
+        captured.update(kwargs)
+        return SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="answer"))]
+        )
+
+    with _client(store_path, mock_server_embedder, llm=llm) as client, patch(
+        "litellm.acompletion", new=AsyncMock(side_effect=fake_acompletion)
+    ):
+        resp = client.post("/api/v1/rag", json={"query": "tell me about cats", "k": 2})
+
+    assert resp.status_code == 200
+    # Provider prefix + key forwarded to litellm; no base_url (no OpenAI client).
+    assert captured["model"] == "openrouter/moonshotai/kimi-k3"
+    assert captured["api_key"] == "sk-test-openrouter-key"
+    assert "base_url" not in captured
+    assert resp.json()["answer"] == "answer"
+
+
+async def test_openai_llm_splits_client_and_per_call_kwargs(monkeypatch):
+    """Extra ``llm`` keys must go where the OpenAI SDK expects them.
+
+    ``base_url`` is a client kwarg; ``max_tokens``/``top_p``/``seed`` are
+    ``chat.completions.create`` parameters. Sending everything to
+    ``AsyncOpenAI.__init__`` (the previous behaviour) raised TypeError on
+    the first /rag request for any per-request key.
+    """
+    from types import SimpleNamespace
+
+    import openai
+
+    from serviette.config.schema import LLMConfig
+    from serviette.server.llm import build_llm
+
+    created: dict = {}
+    calls: list[dict] = []
+
+    class FakeCompletions:
+        async def create(self, **kwargs):
+            calls.append(kwargs)
+            return SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content="answer"))]
+            )
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            created.update(kwargs)
+            self.chat = SimpleNamespace(completions=FakeCompletions())
+
+        async def close(self):
+            return None
+
+    monkeypatch.setattr(openai, "AsyncOpenAI", FakeClient)
+
+    llm = build_llm(
+        LLMConfig(
+            type="openai",
+            model="gpt-4o-mini",
+            api_key="sk-test",
+            base_url="http://localhost:11434/v1",
+            temperature=0.0,
+            max_tokens=64,
+            top_p=0.9,
+            seed=7,
+        )
+    )
+    assert await llm.complete("q", ["ctx"]) == "answer"
+    assert await llm.raw("p") == "answer"
+
+    assert created == {"api_key": "sk-test", "base_url": "http://localhost:11434/v1"}
+    for call in calls:
+        assert call["model"] == "gpt-4o-mini"
+        assert call["temperature"] == 0.0
+        assert call["max_tokens"] == 64
+        assert call["top_p"] == 0.9
+        assert call["seed"] == 7
+        assert "base_url" not in call
+
+
+async def test_litellm_llm_forwards_the_same_keys_per_call(monkeypatch):
+    """The same ``llm`` section must behave identically under ``type: litellm``."""
+    from types import SimpleNamespace
+
+    import litellm
+
+    from serviette.config.schema import LLMConfig
+    from serviette.server.llm import build_llm
+
+    calls: list[dict] = []
+
+    async def fake_acompletion(**kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="answer"))]
+        )
+
+    monkeypatch.setattr(litellm, "acompletion", fake_acompletion)
+
+    llm = build_llm(
+        LLMConfig(
+            type="litellm",
+            model="openai/gpt-4o-mini",
+            api_key="sk-test",
+            api_base="http://localhost:11434/v1",
+            temperature=0.0,
+            max_tokens=64,
+        )
+    )
+    assert await llm.complete("q", ["ctx"]) == "answer"
+    call = calls[0]
+    assert call["model"] == "openai/gpt-4o-mini"
+    assert call["api_key"] == "sk-test"
+    assert call["api_base"] == "http://localhost:11434/v1"
+    assert call["temperature"] == 0.0
+    assert call["max_tokens"] == 64
+
+
+def test_litellm_embedder_routes_through_litellm_not_openai_client(store_path):
+    """A litellm-typed embedder section must call litellm.aembedding, not the OpenAI client.
+
+    Same misrouting as the LLM one above (issue #2): ``build_embedder`` mapped
+    ``type: litellm`` onto ``OpenAIAsyncEmbedder``, whose ``AsyncOpenAI`` has no
+    base_url and sends the provider's key to api.openai.com. The indexer side
+    already uses pathway's ``LiteLLMEmbedder`` for this type, so the server must
+    hit the same provider or query and document vectors come from different
+    models.
+    """
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, patch
+
+    from serviette.server.embedder import LiteLLMAsyncEmbedder, build_embedder
+
+    embedder = build_embedder(
+        EmbedderConfig(
+            type="litellm",
+            model="openrouter/qwen/qwen3-embedding-8b",
+            api_key="sk-test-openrouter-key",
+        )
+    )
+    assert isinstance(embedder, LiteLLMAsyncEmbedder), "type: litellm must not build OpenAIAsyncEmbedder"
+
+    captured: dict = {}
+
+    async def fake_aembedding(**kwargs):
+        captured.update(kwargs)
+        # Echo the store's vector for the query text so the top hit is deterministic.
+        return SimpleNamespace(data=[{"embedding": fake_embedding(kwargs["input"][0])}])
+
+    with _client(store_path, embedder) as client, patch(
+        "litellm.aembedding", new=AsyncMock(side_effect=fake_aembedding)
+    ):
+        resp = client.post("/api/v1/retrieve", json={"query": DOCS[0], "k": 1})
+
+    assert resp.status_code == 200
+    assert resp.json()["results"][0]["text"] == DOCS[0]
+    # Provider prefix + key forwarded to litellm; no OpenAI client involved.
+    assert captured["model"] == "openrouter/qwen/qwen3-embedding-8b"
+    assert captured["api_key"] == "sk-test-openrouter-key"
+    assert captured["input"] == [DOCS[0]]
+    assert "base_url" not in captured
+
+
+def test_litellm_embedder_requires_model():
+    """LiteLLM has no default embedding model: fail at build time, not on the first query."""
+    from serviette.server.embedder import build_embedder
+
+    with pytest.raises(ValueError, match="model"):
+        build_embedder(EmbedderConfig(type="litellm", api_key="sk-test"))
+
+
+def test_legacy_unversioned_aliases_still_work(store_path, mock_server_embedder):
+    """Pre-versioning routes are kept as deprecated aliases of /api/v1."""
+
+    with _client(store_path, mock_server_embedder) as client:
+        health = client.get("/health")
+        legacy = client.post("/retrieve", json={"query": DOCS[0], "k": 1})
+        v1 = client.post("/api/v1/retrieve", json={"query": DOCS[0], "k": 1})
+    assert health.status_code == 200
+    assert legacy.status_code == 200
+    assert legacy.json() == v1.json()
+
+
+def test_serves_embedded_chat_page(store_path, mock_server_embedder):
+    with _client(store_path, mock_server_embedder) as client:
+        resp = client.get("/")
+        cfg = client.get("/api/v1/config").json()
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    assert "__APP_TITLE__" not in resp.text
+    # Empty api_url means "same origin" for the page.
+    assert cfg == {"title": "serviette", "api_url": ""}
+
+
+def test_stats_endpoint(store_path, mock_server_embedder):
+    with _client(store_path, mock_server_embedder) as client:
+        body = client.get("/api/v1/stats").json()
+    # Three rows over three distinct source paths (see the store fixture).
+    assert body["backend"] == "duckdb"
+    assert body["chunks"] == 3
+    assert body["documents"] == 3
+
+
+def test_stats_counts_documents_of_every_source_type(tmp_path, mock_server_embedder):
+    """Document identity is whatever the source reports: ``path`` for fs / s3
+    / sharepoint / pyfilesystem, ``id`` (and ``name``) for Google Drive —
+    which used to count as zero documents."""
+
+    path = tmp_path / "store.duckdb"
+    rows = [
+        {"metadata": {"path": "/docs/a.txt"}},
+        {"metadata": {"path": "/docs/a.txt"}},  # second chunk, same file
+        {"metadata": {"path": "/docs/b.txt"}},
+        {"metadata": {"id": "gdrive-1", "name": "report.pdf"}},
+        {"metadata": {"id": "gdrive-1", "name": "report.pdf"}},
+        {"metadata": {"id": "gdrive-2", "name": "notes.docx"}},
+        {"metadata": {"name": "only-a-name.md"}},
+    ]
+    write_duckdb_rows(
+        path,
+        [
+            {"id": str(i), "text": f"chunk {i}", "embedding": fake_embedding(str(i)), **row}
+            for i, row in enumerate(rows)
+        ],
+    )
+    with _client(path, mock_server_embedder) as client:
+        body = client.get("/api/v1/stats").json()
+    assert body["chunks"] == 7
+    assert body["documents"] == 5
+
+
+def test_stats_last_indexed_at_moves_on_deletion(store_path, mock_server_embedder):
+    """Deleting rows is a change even though no row carries a newer seen_at."""
+
+    import time
+
+    import duckdb
+
+    with _client(store_path, mock_server_embedder) as client:
+        before = client.get("/api/v1/stats").json()
+        assert before["chunks"] == 3
+        # The fixture rows have no seen_at, so the backend reports nothing.
+        assert "last_indexed_at" not in before
+
+        # The server's index poller opens short-lived read-only connections
+        # from a worker thread; DuckDB refuses a read-write connection to the
+        # same file from the same process while one of those is open. Retry
+        # through that window instead of racing it.
+        for _ in range(100):
+            try:
+                conn = duckdb.connect(str(store_path))
+                break
+            except duckdb.ConnectionException:
+                time.sleep(0.02)
+        else:
+            raise AssertionError("could not open a read-write DuckDB connection")
+        conn.execute("DELETE FROM serviette_embeddings WHERE chunk_id = '2'")
+        conn.close()
+
+        after = client.get("/api/v1/stats").json()
+    assert after["chunks"] == 2
+    assert abs(after["last_indexed_at"] - int(time.time())) <= 2
+
+
+def test_frontend_can_be_disabled(store_path, mock_server_embedder):
+    config = ServietteConfig(
+        vector_db=DuckDbConfig(type="duckdb", path=str(store_path)),
+        embedder=EmbedderConfig(type="openai"),
+        server={"serve_frontend": False},
+    )
+    accessor = DuckDbAccessor(config.vector_db)
+    app = create_app(config, embedder=mock_server_embedder, accessor=accessor)
+    with TestClient(app) as client:
+        assert client.get("/").status_code == 404
+        assert client.get("/api/v1/health").status_code == 200
+
+
+def test_index_not_ready_returns_friendly_503(tmp_path, mock_server_embedder):
+    """Standalone server before the indexer ran: 503 + a human message.
+
+    (The orchestrated path never hits this: `serviette up` holds the server
+    back until the store is queryable.)
+    """
+    missing = tmp_path / "never-created.duckdb"
+    with _client(missing, mock_server_embedder) as client:
+        resp = client.post("/api/v1/retrieve", json={"query": "hello", "k": 2})
+    assert resp.status_code == 503
+    body = resp.json()
+    assert "not ready" in body["detail"]
+    assert resp.headers.get("retry-after") == "5"
+
+
+@contextlib.contextmanager
+def _external_writer(path, hold_seconds: float):
+    """Hold DuckDB's single-writer lock on ``path`` from another process for
+    ``hold_seconds`` — what the indexer does while committing a batch. (A
+    second connection from *this* process fails with a different error,
+    not a lock conflict, so the writer has to be a real separate process.)"""
+
+    script = (
+        "import sys, time, duckdb\n"
+        "conn = duckdb.connect(sys.argv[1])\n"
+        "print('locked', flush=True)\n"
+        "time.sleep(float(sys.argv[2]))\n"
+        "conn.close()\n"
+    )
+    proc = subprocess.Popen(
+        [sys.executable, "-c", script, str(path), str(hold_seconds)],
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        assert proc.stdout is not None and proc.stdout.readline().strip() == "locked"
+        yield
+    finally:
+        proc.kill()
+        proc.wait()
+        proc.stdout.close()
+
+
+def test_reader_waits_out_a_long_write_lock(store_path, mock_server_embedder):
+    """The indexer's first commit of a real corpus holds the file lock for
+    seconds; a request arriving meanwhile must wait, not fail."""
+
+    with (
+        _external_writer(store_path, hold_seconds=1.5),
+        _client(store_path, mock_server_embedder) as client,
+    ):
+        started = time.monotonic()
+        resp = client.post("/api/v1/retrieve", json={"query": DOCS[0], "k": 2})
+        waited = time.monotonic() - started
+    assert resp.status_code == 200
+    assert resp.json()["results"]
+    assert waited >= 1.0, f"answered in {waited:.2f}s — did not wait for the writer"
+
+
+def test_lock_held_past_the_wait_returns_updating_503(
+    store_path, mock_server_embedder, monkeypatch
+):
+    """A lock held longer than the accessor waits is a 503 that says the
+    index is being updated — not a 500 and not the "index is empty" text."""
+
+    monkeypatch.setattr(DuckDbAccessor, "_LOCK_WAIT", 0.5)
+    with (
+        _external_writer(store_path, hold_seconds=30),
+        _client(store_path, mock_server_embedder) as client,
+    ):
+        resp = client.post("/api/v1/retrieve", json={"query": DOCS[0], "k": 2})
+        stats = client.get("/api/v1/stats")
+    assert resp.status_code == 503
+    body = resp.json()
+    assert "being updated" in body["detail"]
+    assert "not ready" not in body["detail"]
+    assert "write-locked" in body["reason"]
+    assert resp.headers.get("retry-after") == "5"
+    # /stats is advisory and never fails — it reports the gap instead, and
+    # the chat page shows "index updating…" for it.
+    assert stats.status_code == 200
+    assert stats.json()["stats_available"] is False
+
+
+def test_local_embedder_warmed_up_at_startup(store_path):
+    """A local embedder is exercised once by the lifespan, before any request."""
+
+    class CountingLocalEmbedder:
+        is_local = True
+        calls = 0
+
+        async def embed(self, text):
+            type(self).calls += 1
+            return fake_embedding(text)
+
+        async def close(self):
+            return None
+
+    embedder = CountingLocalEmbedder()
+    with _client(store_path, embedder):
+        assert CountingLocalEmbedder.calls == 1  # warm-up ran on startup
+
+
+def test_llm_client_prepared_at_startup_without_a_request(store_path, mock_server_embedder):
+    """The lifespan calls ``prepare`` on the LLM (client setup, no completion)."""
+
+    class RecordingLLM:
+        prepared = 0
+        completions = 0
+
+        async def prepare(self):
+            type(self).prepared += 1
+
+        async def complete(self, query, context, *, system_prompt=None):
+            type(self).completions += 1
+            return "answer"
+
+        async def raw(self, prompt):
+            return ""
+
+        async def close(self):
+            return None
+
+    with _client(store_path, mock_server_embedder, llm=RecordingLLM()):
+        assert RecordingLLM.prepared == 1
+        assert RecordingLLM.completions == 0  # nothing billable on startup
+
+
+def test_cors_disabled_by_default(store_path, mock_server_embedder):
+    with _client(store_path, mock_server_embedder) as client:
+        resp = client.post(
+            "/api/v1/retrieve",
+            json={"query": "hello", "k": 1},
+            headers={"Origin": "https://evil.example"},
+        )
+    assert "access-control-allow-origin" not in resp.headers
+
+
+def test_cors_opt_in_allowlist(store_path, mock_server_embedder):
+    config = ServietteConfig(
+        vector_db=DuckDbConfig(type="duckdb", path=str(store_path)),
+        embedder=EmbedderConfig(type="openai"),
+        server={"cors_origins": ["https://app.example.com"]},
+    )
+    accessor = DuckDbAccessor(config.vector_db)
+    app = create_app(config, embedder=mock_server_embedder, accessor=accessor)
+    with TestClient(app) as client:
+        allowed = client.post(
+            "/api/v1/retrieve",
+            json={"query": "hello", "k": 1},
+            headers={"Origin": "https://app.example.com"},
+        )
+        assert allowed.headers.get("access-control-allow-origin") == "https://app.example.com"
+        foreign = client.post(
+            "/api/v1/retrieve",
+            json={"query": "hello", "k": 1},
+            headers={"Origin": "https://evil.example"},
+        )
+        assert "access-control-allow-origin" not in foreign.headers
+
+
+class _ReverseReranker:
+    """Fake reranker: reverses the accessor order and stamps its own scores."""
+
+    def __init__(self):
+        self.seen_candidates = None
+
+    async def rerank(self, query, hits, k):
+        self.seen_candidates = len(hits)
+        reversed_hits = list(reversed(hits))[:k]
+        return [{**h, "score": float(len(reversed_hits) - i)} for i, h in enumerate(reversed_hits)]
+
+    async def close(self):
+        return None
+
+
+def test_reranker_reorders_and_gets_shortlist(store_path, mock_server_embedder):
+    from serviette.config.schema import RerankerConfig
+
+    config = ServietteConfig(
+        vector_db=DuckDbConfig(type="duckdb", path=str(store_path)),
+        embedder=EmbedderConfig(type="openai"),
+        reranker=RerankerConfig(candidates=3),
+    )
+    accessor = DuckDbAccessor(config.vector_db)
+    reranker = _ReverseReranker()
+    app = create_app(
+        config, embedder=mock_server_embedder, accessor=accessor, reranker=reranker
+    )
+    with TestClient(app) as client:
+        resp = client.post("/api/v1/retrieve", json={"query": DOCS[0], "k": 2})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert len(results) == 2
+    # The vector index would put DOCS[0] first; the reranker reversed the
+    # 3-candidate shortlist, so the top result is the *last* vector hit.
+    assert results[0]["text"] != DOCS[0]
+    assert reranker.seen_candidates == 3
+    scores = [r["score"] for r in results]
+    assert scores == sorted(scores, reverse=True)
+
