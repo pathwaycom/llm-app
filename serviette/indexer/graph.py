@@ -1,8 +1,8 @@
 """Pathway graph construction for the indexer.
 
-Mirrors the llm-app ``document_indexing`` template as closely as the
-"external vector DB" goal allows, and reuses ``pathway.xpacks.llm`` parsers,
-splitters and embedders without modification.
+Builds the live document indexing pipeline that keeps the configured vector
+database in sync with source additions, edits and deletions. Reuses
+``pathway.xpacks.llm`` parsers, splitters and embedders without modification.
 
 Pipeline
 --------

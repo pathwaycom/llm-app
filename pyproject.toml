@@ -5,11 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "serviette"
 version = "0.1.7"
-description = "A universal, no-code RAG server for any vector database, built on the Pathway Live Data Framework."
+description = "A no-code RAG server that keeps answers in sync with your documents. Works with 8 vector databases. Built on Pathway."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "serviette contributors" }]
-keywords = ["rag", "pathway", "vector-database", "retrieval", "llm", "embeddings"]
+keywords = [
+    "rag",
+    "retrieval-augmented-generation",
+    "pathway",
+    "vector-database",
+    "retrieval",
+    "llm",
+    "embeddings",
+    "document-search",
+    "semantic-search",
+    "real-time",
+    "no-code",
+    "self-hosted",
+]
 # Pathway requires CPython >= 3.10.
 requires-python = ">=3.10"
 classifiers = [
