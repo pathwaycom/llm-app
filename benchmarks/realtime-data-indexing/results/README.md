@@ -42,7 +42,8 @@ reduce approximate counts, so these two fields need not be identical;
 
 `*-memory.csv` and `*-processes.jsonl.gz` record aggregate and per-process
 measurements at the same times; `*-summary.json` includes the process snapshot
-at peak PSS. `*-indexer.txt.gz` contains the container log.
+at peak PSS. `*-indexer.txt.gz` contains the local container log and is
+excluded from Git; only measurements, derived reports and plots are committed.
 
 The right panel estimates file-watch memory as rank 0's private-page excess
 over the median of the seven other workers at the final sample. It includes

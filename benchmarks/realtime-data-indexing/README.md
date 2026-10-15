@@ -76,7 +76,8 @@ Outputs land in `results/`: `<size>-memory.png` (memory over time),
 `<size>-memory.csv`, `<size>-summary.json` (duration, MB/min, chunk count,
 peak RSS/PSS, retrieval accuracy). Each run also saves per-process samples,
 the process snapshot at peak PSS, a redacted resolved compose configuration,
-and compressed indexer logs.
+and compressed indexer logs. Raw `*.txt.gz` logs stay local and are ignored
+by Git; CSV measurements, JSON results and plots are committed.
 
 To regenerate the entire publication from a single series of runs:
 
