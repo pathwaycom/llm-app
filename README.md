@@ -1,5 +1,9 @@
 # serviette
 
+> **Looking for llm-app templates?** All templates, cookbooks and examples
+> are still available in full in the
+> [Pathway repository under `examples/llm-app`](https://github.com/pathwaycom/pathway/tree/main/examples/llm-app).
+
 <p align="center">
   <a href="https://pypi.org/project/serviette/"><img src="https://img.shields.io/pypi/v/serviette?logo=pypi&logoColor=white" alt="PyPI version"></a>
   <a href="https://pypi.org/project/serviette/"><img src="https://img.shields.io/pypi/pyversions/serviette?logo=python&logoColor=white" alt="Python versions"></a>
@@ -434,6 +438,9 @@ Full installation, the config wizard, configuration reference, persistence,
 architecture and scaling notes live in **[docs/README.md](https://github.com/pathwaycom/serviette/blob/main/docs/README.md)**.
 
 ## Development
+
+To report a problem or propose a change, see [CONTRIBUTING.md](CONTRIBUTING.md)
+for the contribution policy and PR requirements.
 
 serviette runs on the released Pathway from PyPI (≥ 0.32.1 — the first
 release with the vector-database connectors). From-scratch setup on a
