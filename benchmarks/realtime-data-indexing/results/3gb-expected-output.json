@@ -1,0 +1,8 @@
+{
+  "documents": 841890,
+  "exact_chunks": 1888846,
+  "corpus_bytes": 3145728437,
+  "dataset": "3gb",
+  "elapsed_seconds": 132.3,
+  "source": "Frozen corpus files; UTF-8 decode and actual build_xpack_splitter, token_count=512; executed in immutable serviette-bench image"
+}

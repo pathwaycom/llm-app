@@ -1,0 +1,211 @@
+{
+  "description": "Diagnostic: eight workers, before/after local embedder initialization.\n\nRun between indexing sizes, in the same image and environment. This does\nnot replace the indexing benchmark. Anonymous local-embedding memory is\nestimated by the private-page increment; shared code comes from main-run\nmapping samples. Keep workers alive at each barrier to count shared pages\nproportionally across all eight rather than multiplying a single RSS value.\n",
+  "workers": 8,
+  "baseline_includes": "graph imports, UTF-8 parser, initialized and warmed configured splitter",
+  "jemalloc_conf": "background_thread:true",
+  "omp_threads": "12",
+  "stages": {
+    "baseline": [
+      {
+        "Pss": 168251,
+        "Private_Clean": 116,
+        "Private_Dirty": 155880,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 168292,
+        "Private_Clean": 124,
+        "Private_Dirty": 155852,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 175644,
+        "Private_Clean": 28,
+        "Private_Dirty": 163648,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 168493,
+        "Private_Clean": 600,
+        "Private_Dirty": 155820,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 176026,
+        "Private_Clean": 432,
+        "Private_Dirty": 163684,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 179083,
+        "Private_Clean": 84,
+        "Private_Dirty": 166604,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 178026,
+        "Private_Clean": 208,
+        "Private_Dirty": 165684,
+        "embedding_shared_kb": 0
+      },
+      {
+        "Pss": 169489,
+        "Private_Clean": 192,
+        "Private_Dirty": 156724,
+        "embedding_shared_kb": 0
+      }
+    ],
+    "runtime": [
+      {
+        "Pss": 634314,
+        "Private_Clean": 152,
+        "Private_Dirty": 582752,
+        "embedding_shared_kb": 35649
+      },
+      {
+        "Pss": 635180,
+        "Private_Clean": 244,
+        "Private_Dirty": 582880,
+        "embedding_shared_kb": 36014
+      },
+      {
+        "Pss": 642793,
+        "Private_Clean": 364,
+        "Private_Dirty": 590808,
+        "embedding_shared_kb": 35983
+      },
+      {
+        "Pss": 635196,
+        "Private_Clean": 1248,
+        "Private_Dirty": 582796,
+        "embedding_shared_kb": 35603
+      },
+      {
+        "Pss": 644433,
+        "Private_Clean": 1680,
+        "Private_Dirty": 590836,
+        "embedding_shared_kb": 36432
+      },
+      {
+        "Pss": 648148,
+        "Private_Clean": 524,
+        "Private_Dirty": 594764,
+        "embedding_shared_kb": 36816
+      },
+      {
+        "Pss": 644526,
+        "Private_Clean": 280,
+        "Private_Dirty": 592572,
+        "embedding_shared_kb": 35966
+      },
+      {
+        "Pss": 636337,
+        "Private_Clean": 372,
+        "Private_Dirty": 584656,
+        "embedding_shared_kb": 35315
+      }
+    ],
+    "model_warm": [
+      {
+        "Pss": 887400,
+        "Private_Clean": 144,
+        "Private_Dirty": 834484,
+        "embedding_shared_kb": 36982
+      },
+      {
+        "Pss": 896661,
+        "Private_Clean": 244,
+        "Private_Dirty": 843052,
+        "embedding_shared_kb": 37323
+      },
+      {
+        "Pss": 883749,
+        "Private_Clean": 372,
+        "Private_Dirty": 830436,
+        "embedding_shared_kb": 37296
+      },
+      {
+        "Pss": 886815,
+        "Private_Clean": 1272,
+        "Private_Dirty": 833000,
+        "embedding_shared_kb": 36972
+      },
+      {
+        "Pss": 901423,
+        "Private_Clean": 1688,
+        "Private_Dirty": 846448,
+        "embedding_shared_kb": 37781
+      },
+      {
+        "Pss": 903614,
+        "Private_Clean": 536,
+        "Private_Dirty": 848828,
+        "embedding_shared_kb": 38201
+      },
+      {
+        "Pss": 884094,
+        "Private_Clean": 280,
+        "Private_Dirty": 830808,
+        "embedding_shared_kb": 37275
+      },
+      {
+        "Pss": 889771,
+        "Private_Clean": 412,
+        "Private_Dirty": 836676,
+        "embedding_shared_kb": 36653
+      }
+    ],
+    "model_released": [
+      {
+        "Pss": 887737,
+        "Private_Clean": 144,
+        "Private_Dirty": 834908,
+        "embedding_shared_kb": 36895
+      },
+      {
+        "Pss": 895914,
+        "Private_Clean": 244,
+        "Private_Dirty": 842392,
+        "embedding_shared_kb": 37236
+      },
+      {
+        "Pss": 883947,
+        "Private_Clean": 364,
+        "Private_Dirty": 830748,
+        "embedding_shared_kb": 37191
+      },
+      {
+        "Pss": 887083,
+        "Private_Clean": 1248,
+        "Private_Dirty": 833428,
+        "embedding_shared_kb": 36836
+      },
+      {
+        "Pss": 901629,
+        "Private_Clean": 1624,
+        "Private_Dirty": 846836,
+        "embedding_shared_kb": 37663
+      },
+      {
+        "Pss": 902465,
+        "Private_Clean": 528,
+        "Private_Dirty": 847832,
+        "embedding_shared_kb": 38057
+      },
+      {
+        "Pss": 884231,
+        "Private_Clean": 280,
+        "Private_Dirty": 831032,
+        "embedding_shared_kb": 37188
+      },
+      {
+        "Pss": 888996,
+        "Private_Clean": 408,
+        "Private_Dirty": 836000,
+        "embedding_shared_kb": 36559
+      }
+    ]
+  },
+  "image": "sha256:84b80c81426ebd36d7a1b9635d536c1ed8d05df4079e199f9924d3dbe4839c81",
+  "completed_utc": "2026-10-13T00:20:28.105584+00:00"
+}

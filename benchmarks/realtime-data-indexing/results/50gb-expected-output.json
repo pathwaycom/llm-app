@@ -1,0 +1,10 @@
+{
+  "documents": 17083603,
+  "exact_chunks": 37472786,
+  "corpus_bytes": 52428765709,
+  "dataset": "50gb",
+  "elapsed_seconds": 366.1,
+  "source": "Frozen corpus files; UTF-8 decode and actual build_xpack_splitter, token_count=512; executed in immutable serviette-bench image",
+  "image": "sha256:84b80c81426ebd36d7a1b9635d536c1ed8d05df4079e199f9924d3dbe4839c81",
+  "workers": 48
+}

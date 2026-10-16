@@ -1,0 +1,105 @@
+{
+  "connector_bytes_per_file_estimate": 360.973937266504,
+  "connector_fixed_overhead_bytes_estimate": 48147350.7307731,
+  "peak_memory_ratio": 2.134788299567494,
+  "runs": [
+    {
+      "size": "100mb",
+      "peak_components": {
+        "workers_private_mb": 5722.9921875,
+        "connector_extra_mb_estimate": 98.18359375,
+        "supervisors_private_mb": 666.4375,
+        "shared_pss_mb": 541.181640625
+      },
+      "final_components": {
+        "workers_private_mb": 5656.12890625,
+        "connector_extra_mb_estimate": 98.06640625,
+        "supervisors_private_mb": 666.4375,
+        "shared_pss_mb": 534.6943359375
+      }
+    },
+    {
+      "size": "1gb",
+      "peak_components": {
+        "workers_private_mb": 5574.11328125,
+        "connector_extra_mb_estimate": 197.2109375,
+        "supervisors_private_mb": 666.3984375,
+        "shared_pss_mb": 543.037109375
+      },
+      "final_components": {
+        "workers_private_mb": 5541.84765625,
+        "connector_extra_mb_estimate": 193.98828125,
+        "supervisors_private_mb": 666.3984375,
+        "shared_pss_mb": 543.044921875
+      }
+    },
+    {
+      "size": "3gb",
+      "peak_components": {
+        "workers_private_mb": 5761.92578125,
+        "connector_extra_mb_estimate": 330.859375,
+        "supervisors_private_mb": 715.20703125,
+        "shared_pss_mb": 543.8564453125
+      },
+      "final_components": {
+        "workers_private_mb": 5758.62890625,
+        "connector_extra_mb_estimate": 291.51171875,
+        "supervisors_private_mb": 715.20703125,
+        "shared_pss_mb": 543.8369140625
+      }
+    },
+    {
+      "size": "10gb",
+      "peak_components": {
+        "workers_private_mb": 5969.25,
+        "connector_extra_mb_estimate": 1184.8359375,
+        "supervisors_private_mb": 666.98828125,
+        "shared_pss_mb": 537.5595703125
+      },
+      "final_components": {
+        "workers_private_mb": 5968.08984375,
+        "connector_extra_mb_estimate": 1104.76953125,
+        "supervisors_private_mb": 666.9921875,
+        "shared_pss_mb": 537.5859375
+      }
+    },
+    {
+      "size": "30gb",
+      "peak_components": {
+        "workers_private_mb": 6179.609375,
+        "connector_extra_mb_estimate": 3275.96484375,
+        "supervisors_private_mb": 666.48828125,
+        "shared_pss_mb": 531.7294921875
+      },
+      "final_components": {
+        "workers_private_mb": 6090.828125,
+        "connector_extra_mb_estimate": 3269.671875,
+        "supervisors_private_mb": 666.48828125,
+        "shared_pss_mb": 531.7255859375
+      }
+    },
+    {
+      "size": "50gb",
+      "peak_components": {
+        "workers_private_mb": 7045.671875,
+        "connector_extra_mb_estimate": 6697.23828125,
+        "supervisors_private_mb": 720.7109375,
+        "shared_pss_mb": 541.3720703125
+      },
+      "final_components": {
+        "workers_private_mb": 7044.953125,
+        "connector_extra_mb_estimate": 5922.1484375,
+        "supervisors_private_mb": 720.7109375,
+        "shared_pss_mb": 541.3662109375
+      }
+    }
+  ],
+  "10gb_embedder_breakdown": {
+    "local_embedder_private_mb_estimate": 4713.703125,
+    "local_embedder_shared_libraries_mb": 291.4873046875,
+    "file_watch_mb_estimate": 1184.8359375,
+    "remaining_indexer_private_mb_estimate": 1922.53515625,
+    "other_shared_mb": 246.072265625
+  },
+  "10gb_indexer_without_local_embedder_mb_estimate": 3353.4095703125004
+}

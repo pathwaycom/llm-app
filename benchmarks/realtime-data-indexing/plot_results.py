@@ -1,0 +1,455 @@
+#!/usr/bin/env python3
+"""Render the published table and figures exclusively from saved measurements."""
+from __future__ import annotations
+
+import argparse
+import csv
+import gzip
+import json
+import statistics
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
+ROOT = Path(__file__).resolve().parent
+REPO = ROOT.parent.parent
+SIZES = [("100mb", "100 MB"), ("1gb", "1 GB"), ("3gb", "3 GB"),
+         ("10gb", "10 GB"), ("30gb", "30 GB"), ("50gb", "50 GB")]
+
+
+def private_mb(process):
+    return (process.get("Private_Clean", 0) + process.get("Private_Dirty", 0)) / 1024
+
+
+def components(processes):
+    """Measured private/shared pages; rank-0 excess is an attribution estimate.
+
+    Rank 0 owns the filesystem connector. Its excess over the median private
+    footprint of the other workers is a proxy, not an allocation profiler.
+    Do not label the entire worker baseline as 'PyTorch': it also includes
+    the engine and working buffers, which smaps cannot distinguish.
+    """
+    workers = [p for p in processes if p["worker_rank"] is not None]
+    rank0 = [p for p in workers if p["worker_rank"] == 0]
+    others = [p for p in workers if p["worker_rank"] != 0]
+    if len(workers) != 8 or len(rank0) != 1 or len(others) != 7:
+        raise ValueError("Expected exactly eight Pathway workers including rank 0")
+    extra = max(0, private_mb(rank0[0]) - statistics.median(private_mb(p) for p in others))
+    worker_private = sum(private_mb(p) for p in workers)
+    supervisor_private = sum(private_mb(p) for p in processes if p["worker_rank"] is None)
+    total = sum(p.get("Pss", 0) for p in processes) / 1024
+    shared = total - worker_private - supervisor_private
+    if shared < -0.01:
+        raise ValueError("Private pages exceed total PSS")
+    return {"workers_private_mb": worker_private - extra,
+            "connector_extra_mb_estimate": extra,
+            "supervisors_private_mb": supervisor_private,
+            "shared_pss_mb": max(0, shared)}
+
+
+def duration(seconds):
+    if seconds < 60:
+        return f"{seconds:.0f} s"
+    if seconds < 3600:
+        return f"{seconds / 60:.1f} min"
+    return f"{seconds / 3600:.1f} h"
+
+
+def embedder_breakdown(run, calibration):
+    def private_total(stage):
+        return sum(p['Private_Clean'] + p['Private_Dirty'] for p in calibration['stages'][stage]) / 1024
+    baseline = private_total('baseline')
+    worker_embedder_private = private_total('model_warm') - baseline
+    processes = run['summary']['peak_processes']
+    if not all('mapping_groups' in p for p in processes):
+        raise ValueError('10 GB peak must include embedding-library mapping measurements')
+    c = run['peak_components']
+    # Initialization and live batches have different buffer lifetimes. Never
+    # attribute more private memory than the measured worker footprint minus
+    # its independently measured pre-embedder baseline. Supervisor private
+    # pages remain in the residual; some may also be removable with a remote
+    # embedder, so this estimate does not subtract them speculatively.
+    embedding_private = min(worker_embedder_private, c['workers_private_mb'] - baseline)
+    embedding_shared = sum(max(0, p['mapping_groups']['embedding']['Pss'] -
+        p['mapping_groups']['embedding']['private_kb']) for p in processes) / 1024
+    shared_increment = (sum(p['embedding_shared_kb'] for p in calibration['stages']['model_warm']) -
+                        sum(p['embedding_shared_kb'] for p in calibration['stages']['baseline'])) / 1024
+    embedding_shared = min(embedding_shared, max(0, shared_increment))
+    metadata = c['connector_extra_mb_estimate']
+    remaining_private = c['workers_private_mb'] + c['supervisors_private_mb'] - embedding_private
+    other_shared = c['shared_pss_mb'] - embedding_shared
+    if min(embedding_private, remaining_private, other_shared) < -1:
+        raise ValueError('Embedder attribution is incompatible with measured peak pages')
+    return {'local_embedder_private_mb_estimate': embedding_private,
+            'local_embedder_shared_libraries_mb': embedding_shared,
+            'file_watch_mb_estimate': metadata,
+            'remaining_indexer_private_mb_estimate': remaining_private,
+            'other_shared_mb': max(0, other_shared)}
+
+
+def load(results, sizes=SIZES):
+    runs = []
+    for size, label in sizes:
+        summary = json.loads((results / f"{size}-summary.json").read_text())
+        target_mb = int(size[:-2]) * 1000 if size.endswith('gb') else int(size[:-2])
+        if summary['corpus_mb'] < target_mb - 0.1:
+            raise ValueError(f"{size}: prepared corpus is smaller than its published target")
+        expected_path = results / f"{size}-expected-output.json"
+        if expected_path.exists():
+            expected = json.loads(expected_path.read_text())
+            if expected['documents'] != summary['documents']:
+                raise ValueError(f"{size}: frozen-corpus file count differs")
+            if ('corpus_bytes' in expected
+                    and abs(expected['corpus_bytes'] / 1024**2 - summary['corpus_mb']) > 0.11):
+                raise ValueError(f"{size}: frozen-corpus byte count differs")
+            if size == '50gb':
+                if (summary.get('parsed_documents') != expected['documents']
+                        or summary.get('verified_exact_chunks') != expected['exact_chunks']):
+                    raise ValueError('50gb: full input/output completion was not verified')
+            elif expected['exact_chunks'] != summary.get('verified_exact_chunks', summary['chunks']):
+                raise ValueError(f"{size}: output differs from independent splitter count")
+        else:
+            raise ValueError(f"{size}: missing independent output-completeness proof")
+        with (results / f"{size}-memory.csv").open() as fh:
+            samples = [{k: float(v) for k, v in row.items()} for row in csv.DictReader(fh)]
+        peak = max(s["pss_mb"] for s in samples)
+        if abs(peak - summary["peak_pss_mb"]) > 0.11:
+            raise ValueError(f"{size}: CSV peak does not match summary")
+        if int(samples[-1]["chunks"]) != summary["max_observed_chunks"]:
+            raise ValueError(f"{size}: CSV high-water chunk count does not match summary")
+        if summary["jemalloc_conf"] != "background_thread:true" or summary["omp_threads"] != 12:
+            raise ValueError(f"{size}: different measured configuration")
+        with gzip.open(results / f"{size}-processes.jsonl.gz", "rt") as fh:
+            last = None
+            for line in fh:
+                last = json.loads(line)
+        if abs(last["elapsed_s"] - samples[-1]["elapsed_s"]) > 0.11:
+            raise ValueError(f"{size}: process and aggregate series differ")
+        if abs(sum(p.get("Pss", 0) for p in summary["peak_processes"]) / 1024 - peak) > 0.11:
+            raise ValueError(f"{size}: peak process snapshot does not match total PSS")
+        runs.append({"size": size, "label": label, "summary": summary,
+                     "samples": samples, "final_components": components(last["processes"]),
+                     "peak_components": components(summary["peak_processes"])})
+    return runs
+
+
+def table(runs):
+    lines = ["| corpus target | ≈ pages | files | chunks (approx.) | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |",
+             "|---|---|---|---|---|---|---|"]
+    for run in runs:
+        s = run["summary"]
+        ints = [f"{s[k]:,}".replace(",", " ") for k in ("approx_text_pages", "documents", "chunks")]
+        lines.append(f"| {run['label']} | {' | '.join(ints)} | {duration(s['indexing_seconds'])} | {s['peak_pss_mb'] / 1024:.2f} | {s['vector_db_disk_mb'] / 1024:.2f} |")
+    return "\n".join(lines)
+
+
+def load_calibration(results, environment):
+    calibration = json.loads((results / 'embedder-calibration.json').read_text())
+    if (calibration['image'] != environment['image'] or calibration['workers'] != 8
+            or calibration['jemalloc_conf'] != 'background_thread:true'
+            or calibration['omp_threads'] != '12' or 'baseline_includes' not in calibration):
+        raise ValueError('Embedder diagnostic and indexing runs have different setups')
+    return calibration
+
+
+def draw_run(run, output_path):
+    """Regenerate each size's plot from the same validated CSV and summary."""
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    minutes = [s['elapsed_s'] / 60 for s in run['samples']]
+    peak_gib = run['summary']['peak_pss_mb'] / 1024
+    ax.plot(minutes, [s['pss_mb'] / 1024 for s in run['samples']],
+            label='indexer PSS', linewidth=1.8)
+    ax.axhline(peak_gib, linestyle='--', linewidth=1, alpha=0.6,
+               label=f'peak {peak_gib:.2f} GiB')
+    ax.set(xlabel='minutes since start', ylabel='memory (PSS), GiB', ylim=(0, None),
+           title=f"serviette indexer — {run['size']} corpus ({run['summary']['documents']} docs, streaming)")
+    chunks = ax.twinx()
+    chunks.plot(minutes, [s['chunks'] for s in run['samples']], color='tab:green',
+                alpha=0.6, linewidth=1.4, label='maximum observed chunks')
+    chunks.set(ylabel='maximum observed chunks', ylim=(0, None))
+    lines, labels = ax.get_legend_handles_labels()
+    other_lines, other_labels = chunks.get_legend_handles_labels()
+    ax.legend(lines + other_lines, labels + other_labels, loc='center right')
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=130)
+    plt.close(fig)
+
+
+def draw_breakdown(ten, c, remaining_mb, output_path):
+    values = list(c.values())
+    labels = ["Local embedder\nPrivate memory (estimate)",
+              "Local embedder\nShared libraries (estimate)",
+              "File-watch memory\n(rank-0 excess estimate)",
+              "Other private memory\nEngine, buffers, supervisors (estimate)",
+              "Other shared pages\n(PSS residual)"]
+    labels = [f"{label}\n{value / 1024:.2f} GiB" for label, value in zip(labels, values)]
+    fig, ax = plt.subplots(figsize=(11.5, 6.5))
+    wedges, _, _ = ax.pie(values, autopct=lambda p: f'{p:.0f}%' if p >= 6 else '',
+           startangle=90, colors=["#5145ef", "#a5b4fc", "#10a34a", "#64748b", "#cbd5e1"],
+           wedgeprops={"edgecolor": "white"})
+    # Space callouts independently of tiny wedge angles, so shared-page and
+    # metadata labels remain readable without overlapping.
+    anchors = [(np.cos(np.deg2rad((w.theta1 + w.theta2) / 2)),
+                np.sin(np.deg2rad((w.theta1 + w.theta2) / 2))) for w in wedges]
+    for side in [-1, 1]:
+        indexes = sorted([i for i, (x, y) in enumerate(anchors) if (1 if x >= 0 else -1) == side],
+                         key=lambda i: anchors[i][1])
+        positions = np.linspace(-1.0, 1.0, len(indexes)) if len(indexes) > 1 else [0]
+        for index, y in zip(indexes, positions):
+            ax.annotate(labels[index], xy=anchors[index], xytext=(side * 1.4, y),
+                        ha='left' if side > 0 else 'right', va='center', fontsize=12,
+                        arrowprops={'arrowstyle': '-', 'color': '#64748b',
+                                    'connectionstyle': 'angle3,angleA=0,angleB=90'})
+    ax.set_xlim(-1.85, 1.85)
+    ax.set_title(f"10 GB corpus: measured peak {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS\n"
+                 f"Estimated indexer without local embedder: {remaining_mb / 1024:.2f} GiB")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=130, bbox_inches='tight')
+    plt.close(fig)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--results", type=Path, default=ROOT / "results")
+    parser.add_argument("--assets", type=Path, default=REPO / "docs/assets")
+    parser.add_argument("--update-readme", action="store_true")
+    args = parser.parse_args()
+    runs = load(args.results)  # Fail before touching published files if any run is missing.
+    environment = json.loads((args.results / "run-environment.json").read_text())
+    ten = next(r for r in runs if r["size"] == "10gb")
+    calibration = load_calibration(args.results, environment)
+    for run in runs:
+        draw_run(run, args.results / f"{run['size']}-memory.png")
+    c = embedder_breakdown(ten, calibration)
+    files = np.array([r["summary"]["documents"] for r in runs], dtype=float)
+    extra = np.array([r["final_components"]["connector_extra_mb_estimate"] for r in runs])
+    # Allow fixed connector overhead rather than attributing it to file count.
+    slope, intercept = np.polyfit(files, extra * 1024**2, 1)
+    slope, intercept = float(slope), float(intercept)
+    ratio = runs[-1]["summary"]["peak_pss_mb"] / runs[0]["summary"]["peak_pss_mb"]
+    derived = {"connector_bytes_per_file_estimate": slope,
+               "connector_fixed_overhead_bytes_estimate": intercept, "peak_memory_ratio": ratio,
+               "runs": [{"size": r["size"], "peak_components": r["peak_components"],
+                         "final_components": r["final_components"]} for r in runs]}
+    (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
+    args.assets.mkdir(parents=True, exist_ok=True)
+    fig, (ax, right) = plt.subplots(1, 2, figsize=(13.5, 4.8))
+    for run in runs:
+        s = run["summary"]
+        ax.plot([row["elapsed_s"] / 3600 for row in run["samples"]],
+                [row["pss_mb"] / 1024 for row in run["samples"]],
+                label=f"{run['label']} (peak {s['peak_pss_mb'] / 1024:.2f} GiB)")
+    ax.set(title="Indexer PSS over time", xlabel="hours", ylabel="PSS, GiB", ylim=(0, None))
+    ax.legend(fontsize=9)
+    right.scatter(files / 1000, extra, color="#5145ef", label="rank-0 private-memory excess (estimate)")
+    x = np.linspace(0, files.max() * 1.05, 100)
+    right.plot(x / 1000, (intercept + slope * x) / 1024**2, "--", color="#10a34a", label=f"fit: fixed overhead + ~{slope:.0f} bytes × files")
+    for run, xx, yy in zip(runs, files / 1000, extra):
+        dy = {'100mb': -16, '1gb': 0, '3gb': 12}.get(run['size'], 0)
+        right.annotate(run["label"], (xx, yy), xytext=(5, dy), textcoords="offset points", fontsize=9)
+    right.set(title="File-watch memory proxy", xlabel="watched files, thousands", ylabel="extra private memory, MiB")
+    right.legend(fontsize=8)
+    for axes in (ax, right):
+        axes.grid(alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(args.assets / "bench-memory.png", dpi=130)
+    plt.close(fig)
+
+    derived['10gb_embedder_breakdown'] = c
+    derived['10gb_indexer_without_local_embedder_mb_estimate'] = (
+        ten['summary']['peak_pss_mb'] - c['local_embedder_private_mb_estimate'] - c['local_embedder_shared_libraries_mb'])
+    (args.results / "derived.json").write_text(json.dumps(derived, indent=2) + "\n")
+    draw_breakdown(ten, c, derived['10gb_indexer_without_local_embedder_mb_estimate'],
+                   args.assets / 'bench-memory-breakdown.png')
+
+    published_table = table(runs)
+    (args.results / "table.md").write_text(published_table + "\n")
+    cutoff_note = ''
+    preparation_path = args.results / '50gb-preparation.json'
+    if preparation_path.exists():
+        preparation = json.loads(preparation_path.read_text())
+        if preparation.get('trimmed_trailing_documents'):
+            cutoff_note = """The 50 GB input restores the historical Portuguese/Dutch continuation and
+matches the archived file count and approximate page count. Strictly filling
+the nominal byte target adds 20 trailing Dutch articles (35,697 bytes);
+these are preserved outside the input to reproduce the published cutoff.
+`50gb-preparation.json` records the final boundary and the trimmed bytes
+and document count.
+"""
+    fifty_expected = json.loads((args.results / '50gb-expected-output.json').read_text())
+    notes = f"""# Indexing benchmark results
+
+Measured from {environment['started_utc']}, on {environment['logical_cpus']} logical CPUs.
+Exact CPU description, RAM, kernel, image ID and installed package versions:
+`run-environment.json`. Resolved compose configurations redact the license key.
+The workload, 180-second quiet window, 30-core activity threshold and
+approximate-counter timing formula are retained. The current completion
+detector also requires all input files to be parsed and, when an expected
+count is supplied, verifies the exact output count. Independent splitter
+counts match the saved final counts for all six sizes. The saved 50 GB run
+additionally records complete parsing progress and an exact Qdrant count;
+the five smaller runs record approximate backend counts.
+The separate 50 GB audit scanned {fifty_expected['documents']:,} frozen input files ({fifty_expected['corpus_bytes']:,}
+bytes) in the original immutable benchmark image and produced exactly
+{fifty_expected['exact_chunks']:,} chunks, matching the saved run and exact Qdrant count.
+It ran outside the measured indexing workload; memory and timing results
+are unchanged. `50gb-expected-output.json` records this independent audit.
+
+{published_table}
+
+Input labels retain the published nominal sizes: 1 GB means a target of
+1,000 MiB of text; 100 MB means 100 MiB. Memory and disk columns use GiB;
+CSV columns ending in `_mb` contain MiB. Pages use 2,000 bytes per page.
+{cutoff_note}
+Peaks are the maximum sampled total PSS, not kernel high-water marks.
+Sampling continues through the existing completion window.
+Only indexer processes are included: Qdrant and API-server memory, unmapped
+filesystem cache and kernel memory are outside this measurement. It is not
+a RAM requirement for the whole stack. Sampling starts after server readiness;
+each iteration includes a three-second sleep plus collection and polling
+overhead, so brief peaks may be missed.
+The chunk-count methodology is unchanged: the summary uses Qdrant's
+approximate count at completion, while CSV `chunks` retains the maximum
+observed count used by the completion detector. Segment optimization can
+reduce approximate counts, so these two fields need not be identical;
+`max_observed_chunks` records the CSV's value in the summary explicitly.
+
+Published indexing time is an estimate: elapsed time from before launching
+the indexer and server to the last increase in the running maximum of the
+approximate chunk count. Preparation, model downloads and Qdrant startup are
+outside this interval. A temporary overcount can make the last new maximum
+precede the final write. Checking the exact output count at completion does
+not revise that timestamp or measure when the backend's search index is ready.
+The saved timing values retain this definition.
+
+`*-memory.csv` and `*-processes.jsonl.gz` record aggregate and per-process
+measurements at the same times; `*-summary.json` includes the process snapshot
+at peak PSS. `*-indexer.txt.gz` contains the local container log and is
+excluded from Git. Measurements, derived values, this report and the two
+published figures in `docs/assets/` are committed. Per-size `*-memory.png`
+plots, the standalone `table.md` and `consistency-check.json` stay local and
+are ignored by Git; they can be regenerated from the saved measurements.
+
+One final run per corpus size is published, without an estimate of run-to-run
+variability. File count and text volume both change across sizes, so these
+measurements do not establish constant memory at a fixed file count. They
+describe this local static-embedding model, plain-text workload and configuration.
+The product splitter merges trailing fragments shorter than 100 characters
+into the preceding chunk; older published measurements predate that behavior.
+Differences in chunk counts, disk usage and timing therefore cannot be
+attributed to allocator tuning alone.
+
+The saved runs do not establish a controlled cold-cache result. Fresh database
+and persistence state do not imply a cold operating-system cache. The current
+rerun driver reads the entire corpus to count expected chunks before indexing,
+which can warm that cache. Saved image IDs and key package versions identify
+the measured environment; the build recipe still uses floating image tags
+and dependency versions, and model and dataset downloads have no pinned
+revision. A future rebuild can use different software or inputs.
+
+The right panel estimates file-watch memory as rank 0's private-page excess
+over the median of the seven other workers at the final sample. It includes
+any other unequal worker allocations; it is not an allocation-level measurement.
+The line is a least-squares fit with an intercept (~{slope:.0f} bytes per file;
+fixed overhead estimate {intercept / 1024**2:.1f} MiB).
+The pie attributes local-embedding private memory using an eight-process
+controlled diagnostic in the same image: graph imports before the embedder,
+UTF-8 parser and configured splitter initialized and warmed, embedding
+runtime imported, model loaded and warmed on three 2,048-text batches, then
+model released. `embedder-calibration.json` records all stages. The private
+increment after warming estimates the local stack's private cost across eight
+workers. This is capped at the observed non-file-watch worker private memory
+minus the calibrated pre-embedder baseline, since live and diagnostic buffers
+have different lifetimes. Supervisor private pages are left in the residual;
+any embedding allocations there are not subtracted speculatively.
+Shared embedding-library PSS starts from mapping samples at the 10 GB peak
+and is capped by the diagnostic's shared-library increment, so libraries
+already needed by the parser are retained in the residual. Other shared
+pages are separated. Anonymous attribution
+and the indexer-without-local-embedder figure are estimates, not an actual
+external-service benchmark; client overhead and changes in working buffers
+are not measured. The embedding service's own memory is outside that figure.
+Derived values are saved in `derived.json`.
+
+Regenerate with `python plot_results.py --update-readme`.
+The script checks CSV peaks, chunk counts and process snapshots against summaries
+and requires all six sizes before updating the publication.
+Run `python verify_results.py` directly from a checkout to audit every process
+sample, both published tables and the pie sum. It does not require a benchmark
+rerun or regenerated per-size plots. It prints the result and writes a local
+`consistency-check.json` with hashes of both published figures.
+"""
+    (args.results / "README.md").write_text(notes)
+    if args.update_readme:
+        readme = REPO / "README.md"
+        text = readme.read_text()
+        start = text.index("| corpus", text.index("### Indexing resources"))
+        end = text.index("### Retrieval accuracy", start)
+        versions = environment["versions"]
+        replacement = f"""{published_table}
+
+The table and both figures come from the same six runs. Raw summaries,
+memory samples, per-process snapshots and resolved configurations are in
+[results](benchmarks/realtime-data-indexing/results/README.md).
+One final run per size is published; run-to-run variability was not measured.
+Memory and disk sizes use GiB; input labels are nominal targets
+(1 GB = 1,000 MiB of extracted text). A page is approximately 2,000 bytes.
+Chunks are Qdrant's approximate count at completion; the per-size curves
+retain the maximum observed count used by the completion detector.
+
+Documents flow through the pipeline rather than accumulating in it.
+The file-watch index retains metadata per watched file to detect edits and
+deletions, so its cost depends on file count. The right panel estimates this
+cost from the connector worker's extra private memory: the fitted slope is
+**~{slope:.0f} bytes per file**. This proxy also includes unequal worker
+buffers; it does not isolate individual allocations.
+
+The embedding runtime, engine and working buffers account for the worker
+baseline. The curves show how total memory evolves during indexing,
+including any steps as file-watch metadata and buffers grow.
+Parsed-text cache, persistence snapshots and stored embeddings live on disk.
+Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS**.
+Both file count and text volume change between sizes; this comparison does
+not establish constant memory usage.
+
+<p align="center">
+  <img src="docs/assets/bench-memory.png" alt="Measured indexer PSS over time for all six corpora; legends use the same peaks as the table. Right: estimated file-watch memory versus file count, fitted at approximately {slope:.0f} bytes per file." width="100%">
+</p>
+<p align="center"><em>All curves and table values come from the same runs with allocator background purging enabled. File-watch memory is estimated from rank-0 private-memory excess over the median of the other workers.</em></p>
+
+<p align="center">
+  <img src="docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
+</p>
+<p align="center"><em>Attribution at the sampled 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. The {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.2f} GiB estimate without the local embedder is calculated by subtraction, not measured in an external-embedder indexing run. It excludes the embedding service and does not measure client overhead or changes in working buffers. Shared pages are accounted for proportionally through PSS.</em></p>
+
+Setup: {environment['logical_cpus']}-logical-CPU host (see the saved CPU model),
+streaming mode, 8 worker processes with 12 OpenMP threads each,
+local `static-retrieval-mrl-en-v1` embeddings, Matryoshka-truncated to 256 dims,
+512-token chunks, Qdrant, and jemalloc `background_thread:true`.
+No embedding API calls. Installed versions: serviette {versions['serviette']},
+Pathway {versions['pathway']}, PyTorch {versions['torch']},
+sentence-transformers {versions['sentence-transformers']}.
+Peak memory is the maximum sampled PSS summed over the indexer container.
+Qdrant and API-server memory, unmapped filesystem cache and kernel memory
+are outside that measurement; it is not a RAM requirement for the whole stack.
+Brief peaks between samples may be missed.
+
+Indexing time is an estimate ending at the last increase in the running
+maximum of Qdrant's approximate chunk count. That moment can precede the
+final write; output-completeness checks do not revise the timestamp or
+measure when the backend's search index is ready. The recorded environment,
+cache conditions and limits on reproducing it are described in
+[the measurement notes](benchmarks/realtime-data-indexing/results/README.md).
+
+"""
+        readme.write_text(text[:start] + replacement + text[end:])
+    print(published_table)
+
+
+if __name__ == "__main__":
+    main()

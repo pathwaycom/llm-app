@@ -76,11 +76,11 @@ organisations such as
 [La Poste](https://pathway.com/success-stories/la-poste),
 [Transdev](https://pathway.com/success-stories/transdev) and
 [CMA CGM](https://pathway.com/success-stories/cma-cgm).
-serviette's own numbers are measured, not estimated: indexing
-up to 50 GB of text (26 million pages, 17 million files) in constant memory,
-retrieval accuracy on a public benchmark (FRAMES), eight vector databases
-under integration tests against real instances — all reproducible from this
-repository.
+serviette's benchmarks cover indexing up to 50 GB of text (26 million pages,
+17 million files), with indexer memory measured throughout the run, and
+retrieval accuracy on a public benchmark (FRAMES). Eight vector databases
+are under integration tests against real instances. Scripts, recorded results
+and measurement limitations are available in this repository.
 
 **Where it stands today.** It answers one question at a time, from the
 current state of the documents. Conversation memory, user accounts and a
@@ -207,62 +207,67 @@ every byte below is extracted text (a PDF collection with the same text
 content would weigh several times more) —
 see [benchmarks/realtime-data-indexing](https://github.com/pathwaycom/serviette/tree/main/benchmarks/realtime-data-indexing):
 
-| corpus | ≈ pages | files | chunks | indexing time | peak memory (PSS) | in Qdrant |
+| corpus target | ≈ pages | files | chunks (approx.) | indexing time | peak memory (PSS, GiB) | in Qdrant (GiB) |
 |---|---|---|---|---|---|---|
-| 100 MB | 52 000 | 12 969 | 66 136 | 39 s | 6.6 GB | 0.6 GB |
-| 1 GB | 524 000 | 240 516 | 836 595 | 4.8 min | 6.9 GB | 2.2 GB |
-| 3 GB | 1 573 000 | 841 890 | 2 703 850 | 15 min | 7.3 GB | 6.0 GB |
-| 10 GB | 5 243 000 | 3 423 359 | 10 093 514 | 58 min | 7.7 GB | 20.8 GB |
-| 30 GB | 15 729 000 | 9 202 620 | 29 817 294 | 2.9 h | 10.1 GB | 61.3 GB |
-| 50 GB | 26 214 000 | 17 083 603 | 53 913 774 | 5.5 h | 13.1 GB | 107.9 GB |
+| 100 MB | 52 431 | 12 969 | 53 651 | 44 s | 6.86 | 0.61 |
+| 1 GB | 524 288 | 240 516 | 604 299 | 4.9 min | 6.82 | 1.85 |
+| 3 GB | 1 572 864 | 841 890 | 1 888 846 | 15.4 min | 7.18 | 4.89 |
+| 10 GB | 5 242 884 | 3 423 359 | 6 761 214 | 1.0 h | 8.16 | 16.07 |
+| 30 GB | 15 728 646 | 9 202 620 | 20 933 962 | 3.1 h | 10.40 | 48.57 |
+| 50 GB | 26 214 382 | 17 083 603 | 37 472 786 | 6.0 h | 14.65 | 84.45 |
 
-Documents flow through the pipeline rather than accumulating in it, so
-what stays in memory is short and worth spelling out.
+The table and both figures come from the same six runs. Raw summaries,
+memory samples, per-process snapshots and resolved configurations are in
+[results](benchmarks/realtime-data-indexing/results/README.md).
+One final run per size is published; run-to-run variability was not measured.
+Memory and disk sizes use GiB; input labels are nominal targets
+(1 GB = 1,000 MiB of extracted text). A page is approximately 2,000 bytes.
+Chunks are Qdrant's approximate count at completion; the per-size curves
+retain the maximum observed count used by the completion detector.
 
-**Grows with the corpus — one thing.** The file-watch index: to detect live
-edits and deletions, the indexer keeps a record (path, mtime, size, owner)
-per watched file. Measured cost: **~318 bytes per file** (paths of typical
-length; ±20% with the hash-table's load factor), verified from 13 thousand
-to 17 million files (right-hand plot: six corpus sizes against one fitted
-line). It scales with the *number of files*, not bytes: the same corpus
-packed into fewer, larger files costs proportionally less.
+Documents flow through the pipeline rather than accumulating in it.
+The file-watch index retains metadata per watched file to detect edits and
+deletions, so its cost depends on file count. The right panel estimates this
+cost from the connector worker's extra private memory: the fitted slope is
+**~361 bytes per file**. This proxy also includes unequal worker
+buffers; it does not isolate individual allocations.
 
-**Constant, regardless of corpus size.** The embedding stack (PyTorch
-runtime + model, per worker), the engine baseline (~200 MB per process),
-connector machinery (~0.4 GB), and working buffers that reach a plateau in
-the first minutes of a run and stay there — identical on 3 GB and 10 GB.
-
-**On disk, not in memory.** Parsed-text cache, persistence snapshots, and
-the embeddings themselves (in the vector database). That is why the curves
-plateau: a **500× larger corpus costs 2.5× the memory** — and the growth
-that remains is the file-watch index above, i.e. the corpus in fewer files
-would cost less. Indexing time scales linearly with bytes throughout.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory.png" alt="Left: indexer PSS over time for corpora from 100 MB to 50 GB, from the run before the allocator tuning; every curve reaches its plateau in the first minutes and holds it for hours. Right: connector-worker extra memory across six corpus sizes follows ~318 bytes per watched file" width="100%">
-</p>
-<p align="center"><em>Curves from the run <strong>before</strong> the allocator tuning (peaks 6.6–16.4 GB); the table above has the final numbers from the tuned rerun (6.6–13.1 GB). The shape is the point: each curve reaches its plateau in the first minutes and holds it for the rest of the run — 5.5 hours for 50 GB.</em></p>
-
-The peak itself is dominated by the embedding stack, not the engine — a
-Pathway worker process is ~200 MB; the rest is the price of running
-embeddings locally (8 × PyTorch runtime + model), i.e. of paying no
-per-token API fees. Fewer workers or an API embedder shrink it accordingly.
+The embedding runtime, engine and working buffers account for the worker
+baseline. The curves show how total memory evolves during indexing,
+including any steps as file-watch metadata and buffers grow.
+Parsed-text cache, persistence snapshots and stored embeddings live on disk.
+Across these runs a **500× larger input target costs 2.1× the peak PSS**.
+Both file count and text volume change between sizes; this comparison does
+not establish constant memory usage.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pathwaycom/serviette/main/docs/assets/bench-memory-breakdown.png" alt="Breakdown of the 10 GB corpus peak as measured in the run before the allocator tuning (8.8 GB): three quarters is the local PyTorch embedding stack across 8 workers; file-watch metadata is about 1.1 GB; supervisors and shared code make up the rest" width="85%">
+  <img src="docs/assets/bench-memory.png" alt="Measured indexer PSS over time for all six corpora; legends use the same peaks as the table. Right: estimated file-watch memory versus file count, fitted at approximately 361 bytes per file." width="100%">
 </p>
-<p align="center"><em>Same earlier run (8.8 GB peak on the 10 GB corpus; 7.7 GB after tuning). The proportions are what matters here: the embedding stack dominates, the engine and the file-watch index are small.</em></p>
+<p align="center"><em>All curves and table values come from the same runs with allocator background purging enabled. File-watch memory is estimated from rank-0 private-memory excess over the median of the other workers.</em></p>
 
-Memory is measured as PSS (proportional set size) summed over the container:
-shared pages — e.g. the PyTorch libraries mapped by every worker — are
-counted once, not once per process. Setup: 96-core CPU host, streaming mode,
-8 worker processes, local `static-retrieval-mrl-en-v1` embeddings (no API
-calls; Matryoshka-truncated to 256 dims), 512-token chunks, Qdrant, and
-jemalloc's `background_thread` purging enabled in the indexer containers
-(measured free; it keeps idle workers from retaining freed pages). Numbers
-were measured on a nightly Pathway build whose engine matches the released
-wheel (pathway ≥ 0.32.1 — what the benchmark's docker image and the
-Development section install), so they are reproducible as-is.
+<p align="center">
+  <img src="docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's 8.16 GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
+</p>
+<p align="center"><em>Attribution at the sampled 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. The 3.27 GiB estimate without the local embedder is calculated by subtraction, not measured in an external-embedder indexing run. It excludes the embedding service and does not measure client overhead or changes in working buffers. Shared pages are accounted for proportionally through PSS.</em></p>
+
+Setup: 96-logical-CPU host (see the saved CPU model),
+streaming mode, 8 worker processes with 12 OpenMP threads each,
+local `static-retrieval-mrl-en-v1` embeddings, Matryoshka-truncated to 256 dims,
+512-token chunks, Qdrant, and jemalloc `background_thread:true`.
+No embedding API calls. Installed versions: serviette 0.1.7,
+Pathway 0.33.0, PyTorch 2.14.1,
+sentence-transformers 6.1.0.
+Peak memory is the maximum sampled PSS summed over the indexer container.
+Qdrant and API-server memory, unmapped filesystem cache and kernel memory
+are outside that measurement; it is not a RAM requirement for the whole stack.
+Brief peaks between samples may be missed.
+
+Indexing time is an estimate ending at the last increase in the running
+maximum of Qdrant's approximate chunk count. That moment can precede the
+final write; output-completeness checks do not revise the timestamp or
+measure when the backend's search index is ready. The recorded environment,
+cache conditions and limits on reproducing it are described in
+[the measurement notes](benchmarks/realtime-data-indexing/results/README.md).
 
 ### Retrieval accuracy (FRAMES)
 

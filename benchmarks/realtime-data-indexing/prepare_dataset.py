@@ -3,7 +3,7 @@
 
 Downloads Wikipedia parquet shards from Hugging Face (public, no auth, fast
 CDN) and explodes articles into one ``.txt`` file each until the requested
-size is reached — so the same script scales from 100 MB to 10 GB by changing
+size is reached — so the same script scales from 100 MB to 50 GB by changing
 ``--size-mb``. Also emits ``questions.json``: distinctive articles sampled
 across the corpus with queries that must retrieve exactly that file
 (retrieval-accuracy check for the benchmark).
@@ -24,7 +24,10 @@ HF_REPO = "wikimedia/wikipedia"
 # Language cascade: English alone tops out around 20 GB of plain text, so
 # larger corpora continue into further languages. Accuracy questions are
 # sampled from the head of the corpus, i.e. always from English.
-HF_CONFIGS = ["20231101.en", "20231101.de", "20231101.fr", "20231101.es", "20231101.it"]
+# The published 50 GB corpus also continues into Portuguese and Dutch.
+# The first five languages alone stop at about 45,324 MiB.
+HF_CONFIGS = ["20231101.en", "20231101.de", "20231101.fr", "20231101.es", "20231101.it",
+              "20231101.pt", "20231101.nl"]
 # Shard the docs tree: N files per subdirectory, so multi-million-file
 # corpora don't create a single pathological directory.
 FILES_PER_DIR = 10_000
@@ -103,6 +106,12 @@ def main() -> None:
                 )
             article_index += 1
 
+    (out / "preparation.json").write_text(json.dumps({
+        "target_bytes": target_bytes, "written_bytes": written,
+        "documents": article_index, "language_configs": HF_CONFIGS,
+    }, indent=2) + "\n")
+    if written < target_bytes:
+        raise RuntimeError(f"Corpus sources exhausted: {written} bytes < {target_bytes} target")
     (out / "questions.json").write_text(json.dumps(questions, indent=2))
     print(
         f"done: {article_index} files, {written / 1024 / 1024:.1f} MB, "

@@ -220,6 +220,16 @@ __marimo__/
 # benchmark datasets and results (large, generated)
 benchmarks/*/datasets/
 benchmarks/*/results/
+!benchmarks/realtime-data-indexing/results/
+benchmarks/realtime-data-indexing/results/.rerun.lock
+# Keep raw stdout/stderr logs local; commit only benchmark measurements/reports.
+benchmarks/realtime-data-indexing/results/**/*.txt.gz
+benchmarks/realtime-data-indexing/results/previous/
+benchmarks/realtime-data-indexing/results/diagnostics/
+# Local outputs regenerated from the committed measurements.
+benchmarks/realtime-data-indexing/results/*-memory.png
+benchmarks/realtime-data-indexing/results/table.md
+benchmarks/realtime-data-indexing/results/consistency-check.json
 benchmarks/*/compat/*.so
 
 # Runtime working directory of `serviette demo` (regenerable: corpus copy,

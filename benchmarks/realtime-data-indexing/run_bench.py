@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Run the real-time indexing benchmark and produce the memory report.
 
-Flow: start Qdrant → start the serviette indexer (static run over the dataset)
-and the serviette server → sample the indexer's memory (VmRSS + kernel-tracked
-peak VmHWM from /proc/1/status inside the container) every few seconds until
-it finishes → replay the accuracy questions through the server's /api/v1
+Flow: start Qdrant → start the streaming serviette indexer
+and server → sample total RSS/PSS and per-process memory every few seconds
+until indexing is complete → replay accuracy questions through /api/v1
 retrieve endpoint → write a memory-over-time plot, a CSV, and a JSON summary
 into ./results.
 
@@ -15,14 +14,109 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import subprocess
+import threading
 import time
 from pathlib import Path
 
 import httpx
 
 ROOT = Path(__file__).parent
+
+
+class _ParsingProgress:
+    """Observe cold-run input progress without entering the measured container."""
+
+    def __init__(self, container):
+        self.container = container
+        self.parsed_documents = 0
+        self.failed_documents = 0
+        self.last_change = 0.0
+        self.reader_error = None
+
+    def _observe(self, line):
+        if b'INFO:serviette.indexer.graph:parsed ' in line:
+            self.parsed_documents += 1
+            self.last_change = time.monotonic()
+        elif b'document is indexed as EMPTY' in line:
+            self.failed_documents += 1
+
+    def _read(self):
+        try:
+            for line in self.process.stdout:
+                self._observe(line)
+        except (OSError, ValueError) as exc:
+            self.reader_error = str(exc)
+
+    def __enter__(self):
+        self.process = subprocess.Popen(
+            ['docker', 'logs', '--follow', self.container],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.reader = threading.Thread(target=self._read, daemon=True)
+        self.reader.start()
+        return self
+
+    def __exit__(self, *_):
+        self.process.terminate()
+        try:
+            self.process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            self.process.kill()
+            self.process.wait()
+        self.reader.join(timeout=10)
+        self.process.stdout.close()
+
+
+def _ready_to_finish(*, documents, parsed_documents, chunks, last_change,
+                     last_busy, now, stats_available):
+    # A chunk-rich subset can exceed the number of input files. Require every
+    # file to have reached parsing before applying the existing quiet window.
+    return (stats_available and parsed_documents >= documents and chunks >= documents
+            and now - last_change >= STABLE_WINDOW
+            and now - last_busy >= STABLE_WINDOW)
+
+# Observe the same processes as the aggregate sampler, with worker ranks so
+# chart components can be traced to measurements. Never record full environs
+# or command lines: they may contain credentials.
+PROC_SAMPLE = r'''
+import json, os
+from pathlib import Path
+rows = []
+for proc in Path('/proc').iterdir():
+    if not proc.name.isdigit() or int(proc.name) == os.getpid():
+        continue
+    try:
+        env = dict(item.split(b'=', 1) for item in (proc / 'environ').read_bytes().split(b'\0') if b'=' in item)
+        row = {'pid': int(proc.name), 'worker_rank': int(env[b'PATHWAY_PROCESS_ID']) if b'PATHWAY_PROCESS_ID' in env else None}
+        for filename in ('status', 'smaps_rollup'):
+            for line in (proc / filename).read_text().splitlines():
+                if line.startswith(('VmRSS:', 'VmHWM:', 'Pss:', 'Private_Clean:', 'Private_Dirty:')):
+                    key, value = line.split(':', 1)
+                    row[key] = int(value.split()[0])
+        # File mappings identify shared local-embedding libraries. Anonymous
+        # allocations require a separate controlled initialization measurement.
+        groups = {'embedding': {'Pss': 0, 'private_kb': 0},
+                  'other': {'Pss': 0, 'private_kb': 0}}
+        group = 'other'
+        for line in (proc / 'smaps').read_text().splitlines():
+            parts = line.split()
+            if parts and '-' in parts[0] and ':' not in parts[0]:
+                path = parts[-1] if len(parts) >= 6 else ''
+                group = 'embedding' if any(part in path for part in
+                    ('/torch/', '/nvidia/', '/triton/', '/sentence_transformers/', '/tokenizers/', '/safetensors/',
+                     '/models--sentence-transformers--static-retrieval-mrl-en-v1/')) else 'other'
+            elif line.startswith('Pss:'):
+                groups[group]['Pss'] += int(parts[1])
+            elif line.startswith(('Private_Clean:', 'Private_Dirty:')):
+                groups[group]['private_kb'] += int(parts[1])
+        row['mapping_groups'] = groups
+        rows.append(row)
+    except (OSError, ValueError):
+        continue
+print(json.dumps(rows))
+'''
 SAMPLE_INTERVAL = 3.0
 # Streaming never exits; indexing is "done" when BOTH hold for this long:
 # the chunk counter stopped growing AND the indexer's CPU dropped to idle.
@@ -59,7 +153,7 @@ def _container_id(size: str, service: str) -> str:
     return out
 
 
-def _proc_status(container: str) -> dict[str, int] | None:
+def _proc_status(container: str) -> dict | None:
     """VmRSS/VmHWM (kB) summed over ALL processes in the container.
 
     With ``indexer.workers`` > 1 the container holds the spawn parent plus N
@@ -70,10 +164,10 @@ def _proc_status(container: str) -> dict[str, int] | None:
     """
 
     proc = subprocess.run(
-        ["docker", "exec", container, "sh", "-c",
-         "cat /proc/[0-9]*/status /proc/[0-9]*/smaps_rollup 2>/dev/null"],
+        ["docker", "exec", container, "python", "-c", PROC_SAMPLE],
         capture_output=True,
         text=True,
+        check=False,
     )
     if proc.returncode != 0:
         return None
@@ -81,10 +175,11 @@ def _proc_status(container: str) -> dict[str, int] | None:
     # worker) proportionally, so its sum is the honest physical footprint;
     # the VmRSS sum counts each shared page once per process.
     values = {"VmRSS": 0, "VmHWM": 0, "Pss": 0}
-    for line in proc.stdout.splitlines():
-        if line.startswith(("VmRSS:", "VmHWM:", "Pss:")):
-            key, rest = line.split(":", 1)
-            values[key] += int(rest.strip().split()[0])
+    rows = json.loads(proc.stdout)
+    for row in rows:
+        for key in values:
+            values[key] += row.get(key, 0)
+    values["processes"] = rows
     return values
 
 
@@ -95,6 +190,7 @@ def _proc_cpu_seconds(container: str) -> float | None:
         ["docker", "exec", container, "sh", "-c", "cat /proc/[0-9]*/stat"],
         capture_output=True,
         text=True,
+        check=False,
     )
     if proc.returncode != 0:
         return None
@@ -196,6 +292,8 @@ def main() -> None:
     parser.add_argument("--server-port", type=int, default=8300)
     parser.add_argument("--qdrant-port", type=int, default=8301)
     parser.add_argument("--keep-up", action="store_true", help="don't docker compose down")
+    parser.add_argument('--expected-chunks', type=int,
+                        help='Optional exact output count for a frozen corpus; validates completeness')
     args = parser.parse_args()
 
     import os as _os
@@ -207,6 +305,16 @@ def main() -> None:
     questions = json.loads((dataset / "questions.json").read_text())
     results_dir = ROOT / "results"
     results_dir.mkdir(exist_ok=True)
+    # Save the resolved setup without the license secret.
+    compose_config = _compose("config", "--format", "json", size=args.size, capture=True)
+    if compose_config.returncode:
+        raise SystemExit(compose_config.stderr)
+    resolved = json.loads(compose_config.stdout)
+    for service in resolved["services"].values():
+        env = service.get("environment", {})
+        if "PATHWAY_LICENSE_KEY" in env:
+            env["PATHWAY_LICENSE_KEY"] = "<redacted>"
+    (results_dir / f"{args.size}-compose.json").write_text(json.dumps(resolved, indent=2))
 
     import os
 
@@ -222,7 +330,8 @@ def main() -> None:
     # Pre-warm the HF model cache on the host: containers run HF_HUB_OFFLINE.
     import yaml as _yaml
 
-    model = _yaml.safe_load((ROOT / "config.yaml").read_text())["embedder"].get(
+    bench_config = _yaml.safe_load((ROOT / "config.yaml").read_text())
+    model = bench_config["embedder"].get(
         "model"
     )
     if model:
@@ -252,12 +361,14 @@ def main() -> None:
     base = f"http://127.0.0.1:{args.server_port}"
     _wait_http(f"{base}/api/v1/health", 180, "server not ready")
 
-    def _chunks() -> int:
+    def _chunks() -> int | None:
         try:
-            value = httpx.get(f"{base}/api/v1/stats", timeout=10).json().get("chunks")
-            return int(value) if value is not None else 0
+            response = httpx.get(f"{base}/api/v1/stats", timeout=10)
+            response.raise_for_status()
+            value = response.json().get("chunks")
+            return int(value) if value is not None else None
         except (httpx.HTTPError, ValueError):
-            return 0
+            return None
 
     # The indexer runs in its product mode — STREAMING — and never exits, so
     # "indexing finished" is detected by the chunk counter going stable: it
@@ -266,61 +377,92 @@ def main() -> None:
     # The CSV is appended live, so an interrupted run keeps its memory curve.
     csv_path = results_dir / f"{args.size}-memory.csv"
     csv_path.write_text("elapsed_s,rss_mb,hwm_mb,pss_mb,chunks\n")
+    process_path = results_dir / f"{args.size}-processes.jsonl.gz"
+    peak_processes = []
+    peak_pss_kb = -1
+    verified_exact_count = None
+    with _ParsingProgress(indexer) as parsing, gzip.open(process_path, "wt") as process_log:
 
-    samples: list[tuple[float, int, int, int, int]] = []  # (s, rss, hwm, pss, chunks)
-    last_count = 0
-    last_change = started
-    last_busy = started
-    prev_cpu: float | None = None
-    prev_time = started
-    cpu_seconds: float | None = None
-    while True:
-        status = _proc_status(indexer)
-        if status is None:
-            _compose("logs", "--tail", "50", "indexer", size=args.size)
-            raise SystemExit("indexer container exited unexpectedly")
-        now = time.monotonic()
-        count = _chunks()
-        if count > last_count:
-            last_count = count
-            last_change = now
-        cpu = _proc_cpu_seconds(indexer)
-        if cpu is not None:
-            if prev_cpu is not None and now > prev_time:
-                if (cpu - prev_cpu) / (now - prev_time) >= IDLE_CORES:
+        samples: list[tuple[float, int, int, int, int]] = []  # (s, rss, hwm, pss, chunks)
+        last_count = 0
+        last_change = started
+        last_busy = started
+        prev_cpu: float | None = None
+        prev_time = started
+        cpu_seconds: float | None = None
+        while True:
+            status = _proc_status(indexer)
+            if status is None:
+                _compose("logs", "--tail", "50", "indexer", size=args.size)
+                raise SystemExit("indexer container exited unexpectedly")
+            now = time.monotonic()
+            count = _chunks()
+            if parsing.failed_documents or parsing.reader_error:
+                raise RuntimeError('Input parsing failed or its progress could not be observed')
+            if parsing.process.poll() is not None:
+                raise RuntimeError('Input progress log stream ended unexpectedly')
+            if count is None:
+                # An unavailable stats endpoint is not evidence of inactivity.
+                last_busy = now
+            elif count > last_count:
+                last_count = count
+                last_change = now
+            cpu = _proc_cpu_seconds(indexer)
+            if cpu is not None:
+                if (prev_cpu is not None and now > prev_time
+                        and (cpu - prev_cpu) / (now - prev_time) >= IDLE_CORES):
                     last_busy = now
-            prev_cpu, prev_time, cpu_seconds = cpu, now, cpu
-        elapsed = now - started
-        sample = (
-            elapsed,
-            status.get("VmRSS", 0),
-            status.get("VmHWM", 0),
-            status.get("Pss", 0),
-            last_count,
-        )
-        samples.append(sample)
-        with csv_path.open("a") as fh:
-            fh.write(
-                f"{sample[0]:.1f},{sample[1] / 1024:.1f},{sample[2] / 1024:.1f},"
-                f"{sample[3] / 1024:.1f},{sample[4]}\n"
+                prev_cpu, prev_time, cpu_seconds = cpu, now, cpu
+            last_busy = max(last_busy, parsing.last_change)
+            elapsed = now - started
+            sample = (
+                elapsed,
+                status.get("VmRSS", 0),
+                status.get("VmHWM", 0),
+                status.get("Pss", 0),
+                last_count,
             )
-        print(
-            f"\r   t={elapsed:7.0f}s  rss={status.get('VmRSS', 0) / 1024:7.1f} MB  "
-            f"peak={status.get('VmHWM', 0) / 1024:7.1f} MB  chunks={last_count}",
-            end="",
-            flush=True,
-        )
-        if (
-            # Every document yields at least one chunk, so completion is
-            # impossible before the counter reaches the document count —
-            # this cleanly excludes the low-CPU initial-scan phase.
-            last_count >= docs_count
-            and now - last_change >= STABLE_WINDOW
-            and now - last_busy >= STABLE_WINDOW
-        ):
-            break
-        time.sleep(SAMPLE_INTERVAL)
-    print()
+            samples.append(sample)
+            process_log.write(json.dumps({"elapsed_s": elapsed, "processes": status["processes"],
+                                          "parsed_documents": parsing.parsed_documents,
+                                          "observed_chunks": count}) + "\n")
+            process_log.flush()
+            if sample[3] > peak_pss_kb:
+                peak_pss_kb = sample[3]
+                peak_processes = status["processes"]
+            with csv_path.open("a") as fh:
+                fh.write(
+                    f"{sample[0]:.1f},{sample[1] / 1024:.1f},{sample[2] / 1024:.1f},"
+                    f"{sample[3] / 1024:.1f},{sample[4]}\n"
+                )
+            print(
+                f"\r   t={elapsed:7.0f}s  rss={status.get('VmRSS', 0) / 1024:7.1f} MB  "
+                f"peak={status.get('VmHWM', 0) / 1024:7.1f} MB  chunks={last_count} "
+                f"parsed={parsing.parsed_documents}/{docs_count}",
+                end="",
+                flush=True,
+            )
+            if _ready_to_finish(documents=docs_count, parsed_documents=parsing.parsed_documents,
+                                chunks=last_count, last_change=last_change, last_busy=last_busy,
+                                now=now, stats_available=count is not None):
+                if args.expected_chunks is not None:
+                    collection = bench_config['vector_db']['collection']
+                    response = httpx.post(
+                        f'http://127.0.0.1:{args.qdrant_port}/collections/{collection}/points/count',
+                        json={'exact': True}, timeout=120)
+                    response.raise_for_status()
+                    verified_exact_count = response.json()['result']['count']
+                    if verified_exact_count > args.expected_chunks:
+                        raise RuntimeError('Output exceeds the expected frozen-corpus point count')
+                    if verified_exact_count < args.expected_chunks:
+                        last_busy = time.monotonic()
+                        time.sleep(SAMPLE_INTERVAL)
+                        continue
+                    (results_dir / f"{args.size}-postrun-qdrant.json").write_text(
+                        json.dumps({"exact_count": response.json()}, indent=2) + "\n")
+                break
+            time.sleep(SAMPLE_INTERVAL)
+        print()
     duration = last_change - started
 
     # Vector-DB footprint: on-disk storage inside the qdrant container.
@@ -329,6 +471,7 @@ def main() -> None:
         ["docker", "exec", qdrant, "du", "-sb", "/qdrant/storage"],
         capture_output=True,
         text=True,
+        check=False,
     )
     db_bytes = int(du.stdout.split()[0]) if du.returncode == 0 and du.stdout else None
 
@@ -346,15 +489,27 @@ def main() -> None:
         "dataset": args.size,
         "corpus_mb": round(size_mb, 1),
         "documents": docs_count,
+        "parsed_documents": parsing.parsed_documents,
+        "expected_chunks": args.expected_chunks,
+        "verified_exact_chunks": verified_exact_count,
         "chunks": stats.get("chunks"),
+        "max_observed_chunks": last_count,
+        "chunk_count_metric": "Qdrant approximate count at completion; CSV chunks is the maximum observed count",
         "indexing_seconds": round(duration, 1),
         "throughput_mb_per_min": round(size_mb / (duration / 60), 2),
         "peak_rss_mb": round(peak_mb, 1),
         # Honest physical peak: shared pages divided among processes.
         "peak_pss_mb": round(peak_pss_mb, 1),
+        "peak_processes": peak_processes,
+        "peak_elapsed_s": max(samples, key=lambda s: s[3])[0],
+        "jemalloc_conf": os.environ.get("BENCH_JEMALLOC_CONF", ""),
+        "omp_threads": int(os.environ.get("BENCH_OMP_THREADS", "12")),
         "indexer_cpu_seconds": round(cpu_seconds, 1) if cpu_seconds else None,
         "avg_parallelism": round(cpu_seconds / duration, 1) if cpu_seconds else None,
         "vector_db_disk_mb": round(db_bytes / 1024 / 1024, 1) if db_bytes else None,
+        "qdrant_image_id": subprocess.check_output(
+            ["docker", "inspect", "--format", "{{.Image}}", qdrant], text=True
+        ).strip(),
         "vector_db_mb_per_corpus_mb": (
             round(db_bytes / 1024 / 1024 / size_mb, 2) if db_bytes else None
         ),
@@ -374,14 +529,14 @@ def main() -> None:
 
     fig, ax = plt.subplots(figsize=(9, 4.5))
     minutes = [s[0] / 60 for s in samples]
-    ax.plot(minutes, [s[1] / 1024 for s in samples], label="indexer RSS", linewidth=1.8)
-    ax.axhline(peak_mb, linestyle="--", linewidth=1, alpha=0.6, label=f"peak {peak_mb:.0f} MB")
+    ax.plot(minutes, [s[3] / 1024**2 for s in samples], label="indexer PSS", linewidth=1.8)
+    ax.axhline(peak_pss_mb / 1024, linestyle="--", linewidth=1, alpha=0.6, label=f"peak {peak_pss_mb / 1024:.2f} GiB")
     ax.set_xlabel("minutes since start")
-    ax.set_ylabel("memory, MB")
+    ax.set_ylabel("memory (PSS), GiB")
     ax.set_ylim(bottom=0)
     ax2 = ax.twinx()
-    ax2.plot(minutes, [s[4] for s in samples], color="tab:green", alpha=0.6, linewidth=1.4, label="chunks in DB")
-    ax2.set_ylabel("chunks indexed")
+    ax2.plot(minutes, [s[4] for s in samples], color="tab:green", alpha=0.6, linewidth=1.4, label="maximum observed chunks")
+    ax2.set_ylabel("maximum observed chunks")
     ax2.set_ylim(bottom=0)
     ax.set_title(f"serviette indexer — {args.size} corpus ({docs_count} docs, streaming)")
     lines, labels = ax.get_legend_handles_labels()
@@ -394,6 +549,11 @@ def main() -> None:
 
     print(json.dumps(summary, indent=2))
     print(f"plot: {plot_path}\ncsv:  {csv_path}")
+
+    logs = _compose("logs", "--no-color", "indexer", size=args.size, capture=True)
+    with gzip.open(results_dir / f"{args.size}-indexer.txt.gz", "wt") as fh:
+        fh.write(logs.stdout)
+        fh.write(logs.stderr)
 
     if not args.keep_up:
         _compose("down", "-v", size=args.size)

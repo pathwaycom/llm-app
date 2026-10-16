@@ -248,7 +248,7 @@ string, which would only surface later as a provider 401).
 | `splitter.chunk_size` | int | `512` | indexer | Max chunk size (tokens). |
 | `splitter.chunk_overlap` | int | `50` | indexer | Overlap (used by `recursive`). |
 | `indexer.fetch_retries` | int | `3` | indexer | Retries (exponential backoff from 1s) of a document's byte fetch before it is given up on: indexed as empty and ERROR-logged. Remote sources fail transiently under bulk backfills. |
-| `indexer.workers` | int | `1` | indexer | Worker **processes** (sharded via `pathway spawn`). Raise for large backfills — each worker carries its own embedding stack (~1 GB with local embeddings); the benchmarks run with `8`. |
+| `indexer.workers` | int | `1` | indexer | Worker **processes** (sharded via `pathway spawn`). Raise for large backfills — each worker carries its own local embedding stack; memory depends on the model, and library pages may be shared. The benchmarks run with `8`. |
 | `workdir_path` | str | `./serviette-workdir` | indexer | serviette's working directory — everything it keeps between runs: the configuration fingerprint at its top level, the Pathway persistence state (and the parse cache, `runtime_calls/`) under `persistence/`. Relative to the process's working directory. Silent default — the wizard does not ask. |
 | `persistence.enabled` | bool | `true` | indexer | See [Persistence](#5-persistence). |
 | `persistence.backend` | `filesystem` | `filesystem` | indexer | Persistence backend. |
