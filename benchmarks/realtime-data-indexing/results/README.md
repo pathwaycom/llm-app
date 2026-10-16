@@ -4,10 +4,12 @@ Measured from 2026-10-12T19:00:22.529304+00:00, on 96 logical CPUs.
 Exact CPU description, RAM, kernel, image ID and installed package versions:
 `run-environment.json`. Resolved compose configurations redact the license key.
 The workload, 180-second quiet window, 30-core activity threshold and
-last-counter-increase time formula are retained. Completion also requires
-all input files to be parsed; the repeated 50 GB run verifies its exact
-output against the frozen-corpus count. Only complete final runs are included.
-Independent splitter counts confirm complete output for all six sizes.
+approximate-counter timing formula are retained. The current completion
+detector also requires all input files to be parsed and, when an expected
+count is supplied, verifies the exact output count. Independent splitter
+counts match the saved final counts for all six sizes. The saved 50 GB run
+additionally records complete parsing progress and an exact Qdrant count;
+the five smaller runs record approximate backend counts.
 The separate 50 GB audit scanned 17,083,603 frozen input files (52,428,765,709
 bytes) in the original immutable benchmark image and produced exactly
 37,472,786 chunks, matching the saved run and exact Qdrant count.
@@ -35,16 +37,49 @@ and document count.
 
 Peaks are the maximum sampled total PSS, not kernel high-water marks.
 Sampling continues through the existing completion window.
+Only indexer processes are included: Qdrant and API-server memory, unmapped
+filesystem cache and kernel memory are outside this measurement. It is not
+a RAM requirement for the whole stack. Sampling starts after server readiness;
+each iteration includes a three-second sleep plus collection and polling
+overhead, so brief peaks may be missed.
 The chunk-count methodology is unchanged: the summary uses Qdrant's
 approximate count at completion, while CSV `chunks` retains the maximum
 observed count used by the completion detector. Segment optimization can
 reduce approximate counts, so these two fields need not be identical;
 `max_observed_chunks` records the CSV's value in the summary explicitly.
 
+Published indexing time is an estimate: elapsed time from before launching
+the indexer and server to the last increase in the running maximum of the
+approximate chunk count. Preparation, model downloads and Qdrant startup are
+outside this interval. A temporary overcount can make the last new maximum
+precede the final write. Checking the exact output count at completion does
+not revise that timestamp or measure when the backend's search index is ready.
+The saved timing values retain this definition.
+
 `*-memory.csv` and `*-processes.jsonl.gz` record aggregate and per-process
 measurements at the same times; `*-summary.json` includes the process snapshot
 at peak PSS. `*-indexer.txt.gz` contains the local container log and is
-excluded from Git; only measurements, derived reports and plots are committed.
+excluded from Git. Measurements, derived values, this report and the two
+published figures in `docs/assets/` are committed. Per-size `*-memory.png`
+plots, the standalone `table.md` and `consistency-check.json` stay local and
+are ignored by Git; they can be regenerated from the saved measurements.
+
+One final run per corpus size is published, without an estimate of run-to-run
+variability. File count and text volume both change across sizes, so these
+measurements do not establish constant memory at a fixed file count. They
+describe this local static-embedding model, plain-text workload and configuration.
+The product splitter merges trailing fragments shorter than 100 characters
+into the preceding chunk; older published measurements predate that behavior.
+Differences in chunk counts, disk usage and timing therefore cannot be
+attributed to allocator tuning alone.
+
+The saved runs do not establish a controlled cold-cache result. Fresh database
+and persistence state do not imply a cold operating-system cache. The current
+rerun driver reads the entire corpus to count expected chunks before indexing,
+which can warm that cache. Saved image IDs and key package versions identify
+the measured environment; the build recipe still uses floating image tags
+and dependency versions, and model and dataset downloads have no pinned
+revision. A future rebuild can use different software or inputs.
 
 The right panel estimates file-watch memory as rank 0's private-page excess
 over the median of the seven other workers at the final sample. It includes
@@ -73,6 +108,7 @@ Derived values are saved in `derived.json`.
 Regenerate with `python plot_results.py --update-readme`.
 The script checks CSV peaks, chunk counts and process snapshots against summaries
 and requires all six sizes before updating the publication.
-Run `python verify_results.py` after regeneration to audit every process sample,
-all published tables and the pie sum; `consistency-check.json` records the
-result and hashes of both published figures.
+Run `python verify_results.py` directly from a checkout to audit every process
+sample, both published tables and the pie sum. It does not require a benchmark
+rerun or regenerated per-size plots. It prints the result and writes a local
+`consistency-check.json` with hashes of both published figures.

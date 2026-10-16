@@ -11,7 +11,7 @@ def verify():
     results = ROOT / "results"
     runs = load(results)
     published = table(runs)
-    for path in [REPO / "README.md", results / "README.md", results / "table.md"]:
+    for path in [REPO / "README.md", results / "README.md"]:
         assert published in path.read_text(), f"Different table in {path}"
     audited = []
     for run in runs:
@@ -46,7 +46,6 @@ def verify():
         assert abs(peak_time - summary["peak_elapsed_s"]) <= 0.11
         assert abs(last_increase - summary["indexing_seconds"]) <= 0.11
         assert abs(sum(run["peak_components"].values()) - peak) <= 0.11
-        assert (results / f"{size}-memory.png").is_file()
         audited.append({"size": size, "samples_checked": count,
                         "peak_pss_gib": summary["peak_pss_mb"] / 1024,
                         "last_chunk_increase_seconds": last_increase})

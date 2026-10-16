@@ -288,10 +288,12 @@ Measured from {environment['started_utc']}, on {environment['logical_cpus']} log
 Exact CPU description, RAM, kernel, image ID and installed package versions:
 `run-environment.json`. Resolved compose configurations redact the license key.
 The workload, 180-second quiet window, 30-core activity threshold and
-last-counter-increase time formula are retained. Completion also requires
-all input files to be parsed; the repeated 50 GB run verifies its exact
-output against the frozen-corpus count. Only complete final runs are included.
-Independent splitter counts confirm complete output for all six sizes.
+approximate-counter timing formula are retained. The current completion
+detector also requires all input files to be parsed and, when an expected
+count is supplied, verifies the exact output count. Independent splitter
+counts match the saved final counts for all six sizes. The saved 50 GB run
+additionally records complete parsing progress and an exact Qdrant count;
+the five smaller runs record approximate backend counts.
 The separate 50 GB audit scanned {fifty_expected['documents']:,} frozen input files ({fifty_expected['corpus_bytes']:,}
 bytes) in the original immutable benchmark image and produced exactly
 {fifty_expected['exact_chunks']:,} chunks, matching the saved run and exact Qdrant count.
@@ -306,16 +308,49 @@ CSV columns ending in `_mb` contain MiB. Pages use 2,000 bytes per page.
 {cutoff_note}
 Peaks are the maximum sampled total PSS, not kernel high-water marks.
 Sampling continues through the existing completion window.
+Only indexer processes are included: Qdrant and API-server memory, unmapped
+filesystem cache and kernel memory are outside this measurement. It is not
+a RAM requirement for the whole stack. Sampling starts after server readiness;
+each iteration includes a three-second sleep plus collection and polling
+overhead, so brief peaks may be missed.
 The chunk-count methodology is unchanged: the summary uses Qdrant's
 approximate count at completion, while CSV `chunks` retains the maximum
 observed count used by the completion detector. Segment optimization can
 reduce approximate counts, so these two fields need not be identical;
 `max_observed_chunks` records the CSV's value in the summary explicitly.
 
+Published indexing time is an estimate: elapsed time from before launching
+the indexer and server to the last increase in the running maximum of the
+approximate chunk count. Preparation, model downloads and Qdrant startup are
+outside this interval. A temporary overcount can make the last new maximum
+precede the final write. Checking the exact output count at completion does
+not revise that timestamp or measure when the backend's search index is ready.
+The saved timing values retain this definition.
+
 `*-memory.csv` and `*-processes.jsonl.gz` record aggregate and per-process
 measurements at the same times; `*-summary.json` includes the process snapshot
 at peak PSS. `*-indexer.txt.gz` contains the local container log and is
-excluded from Git; only measurements, derived reports and plots are committed.
+excluded from Git. Measurements, derived values, this report and the two
+published figures in `docs/assets/` are committed. Per-size `*-memory.png`
+plots, the standalone `table.md` and `consistency-check.json` stay local and
+are ignored by Git; they can be regenerated from the saved measurements.
+
+One final run per corpus size is published, without an estimate of run-to-run
+variability. File count and text volume both change across sizes, so these
+measurements do not establish constant memory at a fixed file count. They
+describe this local static-embedding model, plain-text workload and configuration.
+The product splitter merges trailing fragments shorter than 100 characters
+into the preceding chunk; older published measurements predate that behavior.
+Differences in chunk counts, disk usage and timing therefore cannot be
+attributed to allocator tuning alone.
+
+The saved runs do not establish a controlled cold-cache result. Fresh database
+and persistence state do not imply a cold operating-system cache. The current
+rerun driver reads the entire corpus to count expected chunks before indexing,
+which can warm that cache. Saved image IDs and key package versions identify
+the measured environment; the build recipe still uses floating image tags
+and dependency versions, and model and dataset downloads have no pinned
+revision. A future rebuild can use different software or inputs.
 
 The right panel estimates file-watch memory as rank 0's private-page excess
 over the median of the seven other workers at the final sample. It includes
@@ -344,9 +379,10 @@ Derived values are saved in `derived.json`.
 Regenerate with `python plot_results.py --update-readme`.
 The script checks CSV peaks, chunk counts and process snapshots against summaries
 and requires all six sizes before updating the publication.
-Run `python verify_results.py` after regeneration to audit every process sample,
-all published tables and the pie sum; `consistency-check.json` records the
-result and hashes of both published figures.
+Run `python verify_results.py` directly from a checkout to audit every process
+sample, both published tables and the pie sum. It does not require a benchmark
+rerun or regenerated per-size plots. It prints the result and writes a local
+`consistency-check.json` with hashes of both published figures.
 """
     (args.results / "README.md").write_text(notes)
     if args.update_readme:
@@ -360,6 +396,7 @@ result and hashes of both published figures.
 The table and both figures come from the same six runs. Raw summaries,
 memory samples, per-process snapshots and resolved configurations are in
 [results](benchmarks/realtime-data-indexing/results/README.md).
+One final run per size is published; run-to-run variability was not measured.
 Memory and disk sizes use GiB; input labels are nominal targets
 (1 GB = 1,000 MiB of extracted text). A page is approximately 2,000 bytes.
 Chunks are Qdrant's approximate count at completion; the per-size curves
@@ -377,6 +414,8 @@ baseline. The curves show how total memory evolves during indexing,
 including any steps as file-watch metadata and buffers grow.
 Parsed-text cache, persistence snapshots and stored embeddings live on disk.
 Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS**.
+Both file count and text volume change between sizes; this comparison does
+not establish constant memory usage.
 
 <p align="center">
   <img src="docs/assets/bench-memory.png" alt="Measured indexer PSS over time for all six corpora; legends use the same peaks as the table. Right: estimated file-watch memory versus file count, fitted at approximately {slope:.0f} bytes per file." width="100%">
@@ -386,7 +425,7 @@ Across these runs a **500× larger input target costs {ratio:.1f}× the peak PSS
 <p align="center">
   <img src="docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's {ten['summary']['peak_pss_mb'] / 1024:.2f} GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
 </p>
-<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. Without the local embedder the indexer's footprint is estimated at {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.2f} GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
+<p align="center"><em>Attribution at the sampled 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. The {derived['10gb_indexer_without_local_embedder_mb_estimate'] / 1024:.2f} GiB estimate without the local embedder is calculated by subtraction, not measured in an external-embedder indexing run. It excludes the embedding service and does not measure client overhead or changes in working buffers. Shared pages are accounted for proportionally through PSS.</em></p>
 
 Setup: {environment['logical_cpus']}-logical-CPU host (see the saved CPU model),
 streaming mode, 8 worker processes with 12 OpenMP threads each,
@@ -396,8 +435,16 @@ No embedding API calls. Installed versions: serviette {versions['serviette']},
 Pathway {versions['pathway']}, PyTorch {versions['torch']},
 sentence-transformers {versions['sentence-transformers']}.
 Peak memory is the maximum sampled PSS summed over the indexer container.
-Indexing time uses the existing streaming completion criterion; see the
-benchmark scripts and saved results for the full setup.
+Qdrant and API-server memory, unmapped filesystem cache and kernel memory
+are outside that measurement; it is not a RAM requirement for the whole stack.
+Brief peaks between samples may be missed.
+
+Indexing time is an estimate ending at the last increase in the running
+maximum of Qdrant's approximate chunk count. That moment can precede the
+final write; output-completeness checks do not revise the timestamp or
+measure when the backend's search index is ready. The recorded environment,
+cache conditions and limits on reproducing it are described in
+[the measurement notes](benchmarks/realtime-data-indexing/results/README.md).
 
 """
         readme.write_text(text[:start] + replacement + text[end:])

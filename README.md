@@ -76,11 +76,11 @@ organisations such as
 [La Poste](https://pathway.com/success-stories/la-poste),
 [Transdev](https://pathway.com/success-stories/transdev) and
 [CMA CGM](https://pathway.com/success-stories/cma-cgm).
-serviette's own numbers are measured, not estimated: indexing
-up to 50 GB of text (26 million pages, 17 million files) in constant memory,
-retrieval accuracy on a public benchmark (FRAMES), eight vector databases
-under integration tests against real instances — all reproducible from this
-repository.
+serviette's benchmarks cover indexing up to 50 GB of text (26 million pages,
+17 million files), with indexer memory measured throughout the run, and
+retrieval accuracy on a public benchmark (FRAMES). Eight vector databases
+are under integration tests against real instances. Scripts, recorded results
+and measurement limitations are available in this repository.
 
 **Where it stands today.** It answers one question at a time, from the
 current state of the documents. Conversation memory, user accounts and a
@@ -219,6 +219,7 @@ see [benchmarks/realtime-data-indexing](https://github.com/pathwaycom/serviette/
 The table and both figures come from the same six runs. Raw summaries,
 memory samples, per-process snapshots and resolved configurations are in
 [results](benchmarks/realtime-data-indexing/results/README.md).
+One final run per size is published; run-to-run variability was not measured.
 Memory and disk sizes use GiB; input labels are nominal targets
 (1 GB = 1,000 MiB of extracted text). A page is approximately 2,000 bytes.
 Chunks are Qdrant's approximate count at completion; the per-size curves
@@ -236,6 +237,8 @@ baseline. The curves show how total memory evolves during indexing,
 including any steps as file-watch metadata and buffers grow.
 Parsed-text cache, persistence snapshots and stored embeddings live on disk.
 Across these runs a **500× larger input target costs 2.1× the peak PSS**.
+Both file count and text volume change between sizes; this comparison does
+not establish constant memory usage.
 
 <p align="center">
   <img src="docs/assets/bench-memory.png" alt="Measured indexer PSS over time for all six corpora; legends use the same peaks as the table. Right: estimated file-watch memory versus file count, fitted at approximately 361 bytes per file." width="100%">
@@ -245,7 +248,7 @@ Across these runs a **500× larger input target costs 2.1× the peak PSS**.
 <p align="center">
   <img src="docs/assets/bench-memory-breakdown.png" alt="Breakdown at the 10 GB run's 8.16 GiB PSS peak: estimated local-embedder private and shared memory, estimated file-watch memory, remaining private memory and other shared pages." width="85%">
 </p>
-<p align="center"><em>Attribution at the actual 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. Without the local embedder the indexer's footprint is estimated at 3.27 GiB, excluding the embedding service itself. Shared pages are counted once through PSS.</em></p>
+<p align="center"><em>Attribution at the sampled 10 GB peak. Local-embedder memory is estimated from a separate eight-process initialization diagnostic and library mappings; libraries already needed without the embedder remain in the residual. The 3.27 GiB estimate without the local embedder is calculated by subtraction, not measured in an external-embedder indexing run. It excludes the embedding service and does not measure client overhead or changes in working buffers. Shared pages are accounted for proportionally through PSS.</em></p>
 
 Setup: 96-logical-CPU host (see the saved CPU model),
 streaming mode, 8 worker processes with 12 OpenMP threads each,
@@ -255,8 +258,16 @@ No embedding API calls. Installed versions: serviette 0.1.7,
 Pathway 0.33.0, PyTorch 2.14.1,
 sentence-transformers 6.1.0.
 Peak memory is the maximum sampled PSS summed over the indexer container.
-Indexing time uses the existing streaming completion criterion; see the
-benchmark scripts and saved results for the full setup.
+Qdrant and API-server memory, unmapped filesystem cache and kernel memory
+are outside that measurement; it is not a RAM requirement for the whole stack.
+Brief peaks between samples may be missed.
+
+Indexing time is an estimate ending at the last increase in the running
+maximum of Qdrant's approximate chunk count. That moment can precede the
+final write; output-completeness checks do not revise the timestamp or
+measure when the backend's search index is ready. The recorded environment,
+cache conditions and limits on reproducing it are described in
+[the measurement notes](benchmarks/realtime-data-indexing/results/README.md).
 
 ### Retrieval accuracy (FRAMES)
 

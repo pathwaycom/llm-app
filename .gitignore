@@ -226,6 +226,10 @@ benchmarks/realtime-data-indexing/results/.rerun.lock
 benchmarks/realtime-data-indexing/results/**/*.txt.gz
 benchmarks/realtime-data-indexing/results/previous/
 benchmarks/realtime-data-indexing/results/diagnostics/
+# Local outputs regenerated from the committed measurements.
+benchmarks/realtime-data-indexing/results/*-memory.png
+benchmarks/realtime-data-indexing/results/table.md
+benchmarks/realtime-data-indexing/results/consistency-check.json
 benchmarks/*/compat/*.so
 
 # Runtime working directory of `serviette demo` (regenerable: corpus copy,
